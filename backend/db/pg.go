@@ -6,10 +6,10 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/urento/shoppinglist/util"
+	util "github.com/urento/shoppinglist/pkg"
 )
 
-var DB *pgxpool.Pool = nil
+var DB *pgxpool.Pool
 
 func Connect() {
 	var err error

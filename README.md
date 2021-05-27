@@ -1,2 +1,3 @@
 # ShoppingList
-This Project is to mostly learn Go and Google Cloud Functions
+
+This Project is to mostly learn Go and React Native
