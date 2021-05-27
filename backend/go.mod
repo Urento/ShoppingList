@@ -3,7 +3,9 @@ module github.com/urento/shoppinglist
 go 1.16
 
 require (
+	github.com/astaxie/beego v1.12.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.7.2 // indirect
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
@@ -22,6 +24,7 @@ require (
 	github.com/swaggo/gin-swagger v1.2.0 // indirect
 	github.com/swaggo/swag v1.7.0 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
+	github.com/unknwon/com v1.0.1 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sys v0.0.0-20210525143221-35b2ab0089ea // indirect
@@ -29,4 +32,5 @@ require (
 	golang.org/x/tools v0.1.2 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gorm.io/gorm v1.21.10 // indirect
 )
