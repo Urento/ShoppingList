@@ -1,4 +1,4 @@
-.PHONY: build clean tool lint help
+.PHONY: build tool lint help
 
 all: build
 
