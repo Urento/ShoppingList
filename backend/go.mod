@@ -3,6 +3,7 @@ module github.com/urento/shoppinglist
 go 1.16
 
 require (
+	github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8
 	github.com/astaxie/beego v1.12.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect

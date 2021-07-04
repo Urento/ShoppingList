@@ -4,7 +4,6 @@ import "github.com/urento/shoppinglist/models"
 
 type Shoppinglist struct {
 	ID           int
-	ListID       int
 	Title        string
 	Items        []string
 	Owner        string
@@ -15,7 +14,7 @@ type Shoppinglist struct {
 
 func (s *Shoppinglist) Create() error {
 	shoppinglist := map[string]interface{}{
-		"list_id":      s.ListID,
+		"id":           s.ID,
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
@@ -31,7 +30,7 @@ func (s *Shoppinglist) Create() error {
 
 func (s *Shoppinglist) Edit() error {
 	return models.EditList(s.ID, map[string]interface{}{
-		"list_id":      s.ListID,
+		"id":           s.ID,
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
@@ -51,6 +50,6 @@ func (s *Shoppinglist) Delete() error {
 	return models.DeleteList(s.ID)
 }
 
-func (s *Shoppinglist) Exists() (bool, error) {
+func (s *Shoppinglist) ExistsByID() (bool, error) {
 	return models.ExistByID(s.ID)
 }
