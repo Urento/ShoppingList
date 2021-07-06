@@ -25,7 +25,7 @@ func TestCreate(t *testing.T) {
 	items := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	owner := "owner" + StringWithCharset(30)
 	participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	shoppinglist := Shoppi	nglist{
+	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
 		Items:        items,
