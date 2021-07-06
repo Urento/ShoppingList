@@ -1,6 +1,10 @@
 package services
 
-import "github.com/urento/shoppinglist/models"
+import (
+	"log"
+
+	"github.com/urento/shoppinglist/models"
+)
 
 type Shoppinglist struct {
 	ID           int
@@ -12,7 +16,7 @@ type Shoppinglist struct {
 	PageSize     int
 }
 
-func (s *Shoppinglist) Create() error {
+func (s *Shoppinglist) Create() (created bool, err error) {
 	shoppinglist := map[string]interface{}{
 		"id":           s.ID,
 		"title":        s.Title,
@@ -22,10 +26,11 @@ func (s *Shoppinglist) Create() error {
 	}
 
 	if err := models.CreateList(shoppinglist); err != nil {
-		return err
+		log.Fatal(err.Error())
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (s *Shoppinglist) Edit() error {
@@ -52,4 +57,8 @@ func (s *Shoppinglist) Delete() error {
 
 func (s *Shoppinglist) ExistsByID() (bool, error) {
 	return models.ExistByID(s.ID)
+}
+
+func DropTable() {
+	models.DropTable()
 }

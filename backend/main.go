@@ -5,14 +5,18 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/logging"
 	"github.com/urento/shoppinglist/pkg/setting"
+	"github.com/urento/shoppinglist/pkg/util"
 	routers "github.com/urento/shoppinglist/router"
 )
 
 func init() {
 	setting.Setup()
 	logging.Setup()
+	models.Setup(false)
+	util.Setup()
 }
 
 func main() {
@@ -30,7 +34,7 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	log.Printf("[info] start http server listening %s", endPoint)
+	log.Printf("Listening on Port %s", endPoint)
 
 	server.ListenAndServe()
 }

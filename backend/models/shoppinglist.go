@@ -1,25 +1,28 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"github.com/lib/pq"
+	"gorm.io/gorm"
+)
 
 type Shoppinglist struct {
 	Model
-
-	ListID int `json:"list_id" gorm:"index"`
-
+	ID           int `gorm:"primaryKey"`
 	Title        string
-	Items        []string
+	Items        pq.StringArray `gorm:"type:text[]"`
 	Owner        string
-	Participants []string
+	Participants pq.StringArray `gorm:"type:text[]"`
 }
 
 func ExistByID(id int) (bool, error) {
-	var shoppinglist Shoppinglist
-	err := db.Select("id").Where("id = ?", id).First(&shoppinglist).Error
+	count := int64(0)
+	err := db.Model(&Shoppinglist{}).Where("id = ?", id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
-	if shoppinglist.ID > 0 {
+	if count > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -33,9 +36,9 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 	return count, nil
 }
 
-func GetLists(pageNum int, pageSize int, ownerID string) ([]*Shoppinglist, error) {
+func GetLists(pageNum int, pageSize int, owner string) ([]*Shoppinglist, error) {
 	var shoppinglists []*Shoppinglist
-	err := db.Model(&Shoppinglist{}).Where("owner = ?", ownerID).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error
+	err := db.Model(&Shoppinglist{}).Where("owner = ?", owner).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +47,7 @@ func GetLists(pageNum int, pageSize int, ownerID string) ([]*Shoppinglist, error
 
 func GetList(id int) (*Shoppinglist, error) {
 	var list Shoppinglist
-	err := db.Where("id ? and deleted_on = ?", id, 0).First(&list).Error
+	err := db.Where("id = ?", id).First(&list).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -52,21 +55,22 @@ func GetList(id int) (*Shoppinglist, error) {
 }
 
 func EditList(id int, data interface{}) error {
-	if err := db.Model(&Shoppinglist{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(data).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func CreateList(data map[string]interface{}) error {
-	list := Shoppinglist{
-		ListID:       data["list_id"].(int),
+	shoppinglist := Shoppinglist{
+		ID:           data["id"].(int),
 		Title:        data["title"].(string),
 		Items:        data["items"].([]string),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
 	}
-	if err := db.Create(&list).Error; err != nil {
+
+	if err := db.Create(&shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil
@@ -76,6 +80,10 @@ func DeleteList(id int) error {
 	if err := db.Where("id = ?", id).Delete(&Shoppinglist{}).Error; err != nil {
 		return err
 	}
-
 	return nil
+}
+
+func DropTable() {
+	db.Migrator().DropTable(&Shoppinglist{})
+	fmt.Println("Dropping Shoppinglist Table")
 }

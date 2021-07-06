@@ -88,7 +88,7 @@ func CreateShoppinglist(c *gin.Context) {
 		Owner:        form.Owner,
 		Participants: form.Participants,
 	}
-	if err := lists.Create(); err != nil {
+	if _, err := lists.Create(); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, nil)
 		return
 	}

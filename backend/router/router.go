@@ -8,6 +8,7 @@ import (
 )
 
 func InitRouter() *gin.Engine {
+	gin.SetMode(gin.DebugMode)
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -20,6 +21,7 @@ func InitRouter() *gin.Engine {
 		apiv1.GET("/lists", v1.GetShoppinglists)
 		apiv1.POST("/list", v1.CreateShoppinglist)
 		apiv1.GET("/list/:id", v1.GetShoppinglist)
+		apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 	}
 
 	return r
