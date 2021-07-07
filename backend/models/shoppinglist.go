@@ -47,15 +47,22 @@ func GetLists(pageNum int, pageSize int, owner string) ([]*Shoppinglist, error) 
 
 func GetList(id int) (*Shoppinglist, error) {
 	var list Shoppinglist
-	err := db.Where("id = ?", id).First(&list).Error
+	err := db.Model(&Shoppinglist{}).Where("id = ?", id).First(&list).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 	return &list, nil
 }
 
-func EditList(id int, data interface{}) error {
-	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(data).Error; err != nil {
+func EditList(id int, data map[string]interface{}) error {
+	shoppinglist := Shoppinglist{
+		Title:        data["title"].(string),
+		Items:        data["items"].([]string),
+		Owner:        data["owner"].(string),
+		Participants: data["participants"].([]string),
+	}
+
+	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil

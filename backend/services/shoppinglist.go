@@ -1,8 +1,6 @@
 package services
 
 import (
-	"log"
-
 	"github.com/urento/shoppinglist/models"
 )
 
@@ -26,7 +24,6 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 	}
 
 	if err := models.CreateList(shoppinglist); err != nil {
-		log.Fatal(err.Error())
 		return false, err
 	}
 
@@ -34,13 +31,13 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 }
 
 func (s *Shoppinglist) Edit() error {
-	return models.EditList(s.ID, map[string]interface{}{
-		"id":           s.ID,
+	shoppinglist := map[string]interface{}{
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
 		"participants": s.Participants,
-	})
+	}
+	return models.EditList(s.ID, shoppinglist)
 }
 
 func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
