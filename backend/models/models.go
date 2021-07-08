@@ -20,12 +20,14 @@ type Model struct {
 	DeletedAt  gorm.DeletedAt `gorm:"index"`
 }
 
-func Setup() {
+func Setup(test bool) {
 	var err error
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatalf("models.Setup err: %v", err)
+	if !test {
+		err = godotenv.Load()
+		if err != nil {
+			log.Fatalf("models.Setup err: %v", err)
+		}
 	}
 
 	fmt.Println(os.Getenv("DATABASE_DSN"))
