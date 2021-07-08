@@ -246,6 +246,6 @@ func randInt(min int, max int) int {
 }
 
 func Setup() {
-	models.Setup(false)
+	models.Setup(true)
 	util.Setup(true)
 }
