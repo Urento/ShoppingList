@@ -8,15 +8,17 @@ import (
 	util "github.com/urento/shoppinglist/pkg"
 )
 
-func Setup() {
+func Setup(test bool) {
 	var err error
-	if util.PROD {
-		err = godotenv.Load()
-	} else {
-		err = godotenv.Load("../.env")
-	}
-	if err != nil {
-		fmt.Print(err.Error())
+	if !test {
+		if util.PROD {
+			err = godotenv.Load()
+		} else {
+			err = godotenv.Load("../.env")
+		}
+		if err != nil {
+			fmt.Print(err.Error())
+		}
 	}
 	jwtSecret = []byte(os.Getenv("JwtSecret"))
 }

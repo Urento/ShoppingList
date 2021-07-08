@@ -1,6 +1,12 @@
 package services
 
-/*func TestCreateAccount(t *testing.T) {
+import (
+	"testing"
+
+	. "github.com/stretchr/testify/assert"
+)
+
+func TestCreateAccount(t *testing.T) {
 	Setup()
 
 	auth := Auth{
@@ -25,4 +31,4 @@ package services
 
 	Equal(t, check, true)
 	Equal(t, err, nil)
-}*/
+}

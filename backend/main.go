@@ -16,7 +16,7 @@ func init() {
 	setting.Setup()
 	logging.Setup()
 	models.Setup(false)
-	util.Setup()
+	util.Setup(false)
 }
 
 func main() {
