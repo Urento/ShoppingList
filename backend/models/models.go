@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/urento/shoppinglist/pkg/util"
+	utils "github.com/urento/shoppinglist/pkg"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -23,11 +23,16 @@ type Model struct {
 func Setup() {
 	var err error
 
-	if !util.IsTesting() {
+	if utils.PROD {
 		err = godotenv.Load()
-		if err != nil {
-			log.Fatalf("models.Setup err: %v", err)
-		}
+	} else if utils.GITHUB_TESTING {
+		err = nil
+	} else {
+		err = godotenv.Load("../.env")
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	db, err = gorm.Open(postgres.New(postgres.Config{
