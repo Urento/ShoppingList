@@ -27,6 +27,8 @@ func IsTesting() bool {
 	var err error
 	if util.PROD {
 		err = godotenv.Load()
+	} else if util.GITHUB_TESTING {
+		err = nil
 	} else {
 		err = godotenv.Load("../.env")
 	}

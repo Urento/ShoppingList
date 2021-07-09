@@ -174,7 +174,6 @@ func TestDeleteAccount(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while creating the account %s", err.Error())
 	}
-	t.Log(pwd + " - " + email + " - " + username)
 
 	delAcc := Auth{
 		EMail:    email,
