@@ -1,12 +1,12 @@
 package models
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/urento/shoppinglist/pkg/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,17 +20,15 @@ type Model struct {
 	DeletedAt  gorm.DeletedAt `gorm:"index"`
 }
 
-func Setup(test bool) {
+func Setup() {
 	var err error
 
-	if !test {
+	if !util.IsTesting() {
 		err = godotenv.Load()
 		if err != nil {
 			log.Fatalf("models.Setup err: %v", err)
 		}
 	}
-
-	fmt.Println(os.Getenv("DATABASE_DSN"))
 
 	db, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:                  os.Getenv("DATABASE_DSN"),

@@ -1,9 +1,7 @@
 package services
 
 import (
-	"fmt"
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
@@ -22,11 +20,20 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 func TestCreateAndCheck(t *testing.T) {
 	Setup()
 
-	id := randInt(1000, 50000)
-	shoppinglist := ShoppinglistObject(id, "1")
+	id := seededRand.Intn(90000)
+	title := "title" + StringWithCharset(20)
+	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	owner := "owner" + StringWithCharset(30)
+	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	shoppinglist := Shoppinglist{
+		ID:           id,
+		Title:        title,
+		Items:        items,
+		Owner:        owner,
+		Participants: participants,
+	}
 	created, err := shoppinglist.Create()
 	if err != nil || !created {
-		fmt.Println(err.Error())
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
 
@@ -48,80 +55,20 @@ func TestCreateAndCheck(t *testing.T) {
 
 	Equal(t, created, true)
 	Equal(t, id, l.ID)
-	Equal(t, shoppinglist.Items, l.Items)
-	Equal(t, shoppinglist.Participants, l.Participants)
-	Equal(t, shoppinglist.Title, l.Title)
-	Equal(t, shoppinglist.Owner, l.Owner)
+	Equal(t, items, l.Items)
+	Equal(t, participants, l.Participants)
+	Equal(t, title, l.Title)
+	Equal(t, owner, l.Owner)
+	Equal(t, err, nil)
 }
 
 func TestExistsByID(t *testing.T) {
 	Setup()
 
-	id := randInt(1000, 50000)
-	shoppinglist := ShoppinglistObject(id, "1")
-	created, err := shoppinglist.Create()
-	if err != nil {
-		t.Errorf("Failed to create shoppinglist %s", err.Error())
-	}
-
-	list := Shoppinglist{ID: id}
-	exists, err := list.ExistsByID()
-	if err != nil || !exists {
-		t.Errorf("Shoppinglist did not get created %s", err.Error())
-	}
-
-	err = list.Delete()
-	if err != nil {
-		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
-	}
-
-	Equal(t, created, true)
-	Equal(t, exists, true)
-}
-
-func TestCreateAndDelete(t *testing.T) {
-	Setup()
-
-	id := randInt(1000, 50000)
-	shoppinglist := ShoppinglistObject(id, "1")
-	created, err := shoppinglist.Create()
-	if err != nil {
-		t.Errorf("Failed to create shoppinglist %s", err.Error())
-	}
-
-	list := Shoppinglist{ID: id}
-	exists, err := list.ExistsByID()
-	if err != nil || !exists {
-		t.Errorf("Shoppinglist did not get created %s", err.Error())
-	}
-
-	l, err := list.GetList()
-	if err != nil {
-		t.Errorf("Shoppinglist not found %s", err.Error())
-	}
-
-	delErr := list.Delete()
-	if delErr != nil {
-		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
-	}
-
-	Equal(t, created, true)
-	Equal(t, exists, true)
-	Equal(t, id, l.ID)
-	Equal(t, shoppinglist.Items, l.Items)
-	Equal(t, shoppinglist.Participants, l.Participants)
-	Equal(t, shoppinglist.Title, l.Title)
-	Equal(t, shoppinglist.Owner, l.Owner)
-	Equal(t, delErr, nil)
-}
-
-func TestCreateAndEdit(t *testing.T) {
-	Setup()
-
-	id := randInt(1000, 50000)
-	title := "title" + StringWithCharset(20)
+	id := seededRand.Intn(90000)
+	title := "titlesdfgdsghdshgfdzhjf" + StringWithCharset(20)
 	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	owner := "owner" + StringWithCharset(30)
+	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
 	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	shoppinglist := Shoppinglist{
 		ID:           id,
@@ -136,9 +83,46 @@ func TestCreateAndEdit(t *testing.T) {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
 
-	title2 := "title2" + StringWithCharset(20)
+	list := Shoppinglist{ID: id}
+	exists, err := list.ExistsByID()
+	if err != nil || !exists {
+		t.Errorf("Shoppinglist did not get created %s", err.Error())
+	}
+
+	err = list.Delete()
+	if err != nil {
+		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
+	}
+
+	Equal(t, created, true)
+	Equal(t, exists, true)
+	Equal(t, err, nil)
+}
+
+func TestCreateAndEdit(t *testing.T) {
+	Setup()
+
+	id := seededRand.Intn(90000)
+	title := "title3332999" + StringWithCharset(20)
+	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	owner := "owner999" + StringWithCharset(30)
+	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	shoppinglist := Shoppinglist{
+		ID:           id,
+		Title:        title,
+		Items:        items,
+		Owner:        owner,
+		Participants: participants,
+	}
+
+	created, err := shoppinglist.Create()
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	title2 := "title2111111999" + StringWithCharset(20)
 	items2 := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	owner2 := "owner2" + StringWithCharset(30)
+	owner2 := "owner2123123" + StringWithCharset(30)
 	participants2 := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	shoppinglist = Shoppinglist{
 		ID:           id,
@@ -179,57 +163,7 @@ func TestCreateAndEdit(t *testing.T) {
 	NotEqual(t, owner, l.Owner)
 	NotEqual(t, title, l.Title)
 	NotEqual(t, participants, l.Participants)
-}
-
-func TestDuplicationError(t *testing.T) {
-	Setup()
-	id := randInt(1000, 50000)
-	shoppinglist1 := ShoppinglistObject(id, "1")
-
-	created, err := shoppinglist1.Create()
-	if err != nil || !created {
-		t.Errorf("Error while creating Shoppinglist %s", err.Error())
-	}
-
-	_, err = shoppinglist1.Create()
-
-	containsKeyConstraint := strings.Contains(err.Error(), "violates unique constraint")
-
-	list := Shoppinglist{ID: id}
-	exists, err := list.ExistsByID()
-	if err != nil || !exists {
-		t.Errorf("Shoppinglist did not get created %s", err.Error())
-	}
-
-	_, err = list.GetList()
-	if err != nil {
-		t.Errorf("Shoppinglist not found %s", err.Error())
-	}
-
-	err = list.Delete()
-	if err != nil {
-		t.Errorf("Shoppinglist couldn't get deleted %s", err.Error())
-	}
-
-	NotEqual(t, err, nil)
-	Equal(t, containsKeyConstraint, true)
-}
-
-//TODO: Use this to avoid code duplication
-func ShoppinglistObject(id int, suffix string) Shoppinglist {
-	//id := randInt(1000, 50000)
-	title := "title_" + suffix + "_" + StringWithCharset(20)
-	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	owner := "owner_" + suffix + "_" + StringWithCharset(30)
-	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Items:        items,
-		Owner:        owner,
-		Participants: participants,
-	}
-	return shoppinglist
+	Equal(t, err, nil)
 }
 
 func StringWithCharset(length int) string {
@@ -240,12 +174,7 @@ func StringWithCharset(length int) string {
 	return string(b)
 }
 
-func randInt(min int, max int) int {
-	rand.Seed(time.Now().Unix())
-	return rand.Intn(100000)
-}
-
 func Setup() {
-	models.Setup(true)
-	util.Setup(true)
+	models.Setup()
+	util.Setup()
 }

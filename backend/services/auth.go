@@ -9,12 +9,13 @@ type Auth struct {
 }
 
 func (auth *Auth) Check() (bool, error) {
-	if auth.Username != "" {
-		return models.CheckAuth("", auth.Username, auth.Password)
-	}
-	return models.CheckAuth(auth.EMail, "", auth.Password)
+	return models.CheckAuth(auth.EMail, auth.Password)
 }
 
 func (auth *Auth) Create() error {
 	return models.CreateAccount(auth.EMail, auth.Username, auth.Password)
+}
+
+func (auth *Auth) Delete() error {
+	return models.DeleteAccount(auth.EMail, auth.Password)
 }

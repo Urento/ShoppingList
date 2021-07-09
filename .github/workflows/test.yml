@@ -43,3 +43,4 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           DATABASE_DSN: host=localhost user=shoppinglist password=postgres dbname=shoppinglistboom sslmode=disable
+          TESTING: true
