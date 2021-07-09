@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -13,11 +14,13 @@ func Setup() {
 	if IsTesting() {
 		if util.PROD {
 			err = godotenv.Load()
+		} else if util.GITHUB_TESTING {
+			err = nil
 		} else {
 			err = godotenv.Load("../.env")
 		}
 		if err != nil {
-			fmt.Print(err.Error())
+			log.Fatal(err)
 		}
 	}
 	jwtSecret = []byte(os.Getenv("JwtSecret"))
