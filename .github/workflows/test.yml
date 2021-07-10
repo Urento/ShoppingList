@@ -29,6 +29,17 @@ jobs:
           postgresql user: shoppinglist
           # POSTGRES_PASSWORD - superuser password
           postgresql password: postgres
+      - uses: actions/cache@v2
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       - name: Build
         working-directory: ./backend
         run: go build ./...
