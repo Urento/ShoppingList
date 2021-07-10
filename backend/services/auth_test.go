@@ -188,3 +188,74 @@ func TestDeleteAccount(t *testing.T) {
 
 	Equal(t, err, nil)
 }
+
+func TestNotEmailVerified(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating account: %s", err.Error())
+	}
+
+	verified, err := auth.IsEmailVerified()
+	if err != nil {
+		t.Errorf("Error while checking if email is verified: %s", err.Error())
+	}
+
+	Equal(t, verified, false)
+	Equal(t, err, nil)
+}
+
+func TestUpdateEmailVerified(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating account: %s", err.Error())
+	}
+
+	verified1, err := auth.IsEmailVerified()
+	if err != nil {
+		t.Errorf("Error while checking if email is verified: %s", err.Error())
+	}
+
+	err = auth.VerifyEmail()
+	if err != nil {
+		t.Errorf("Error while verifying email: %s", err.Error())
+	}
+
+	verified2, err := auth.IsEmailVerified()
+	if err != nil {
+		t.Errorf("Error while checking if email is verified: %s", err.Error())
+	}
+
+	Equal(t, verified1, false)
+	Equal(t, verified2, true)
+	Equal(t, err, nil)
+}
+
+func TestSendVerificationEmail(t *testing.T) {
+	Setup()
+
+	Equal(t, true, true)
+}

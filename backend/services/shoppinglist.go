@@ -17,7 +17,6 @@ type Shoppinglist struct {
 //TODO: Encrypt Emails
 
 func (s *Shoppinglist) Create() (created bool, err error) {
-	//TODO: Check if ID already exists; If yes: assign other id (check in cache)
 	shoppinglist := map[string]interface{}{
 		"id":           s.ID,
 		"title":        s.Title,

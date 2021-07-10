@@ -14,7 +14,6 @@ import (
 var db *gorm.DB
 
 type Model struct {
-	//ID         int `gorm:"private_key" json:"id"`
 	CreatedOn  int            `gorm:"autoCreateTime" json:"created_on"`
 	ModifiedOn int            `gorm:"autoUpdateTime:milli" json:"modified_on"`
 	DeletedAt  gorm.DeletedAt `gorm:"index"`

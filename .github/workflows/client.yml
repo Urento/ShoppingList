@@ -1,0 +1,27 @@
+on: [push, pull_request]
+name: Client
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./group-mode
+    strategy:
+      matrix:
+        node-version: [14.x, 15.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache multiple paths
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/cache
+            !~/cache/exclude
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn
+      - run: yarn lint
+      - run: yarn test

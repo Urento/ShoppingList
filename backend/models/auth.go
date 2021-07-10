@@ -8,10 +8,11 @@ import (
 )
 
 type Auth struct {
-	ID       int    `gorm:"primary_key" json:"id"`
-	EMail    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ID            int    `gorm:"primary_key" json:"id"`
+	EMail         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -77,9 +78,10 @@ func CreateAccount(email, username, password string) error {
 	}
 
 	authObj := Auth{
-		EMail:    email,
-		Username: username,
-		Password: passwordHash,
+		EMail:         email,
+		Username:      username,
+		Password:      passwordHash,
+		EmailVerified: false,
 	}
 
 	err = db.Create(&authObj).Error
@@ -115,6 +117,31 @@ func Exists(email string) (exists bool, err error) {
 	var Found bool
 	err = db.Raw("SELECT EXISTS(SELECT id FROM auths WHERE e_mail = ?) AS found", email).Scan(&Found).Error
 	return Found, err
+}
+
+func IsEmailVerified(email string) (bool, error) {
+	var verified bool
+	err := db.Model(&Auth{}).Select("email_verified").Where("e_mail = ?", email).First(&verified).Error
+	if err != nil {
+		return false, err
+	}
+	if !verified {
+		return false, nil
+	}
+	return true, nil
+}
+
+func VerifyEmail(email string) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("email_verified", true).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func SendVerifyEmail(email string) error {
+	//TODO: SEND EMAIL
+	return errors.New("not implemented yet")
 }
 
 func Count(email string) (int64, error) {
