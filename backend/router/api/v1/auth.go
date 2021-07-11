@@ -13,6 +13,7 @@ import (
 
 type Auth struct {
 	Username string `valid:"Required; MaxSize(50)"`
+	Email    string
 	Password string `valid:"Required"`
 }
 
@@ -20,10 +21,11 @@ func GetAuth(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
 
+	email := c.PostForm("email")
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	a := Auth{Username: username, Password: password}
+	a := Auth{Email: email, Username: username, Password: password}
 	ok, _ := valid.Valid(&a)
 	if !ok {
 		app.MarkErrors(valid.Errors)

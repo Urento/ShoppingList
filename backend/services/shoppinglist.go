@@ -10,11 +10,13 @@ type Shoppinglist struct {
 	Items        []string
 	Owner        string
 	Participants []string
+	Position     int //TODO
 	PageNum      int
 	PageSize     int
 }
 
 //TODO: Encrypt Emails
+//TODO: Add Order to Items
 
 func (s *Shoppinglist) Create() (created bool, err error) {
 	shoppinglist := map[string]interface{}{
@@ -22,6 +24,7 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
+		"position":     s.Position,
 		"participants": s.Participants,
 	}
 
@@ -37,6 +40,7 @@ func (s *Shoppinglist) Edit() error {
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
+		"position":     s.Position,
 		"participants": s.Participants,
 	}
 	return models.EditList(s.ID, shoppinglist)
@@ -48,6 +52,10 @@ func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
 		return nil, err
 	}
 	return shoppinglist, nil
+}
+
+func (s *Shoppinglist) GetLastPosition() (int, error) {
+	return 0, nil
 }
 
 func (s *Shoppinglist) Delete() error {

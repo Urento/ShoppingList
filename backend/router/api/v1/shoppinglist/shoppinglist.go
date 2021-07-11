@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/astaxie/beego/validation"
@@ -12,10 +13,12 @@ import (
 )
 
 func GetShoppinglist(c *gin.Context) {
+	//TODO: Check if the Shoppinglist belongs to the request maker
 	appG := app.Gin{C: c}
 	id := com.StrTo(c.Param("id")).MustInt()
 	valid := validation.Validation{}
 	valid.Min(id, 1, "id")
+	log.Println(id)
 
 	if valid.HasErrors() {
 		app.MarkErrors(valid.Errors)
@@ -140,6 +143,7 @@ func DeleteShoppinglist(c *gin.Context) {
 	valid := validation.Validation{}
 	id := com.StrTo(c.Param("id")).MustInt()
 	valid.Min(id, 1, "id")
+	log.Println(id)
 
 	if valid.HasErrors() {
 		app.MarkErrors(valid.Errors)

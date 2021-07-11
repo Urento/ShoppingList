@@ -8,8 +8,6 @@ import (
 )
 
 type App struct {
-	JwtSecret string
-
 	RuntimeRootPath string
 
 	LogSavePath string

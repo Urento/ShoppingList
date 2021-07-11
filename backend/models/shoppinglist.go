@@ -14,6 +14,7 @@ type Shoppinglist struct {
 	Items        pq.StringArray `gorm:"type:text[]"`
 	Owner        string
 	Participants pq.StringArray `gorm:"type:text[]"`
+	Positon      int
 }
 
 func ExistByID(id int) (bool, error) {
@@ -60,6 +61,7 @@ func EditList(id int, data map[string]interface{}) error {
 		Items:        data["items"].([]string),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
+		Positon:      data["position"].(int),
 	}
 
 	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(shoppinglist).Error; err != nil {
@@ -75,6 +77,7 @@ func CreateList(data map[string]interface{}) error {
 		Items:        data["items"].([]string),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
+		Positon:      data["position"].(int),
 	}
 
 	if err := db.Create(&shoppinglist).Error; err != nil {
