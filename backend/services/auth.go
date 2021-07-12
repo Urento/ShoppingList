@@ -7,6 +7,7 @@ type Auth struct {
 	Username      string
 	Password      string
 	EmailVerified bool
+	Rank          string
 }
 
 func (auth *Auth) Check() (bool, error) {
@@ -27,6 +28,14 @@ func (auth *Auth) IsEmailVerified() (bool, error) {
 
 func (auth *Auth) SendVerificationEmail() error {
 	return models.SendVerifyEmail(auth.EMail)
+}
+
+func (auth *Auth) SetRank() error {
+	return models.SetRank(auth.EMail, auth.Rank)
+}
+
+func (auth *Auth) GetRank() (string, error) {
+	return models.GetRank(auth.EMail)
 }
 
 func (auth *Auth) Delete() error {

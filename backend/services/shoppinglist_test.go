@@ -25,12 +25,14 @@ func TestCreateAndCheck(t *testing.T) {
 	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	owner := "owner" + StringWithCharset(30)
 	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	position := seededRand.Intn(5000)
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
 		Items:        items,
 		Owner:        owner,
 		Participants: participants,
+		Position:     position,
 	}
 	created, err := shoppinglist.Create()
 	if err != nil || !created {
@@ -59,6 +61,7 @@ func TestCreateAndCheck(t *testing.T) {
 	Equal(t, participants, l.Participants)
 	Equal(t, title, l.Title)
 	Equal(t, owner, l.Owner)
+	Equal(t, position, l.Position)
 	Equal(t, err, nil)
 }
 
@@ -70,12 +73,14 @@ func TestExistsByID(t *testing.T) {
 	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
 	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	position := seededRand.Intn(5000)
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
 		Items:        items,
 		Owner:        owner,
 		Participants: participants,
+		Position:     position,
 	}
 
 	created, err := shoppinglist.Create()
@@ -107,12 +112,14 @@ func TestCreateAndEdit(t *testing.T) {
 	items := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	owner := "owner999" + StringWithCharset(30)
 	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	position := seededRand.Intn(5000)
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
 		Items:        items,
 		Owner:        owner,
 		Participants: participants,
+		Position:     position,
 	}
 
 	created, err := shoppinglist.Create()
@@ -124,12 +131,14 @@ func TestCreateAndEdit(t *testing.T) {
 	items2 := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	owner2 := "owner2123123" + StringWithCharset(30)
 	participants2 := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	position2 := seededRand.Intn(5000)
 	shoppinglist = Shoppinglist{
 		ID:           id,
 		Title:        title2,
 		Items:        items2,
 		Owner:        owner2,
 		Participants: participants2,
+		Position:     position2,
 	}
 
 	err = shoppinglist.Edit()
@@ -159,10 +168,12 @@ func TestCreateAndEdit(t *testing.T) {
 	Equal(t, participants2, l.Participants)
 	Equal(t, title2, l.Title)
 	Equal(t, owner2, l.Owner)
+	Equal(t, position2, l.Position)
 	NotEqual(t, items, l.Items)
 	NotEqual(t, owner, l.Owner)
 	NotEqual(t, title, l.Title)
 	NotEqual(t, participants, l.Participants)
+	NotEqual(t, position, l.Position)
 	Equal(t, err, nil)
 }
 

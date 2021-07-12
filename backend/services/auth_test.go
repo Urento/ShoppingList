@@ -259,3 +259,129 @@ func TestSendVerificationEmail(t *testing.T) {
 
 	Equal(t, true, true)
 }
+
+func TestSetAndGetDefaultRank(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: default %s", err.Error())
+	}
+
+	updateRank := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+		Rank:          "default",
+	}
+
+	err = updateRank.SetRank()
+	if err != nil {
+		t.Errorf("Error while updating the rank %s", err.Error())
+	}
+
+	a := Auth{
+		EMail:    email,
+		Username: username,
+		Password: pwd,
+	}
+
+	rank, err := a.GetRank()
+	if err != nil {
+		t.Errorf("Error while getting the default rank %s", err.Error())
+	}
+
+	Equal(t, rank, "default")
+	Equal(t, err, nil)
+}
+
+func TestSetAndGetAdminRank(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: admin %s", err.Error())
+	}
+
+	updateRank := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+		Rank:          "admin",
+	}
+
+	err = updateRank.SetRank()
+	if err != nil {
+		t.Errorf("Error while updating the rank %s", err.Error())
+	}
+
+	a := Auth{
+		EMail:    email,
+		Username: username,
+		Password: pwd,
+	}
+
+	rank, err := a.GetRank()
+	if err != nil {
+		t.Errorf("Error while getting the admin rank %s", err.Error())
+	}
+
+	Equal(t, rank, "admin")
+	Equal(t, err, nil)
+}
+
+func TestSetRankThatDoesntExist(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: dfgsdfgdsrgdfgdfg %s", err.Error())
+	}
+
+	updateRank := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+		Rank:          "dfgsdfgdsrgdfgdfg",
+	}
+
+	err = updateRank.SetRank()
+
+	containsError := strings.Contains(err.Error(), "rank does not exist")
+
+	Equal(t, containsError, true)
+	NotEqual(t, err, nil)
+}

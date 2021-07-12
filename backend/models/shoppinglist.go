@@ -14,7 +14,7 @@ type Shoppinglist struct {
 	Items        pq.StringArray `gorm:"type:text[]"`
 	Owner        string
 	Participants pq.StringArray `gorm:"type:text[]"`
-	Positon      int
+	Position     int
 }
 
 func ExistByID(id int) (bool, error) {
@@ -37,13 +37,18 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 	return count, nil
 }
 
-func GetLists(pageNum int, pageSize int, owner string) ([]*Shoppinglist, error) {
-	var shoppinglists []*Shoppinglist
+func GetLists(pageNum int, pageSize int, owner string) ([]Shoppinglist, error) {
+	var shoppinglists []Shoppinglist
+	if err := db.Where("owner = ?", owner).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error; err != nil {
+		return nil, err
+	}
+	return shoppinglists, nil
+	/*var shoppinglists []Shoppinglist
 	err := db.Model(&Shoppinglist{}).Where("owner = ?", owner).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error
 	if err != nil {
 		return nil, err
 	}
-	return shoppinglists, nil
+	return shoppinglists, nil*/
 }
 
 func GetList(id int) (*Shoppinglist, error) {
@@ -61,7 +66,7 @@ func EditList(id int, data map[string]interface{}) error {
 		Items:        data["items"].([]string),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
-		Positon:      data["position"].(int),
+		Position:     data["position"].(int),
 	}
 
 	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(shoppinglist).Error; err != nil {
@@ -77,7 +82,7 @@ func CreateList(data map[string]interface{}) error {
 		Items:        data["items"].([]string),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
-		Positon:      data["position"].(int),
+		Position:     data["position"].(int),
 	}
 
 	if err := db.Create(&shoppinglist).Error; err != nil {

@@ -13,7 +13,12 @@ type Auth struct {
 	EmailVerified bool   `json:"email_verified"`
 	Username      string `json:"username"`
 	Password      string `json:"password"`
+	Rank          string `json:"rank"` //admin or default
 }
+
+/**
+* TODO: Add Rank (admin or default)
+ */
 
 func GetPasswordHash(email string) (string, error) {
 	var password string
@@ -82,6 +87,7 @@ func CreateAccount(email, username, password string) error {
 		Username:      username,
 		Password:      passwordHash,
 		EmailVerified: false,
+		Rank:          "default",
 	}
 
 	err = db.Create(&authObj).Error
@@ -111,6 +117,33 @@ func DeleteAccount(email, password string) error {
 		return err
 	}
 	return nil
+}
+
+func GetRank(email string) (string, error) {
+	var rank string
+	if err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("rank").First(&rank).Error; err != nil {
+		return "", err
+	}
+	return rank, nil
+}
+
+func SetRank(email, rank string) error {
+	rankCheck := rankExists(rank)
+	if !rankCheck {
+		return errors.New("rank does not exist")
+	}
+
+	if err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("rank", rank).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func rankExists(rank string) bool {
+	if rank == "default" || rank == "admin" {
+		return true
+	}
+	return false
 }
 
 func Exists(email string) (exists bool, err error) {

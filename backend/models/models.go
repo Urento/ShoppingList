@@ -26,6 +26,8 @@ func Setup() {
 		err = godotenv.Load()
 	} else if utils.GITHUB_TESTING {
 		err = nil
+	} else if utils.LOCAL_TESTING {
+		err = godotenv.Load("../.env")
 	} else {
 		err = godotenv.Load()
 	}
