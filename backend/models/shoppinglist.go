@@ -37,18 +37,14 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 	return count, nil
 }
 
-func GetLists(pageNum int, pageSize int, owner string) ([]Shoppinglist, error) {
-	var shoppinglists []Shoppinglist
-	if err := db.Where("owner = ?", owner).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error; err != nil {
-		return nil, err
-	}
-	return shoppinglists, nil
-	/*var shoppinglists []Shoppinglist
-	err := db.Model(&Shoppinglist{}).Where("owner = ?", owner).Offset(pageNum).Limit(pageSize).Find(&shoppinglists).Error
+func GetLists(owner string) ([]Shoppinglist, error) {
+	var lists []Shoppinglist
+	//SELECT * FROM shoppinglists WHERE owner = ? LIMIT ? OFFSET ?
+	err := db.Raw("SELECT * FROM shoppinglists WHERE owner = ?", owner).Scan(&lists).Error
 	if err != nil {
 		return nil, err
 	}
-	return shoppinglists, nil*/
+	return lists, nil
 }
 
 func GetList(id int) (*Shoppinglist, error) {

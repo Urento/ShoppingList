@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { Text, StyleSheet, View, TextInput, Button } from "react-native";
 
 export type Props = {
   loggedIn: boolean;
 };
 
-const App: React.FC<Props> = ({ loggedIn = true }) => {
+const Home: React.FC<Props> = ({ loggedIn = true }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.formLabel}> Anmelden </Text>
+      <Text style={styles.formLabel}> Home </Text>
       <View>
         <Text>ösydkjhfgbnhdsflkhgdgf</Text>
       </View>
@@ -56,4 +56,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
 });
-export default App;
+export default Home;
