@@ -174,7 +174,7 @@ func TestGetListsByOwner(t *testing.T) {
 	containsOwner := strings.Contains(lists[0].Owner, owner)
 	containsOwner1 := strings.Contains(lists[1].Owner, owner)
 
-	Equal(t, containsOwner, false)
+	Equal(t, containsOwner, true)
 	Equal(t, containsOwner1, true)
 }
 
