@@ -1,26 +1,35 @@
-on: [push, pull_request]
-name: Client
+name: Build and lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
 jobs:
-  build:
+  build-and-lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./app
-    strategy:
-      matrix:
-        node-version: [14.x, 15.x]
+
     steps:
       - uses: actions/checkout@v2
-      - name: Cache multiple paths
-        uses: actions/cache@v2
+
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2
+        id: yarn-cache # Use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`).
         with:
-          path: |
-            ~/cache
-            !~/cache/exclude
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn
-      - run: yarn test
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: Check types
+        run: yarn run check-types
+
+      - name: Lint
+        run: yarn run lint

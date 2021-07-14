@@ -2,7 +2,6 @@ package models
 
 import (
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
@@ -137,8 +136,6 @@ func TestGetListsByOwner(t *testing.T) {
 
 	if err := CreateList(shoppinglist); err != nil {
 		t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
-	} else {
-		t.Log("no error")
 	}
 
 	id2 := seededRand.Intn(10000)
@@ -164,18 +161,12 @@ func TestGetListsByOwner(t *testing.T) {
 		t.Errorf("Error while getting the Shoppinglists %s", err.Error())
 	}
 
-	t.Log(owner)
-	t.Log(lists)
-
 	if len(lists) <= 0 {
 		t.Errorf("List is Empty")
 	}
 
-	containsOwner := strings.Contains(lists[0].Owner, owner)
-	containsOwner1 := strings.Contains(lists[1].Owner, owner)
-
-	Equal(t, containsOwner, true)
-	Equal(t, containsOwner1, true)
+	Equal(t, lists[0].Owner, owner)
+	Equal(t, lists[1].Owner, owner)
 }
 
 func StringWithCharset(length int) string {

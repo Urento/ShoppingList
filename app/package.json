@@ -1,31 +1,45 @@
 {
+  "name": "shoppinglist",
+  "version": "1.0.0",
+  "license": "MIT",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "eject": "expo eject",
-    "test": "jest"
+    "android": "yarn run start --android",
+    "check-types": "tsc",
+    "ios": "yarn run start --ios",
+    "lint": "eslint --format unix \"**/*.ts\" \"**/*.tsx\"",
+    "start": "yarn install && expo start",
+    "validate": "yarn install --frozen-lockfile && yarn run lint && yarn run check-types"
+  },
+  "engines": {
+    "node": ">=10",
+    "yarn": ">=1.1"
   },
   "dependencies": {
-    "expo": "~42.0.1",
-    "expo-status-bar": "~1.0.4",
+    "@react-native-community/masked-view": "0.1.10",
+    "@react-navigation/native": "^5.9.4",
+    "@react-navigation/stack": "^5.14.5",
+    "expo": "^41.0.1",
     "react": "16.13.1",
-    "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
     "react-native-elements": "^3.4.2",
-    "react-native-web": "~0.13.12"
+    "react-native-gesture-handler": "^1.10.3",
+    "react-native-reanimated": "~2.1.0",
+    "react-native-safe-area-context": "3.2.0",
+    "react-native-screens": "~3.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@types/jest": "^26.0.24",
-    "@types/react": "~16.9.35",
-    "@types/react-native": "~0.63.2",
-    "@types/react-test-renderer": "^17.0.1",
-    "jest": "^27.0.6",
-    "react-test-renderer": "^17.0.2",
-    "typescript": "~4.0.0"
-  },
-  "private": true
+    "@types/react": "~16.9.56",
+    "@types/react-native": "~0.63.52",
+    "@typescript-eslint/eslint-plugin": "^4.27.0",
+    "@typescript-eslint/parser": "^4.27.0",
+    "babel-preset-expo": "8.3.0",
+    "eslint": "^7.28.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.24.0",
+    "expo-cli": "^4.5.2",
+    "prettier": "^2.3.1",
+    "typescript": "~4.0.8"
+  }
 }

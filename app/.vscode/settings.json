@@ -1,0 +1,34 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "cSpell.words": [
+    "Aagaard",
+    "Ionicons",
+    "SVGs",
+    "Xcode",
+    "barcode",
+    "bensound",
+    "checkmark",
+    "codeframe",
+    "eqeqeq",
+    "esnext",
+    "readonly",
+    "thejazzpiano",
+    "tslib",
+    "unimodules",
+    "unmount",
+    "wtfs"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "javascript.validate.enable": false,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
