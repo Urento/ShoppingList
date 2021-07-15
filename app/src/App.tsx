@@ -1,11 +1,11 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
-import { StatusBar } from "react-native";
+import HomeScreen from "./HomeScreen";
 import { LoginScreen } from "./LoginScreen";
+import RegisterScreen from "./RegisterScreen";
 
 const Stack = createStackNavigator();
-StatusBar.setBarStyle("light-content", true);
 
 export const App = () => {
   return (
@@ -15,6 +15,16 @@ export const App = () => {
           name="Login"
           component={LoginScreen}
           options={{ title: "Login" }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{ title: "Register" }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: "Home" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

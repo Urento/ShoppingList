@@ -15,6 +15,7 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	r.POST("/api/auth", api.GetAuth)
+	r.POST("/api/auth/register", api.CreateAccount)
 
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(cors.CORSMiddleware())

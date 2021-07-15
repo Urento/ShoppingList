@@ -12,8 +12,8 @@ import (
 )
 
 type Auth struct {
-	Username string `valid:"Required; MaxSize(50)"`
-	Email    string
+	Email    string `valid:"Required;"`
+	Username string
 	Password string `valid:"Required"`
 }
 
@@ -22,17 +22,16 @@ func GetAuth(c *gin.Context) {
 	valid := validation.Validation{}
 
 	email := c.PostForm("email")
-	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	a := Auth{Email: email, Username: username, Password: password}
+	a := Auth{Email: email, Password: password}
 	ok, _ := valid.Valid(&a)
 	if !ok {
 		app.MarkErrors(valid.Errors)
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
 	}
 
-	authService := auth.Auth{Username: username, Password: password}
+	authService := auth.Auth{EMail: email, Password: password}
 	exists, err := authService.Check()
 	if err != nil {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
@@ -44,7 +43,7 @@ func GetAuth(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GenerateToken(username, password)
+	token, err := util.GenerateToken(email, password)
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
 		return
@@ -52,5 +51,34 @@ func GetAuth(c *gin.Context) {
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"token": token,
+	})
+}
+
+func CreateAccount(c *gin.Context) {
+	appGin := app.Gin{C: c}
+	valid := validation.Validation{}
+
+	email := c.PostForm("email")
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
+	a := Auth{Email: email, Username: username, Password: password}
+	ok, _ := valid.Valid(a)
+	if !ok {
+		app.MarkErrors(valid.Errors)
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+	}
+
+	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default"}
+	err := acc.Create()
+	if err != nil {
+		app.MarkErrors(valid.Errors)
+		appGin.Response(http.StatusBadRequest, e.ERROR_CREATING_ACCOUNT, err)
+	}
+
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"created":  "true",
+		"email":    email,
+		"username": username,
 	})
 }

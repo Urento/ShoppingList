@@ -20,12 +20,12 @@ import (
 var jwtSecret []byte
 
 type Claims struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(username, password string) (string, error) {
+func GenerateToken(email, password string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(3 * time.Hour)
 
@@ -35,7 +35,7 @@ func GenerateToken(username, password string) (string, error) {
 	}
 
 	claims := Claims{
-		Encrypt(username, getKeyString()),
+		Encrypt(email, getKeyString()),
 		passwordHash,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
