@@ -26,10 +26,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install packages
+        working-directory: ./app
         run: yarn install --frozen-lockfile
 
       - name: Check types
+        working-directory: ./app
         run: yarn run check-types
 
       - name: Lint
+        working-directory: ./app
         run: yarn run lint
