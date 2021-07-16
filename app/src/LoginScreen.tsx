@@ -39,6 +39,7 @@ export class LoginScreen extends Component<Props, IState> {
   };
 
   private login = async () => {
+    const navigate = this.props.navigation.navigate;
     this.setState({ loading: true });
     const { email } = this.state;
     const { password } = this.state;
@@ -64,7 +65,7 @@ export class LoginScreen extends Component<Props, IState> {
 
     //const navigate = this.props.navigation.navigate;
     console.log(AUTH_API_URL);
-    const loginRequest = await fetch(AUTH_API_URL, {
+    /*const loginRequest = await fetch(AUTH_API_URL, {
       method: "POST",
       body: JSON.stringify({
         email: email,
@@ -73,7 +74,8 @@ export class LoginScreen extends Component<Props, IState> {
     });
     const resJson = await loginRequest.json();
     console.log(loginRequest.status);
-    console.log(resJson);
+    console.log(resJson);*/
+    navigate("Home");
     this.setState({ loading: false });
   };
 

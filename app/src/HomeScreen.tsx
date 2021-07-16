@@ -1,7 +1,9 @@
 import { StackNavigationProp } from "@react-navigation/stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import React from "react";
-import { Text } from "react-native-elements";
 import { HomeStackParametersList } from "./util/constants";
+import { View } from "react-native";
+import { Text } from "react-native-elements";
 
 interface IProps {
   navigation: StackNavigationProp<HomeStackParametersList>;
@@ -14,7 +16,7 @@ interface IProps {
  */
 
 const HomeScreen: React.FC<IProps> = ({ navigation }) => {
-  return <Text>Test</Text>;
+  return <Text>Home Screen</Text>;
 };
 
 export default HomeScreen;
