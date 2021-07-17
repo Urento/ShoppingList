@@ -7,7 +7,7 @@ import { AUTH_API_URL, HomeStackParametersList } from "./util/constants";
 import { validateEmail } from "./util/validate";
 import { Button } from "react-native-elements/dist/buttons/Button";
 
-interface Props {
+interface IProps {
   navigation: StackNavigationProp<HomeStackParametersList>;
 }
 
@@ -20,8 +20,8 @@ interface IState {
   loading: boolean;
 }
 
-export class LoginScreen extends Component<Props, IState> {
-  constructor(props: Props) {
+export class LoginScreen extends Component<IProps, IState> {
+  constructor(props: IProps) {
     super(props);
     this.state = {
       email: "",
@@ -75,6 +75,7 @@ export class LoginScreen extends Component<Props, IState> {
     const resJson = await loginRequest.json();
     console.log(loginRequest.status);
     console.log(resJson);*/
+    //if successful login
     navigate("Home");
     this.setState({ loading: false });
   };

@@ -19,6 +19,8 @@ func init() {
 	util.Setup()
 }
 
+//TODO: Create /user route to retrieve all important user information
+
 func main() {
 	routersInit := routers.InitRouter()
 	readTimeout := setting.ServerSetting.ReadTimeout
