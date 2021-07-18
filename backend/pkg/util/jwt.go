@@ -15,6 +15,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
 	util "github.com/urento/shoppinglist/pkg"
+	"github.com/urento/shoppinglist/pkg/cache"
 )
 
 var jwtSecret []byte
@@ -31,7 +32,7 @@ func GenerateToken(email, password string) (string, error) {
 
 	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	claims := Claims{
@@ -45,6 +46,14 @@ func GenerateToken(email, password string) (string, error) {
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err := tokenClaims.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
+	}
+
+	err = cache.CacheJWT(email, token)
+	if err != nil {
+		return "", err
+	}
 
 	return token, err
 }

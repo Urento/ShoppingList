@@ -17,6 +17,13 @@ type Auth struct {
 	Password string `valid:"Required"`
 }
 
+/**
+* TODO
+ */
+func Check(c *gin.Context) {
+	//token := c.Request.Header.Get("Authorization")
+}
+
 func GetAuth(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}

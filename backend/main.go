@@ -20,6 +20,9 @@ func init() {
 }
 
 //TODO: Create /user route to retrieve all important user information
+//TODO: Create /logout route to invalidate old token
+//TODO: Fix Test Equal statement (switch expected and actual)
+//TODO: Check JWT stuff
 
 func main() {
 	routersInit := routers.InitRouter()

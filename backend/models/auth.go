@@ -7,6 +7,10 @@ import (
 	"github.com/alexedwards/argon2id"
 )
 
+/**
+* TODO: Cache Users and get user data from cache
+ */
+
 type Auth struct {
 	ID            int    `gorm:"primary_key" json:"id"`
 	EMail         string `json:"email"`
@@ -15,10 +19,6 @@ type Auth struct {
 	Password      string `json:"password"`
 	Rank          string `json:"rank"` //admin or default
 }
-
-/**
-* TODO: Add Rank (admin or default)
- */
 
 func GetPasswordHash(email string) (string, error) {
 	var password string
@@ -60,6 +60,17 @@ func CheckAuth(email, password string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func GetUser(email string) (interface{}, error) {
+	var user interface{}
+
+	err := db.Model(&Auth{}).Select("e_mail, id, email_verified, username, rank").Where("e_mail = ?", email).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func CreateAccount(email, username, password string) error {

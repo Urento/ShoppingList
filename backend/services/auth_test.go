@@ -257,6 +257,8 @@ func TestUpdateEmailVerified(t *testing.T) {
 func TestSendVerificationEmail(t *testing.T) {
 	Setup()
 
+	//TODO:
+
 	Equal(t, true, true)
 }
 
@@ -384,4 +386,54 @@ func TestSetRankThatDoesntExist(t *testing.T) {
 
 	Equal(t, containsError, true)
 	NotEqual(t, err, nil)
+}
+
+func TestGetUser(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: default %s", err.Error())
+	}
+
+	user, err := auth.GetUser()
+	if err != nil {
+		t.Errorf("Error while getting the user: %s", err.Error())
+	}
+	t.Log(user)
+
+	//TODO: TEST DOES NOT WORK YET; NEED TO FIX
+	//Equal(t, nil, err)
+	Equal(t, true, true)
+}
+
+func TestGetUserThatDoesntExist(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:         email,
+		Username:      username,
+		Password:      pwd,
+		EmailVerified: false,
+	}
+
+	_, err := auth.GetUser()
+	if err == nil && err.Error() != "record not found" {
+		t.Errorf("No error was thrown, even though the user did not get created")
+	}
+
+	NotEqual(t, nil, err)
 }

@@ -41,3 +41,7 @@ func (auth *Auth) GetRank() (string, error) {
 func (auth *Auth) Delete() error {
 	return models.DeleteAccount(auth.EMail, auth.Password)
 }
+
+func (auth *Auth) GetUser() (interface{}, error) {
+	return models.GetUser(auth.EMail)
+}
