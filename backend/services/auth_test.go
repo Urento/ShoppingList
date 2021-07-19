@@ -412,9 +412,10 @@ func TestGetUser(t *testing.T) {
 	}
 	t.Log(user)
 
-	//TODO: TEST DOES NOT WORK YET; NEED TO FIX
-	//Equal(t, nil, err)
-	Equal(t, true, true)
+	//TODO: STILL DOESNT WORK
+
+	Equal(t, nil, err)
+	NotEqual(t, nil, user)
 }
 
 func TestGetUserThatDoesntExist(t *testing.T) {

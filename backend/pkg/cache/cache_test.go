@@ -24,8 +24,14 @@ func TestCacheJWTToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while caching JWT token %s", err)
 	}
+	t.Log(email)
+
+	Setup()
+
+	exists, err := EmailExists(email)
 
 	Equal(t, nil, err)
+	Equal(t, true, exists)
 }
 
 func TestGetTokenByEmail(t *testing.T) {
@@ -39,7 +45,7 @@ func TestGetTokenByEmail(t *testing.T) {
 		t.Errorf("Error while caching JWT token %s", err)
 	}
 
-	//reconnect to redis because redislab only allows 30 simultaneous connections
+	//reconnect to redis because redislab only allows 30 simultaneous connections and i close the redis connection after every request
 	Setup()
 
 	val, err := GetJWTByEmail(email)
@@ -54,9 +60,49 @@ func TestGetTokenByEmail(t *testing.T) {
 func TestDoesTokenExpireAfter1Day(t *testing.T) {
 	Setup()
 
-	//TODO:
+	email := StringWithCharset(10) + "@gmail.com"
+	token := StringWithCharset(155)
 
-	Equal(t, true, true)
+	err := CacheJWT(email, token)
+	if err != nil {
+		t.Errorf("Error while caching JWT token %s", err)
+	}
+
+	Setup()
+
+	ttl, err := GetTTLByEmail(email)
+	if err != nil {
+		t.Errorf("Error getting the ttl from the key by email %s", err)
+	}
+
+	if ttl < 86200 {
+		t.Errorf("ttl is too low")
+	}
+
+	Equal(t, nil, err)
+}
+
+func TestGetEmailByJWT(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	token := StringWithCharset(155)
+
+	err := CacheJWT(email, token)
+	if err != nil {
+		t.Errorf("Error while caching JWT Token %s", err)
+	}
+
+	Setup()
+
+	val, err := GetEmailByJWT(token)
+	if err != nil {
+		t.Errorf("Error while getting Email by Token: %s", err)
+	}
+
+	t.Log(token)
+
+	Equal(t, email, val)
 }
 
 func StringWithCharset(length int) string {

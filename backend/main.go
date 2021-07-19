@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/urento/shoppinglist/middleware/ratelimiter"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/logging"
 	"github.com/urento/shoppinglist/pkg/setting"
@@ -17,6 +18,7 @@ func init() {
 	logging.Setup()
 	models.Setup()
 	util.Setup()
+	ratelimiter.Setup()
 }
 
 //TODO: Create /user route to retrieve all important user information

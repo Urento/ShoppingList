@@ -31,4 +31,7 @@ const (
 	ERROR_AUTH_TOKEN               = 20003
 	ERROR_AUTH                     = 20004
 	ERROR_CREATING_ACCOUNT         = 20006
+
+	ERROR_RATE_LIMITER        = 20007
+	ERROR_RATELIMIT_TRY_LATER = 20008
 )

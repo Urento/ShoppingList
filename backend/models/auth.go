@@ -65,7 +65,7 @@ func CheckAuth(email, password string) (bool, error) {
 func GetUser(email string) (interface{}, error) {
 	var user interface{}
 
-	err := db.Model(&Auth{}).Select("e_mail, id, email_verified, username, rank").Where("e_mail = ?", email).First(&user).Error
+	err := db.Select("e_mail, id, email_verified, username, rank").Model(&Auth{}).Where("e_mail = ?", email).Limit(1).Find(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +105,7 @@ func CreateAccount(email, username, password string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
