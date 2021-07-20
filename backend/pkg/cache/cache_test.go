@@ -105,6 +105,74 @@ func TestGetEmailByJWT(t *testing.T) {
 	Equal(t, email, val)
 }
 
+func TestDeleteToken(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	token := StringWithCharset(155)
+
+	err := CacheJWT(email, token)
+	if err != nil {
+		t.Errorf("Error while caching JWT Token %s", err)
+	}
+
+	Setup()
+
+	ok, err := DeleteTokenByEmail(email, token)
+	if err != nil || !ok {
+		t.Errorf("Error while deleting Token by Email: %s", err)
+	}
+
+	Setup()
+
+	_, err = GetJWTByEmail(email)
+	if err == nil {
+		t.Error("Token still cached")
+	}
+
+	Setup()
+
+	_, err = GetEmailByJWT(token)
+	if err == nil {
+		t.Error("Token is still cached")
+	}
+
+	Equal(t, true, ok)
+	Equal(t, "jwt token not cached", err.Error())
+}
+
+func TestDeleteTokenWithEmailThatDoesntExist(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	token := StringWithCharset(155)
+
+	ok, err := DeleteTokenByEmail(email, token)
+	if err == nil || ok {
+		t.Errorf("No Error thrown 4")
+	}
+
+	t.Log(err)
+	t.Log(ok)
+
+	Setup()
+
+	_, err = GetJWTByEmail(email)
+	if err == nil {
+		t.Errorf("No Error thrown 3")
+	}
+
+	Setup()
+
+	_, err = GetEmailByJWT(token)
+	if err == nil {
+		t.Errorf("No Error thrown 2 ")
+	}
+
+	Equal(t, false, ok)
+	Equal(t, "jwt token not cached", err.Error())
+}
+
 func StringWithCharset(length int) string {
 	b := make([]byte, length)
 	for i := range b {

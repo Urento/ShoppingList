@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
-	"gorm.io/gorm"
 )
 
 type Shoppinglist struct {
@@ -50,7 +49,7 @@ func GetLists(owner string) ([]Shoppinglist, error) {
 func GetList(id int) (*Shoppinglist, error) {
 	var list Shoppinglist
 	err := db.Model(&Shoppinglist{}).Where("id = ?", id).First(&list).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil {
 		return nil, err
 	}
 	return &list, nil

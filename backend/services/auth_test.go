@@ -412,10 +412,16 @@ func TestGetUser(t *testing.T) {
 	}
 	t.Log(user)
 
-	//TODO: STILL DOESNT WORK
+	if user.ID <= 0 {
+		t.Errorf("ID is 0, expected is a number higher or equal to 1")
+	}
 
 	Equal(t, nil, err)
 	NotEqual(t, nil, user)
+	Equal(t, email, user.EMail)
+	Equal(t, username, user.Username)
+	Equal(t, false, user.EmailVerified)
+	Equal(t, "default", user.Rank)
 }
 
 func TestGetUserThatDoesntExist(t *testing.T) {

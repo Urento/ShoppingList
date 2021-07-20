@@ -22,6 +22,10 @@ func InitRouter() *gin.Engine {
 	apiv1.Use(cors.CORSMiddleware())
 	apiv1.Use(jwt.JWT())
 	apiv1.Use(ratelimiter.RateLimit())
+
+	apiv1.POST("/auth/check", api.Check)
+	apiv1.POST("/auth/user", api.GetUser)
+
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)

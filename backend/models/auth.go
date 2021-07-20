@@ -5,6 +5,7 @@ import (
 	"net/mail"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/urento/shoppinglist/pkg/cache"
 )
 
 /**
@@ -62,15 +63,13 @@ func CheckAuth(email, password string) (bool, error) {
 	return false, nil
 }
 
-func GetUser(email string) (interface{}, error) {
-	var user interface{}
-
-	err := db.Select("e_mail, id, email_verified, username, rank").Model(&Auth{}).Where("e_mail = ?", email).Limit(1).Find(&user).Error
+func GetUser(email string) (*Auth, error) {
+	var user Auth
+	err := db.Model(&Auth{}).Select("e_mail, id, email_verified, username, rank").Where("e_mail = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
-
-	return user, nil
+	return &user, nil
 }
 
 func CreateAccount(email, username, password string) error {
@@ -129,6 +128,14 @@ func DeleteAccount(email, password string) error {
 		return err
 	}
 	return nil
+}
+
+func Logout(email, token string) (bool, error) {
+	ok, err := cache.DeleteTokenByEmail(email, token)
+	if err != nil || !ok {
+		return false, err
+	}
+	return true, nil
 }
 
 func GetRank(email string) (string, error) {

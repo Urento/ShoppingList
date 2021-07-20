@@ -71,12 +71,12 @@ func CacheJWT(email, token string) error {
 	return nil
 }
 
-func GetJWTByEmail(email string) (interface{}, error) {
+func GetJWTByEmail(email string) (string, error) {
 	val, err := rdb.Get(context.Background(), tokenPrefix+email).Result()
 	if err == redis.Nil {
-		return nil, errors.New("jwt token not cached")
+		return "", errors.New("jwt token not cached")
 	} else if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	rdb.Close()
@@ -106,6 +106,50 @@ func EmailExists(email string) (bool, error) {
 	} else {
 		return false, nil
 	}
+}
+
+func Check(email, token string) (bool, error) {
+	exists, err := EmailExists(email)
+	if err != nil || !exists {
+		return false, err
+	}
+
+	t, err := GetJWTByEmail(email)
+	if err != nil {
+		return false, err
+	}
+
+	if t != token {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func DeleteTokenByEmail(email, token string) (bool, error) {
+	var ctx = context.Background()
+	exists, err := EmailExists(email)
+	if err != nil {
+		return false, err
+	}
+
+	if !exists {
+		return false, errors.New("email not cached")
+	}
+
+	err = rdb.Del(ctx, tokenPrefix+email).Err()
+	if err != nil {
+		return false, err
+	}
+
+	err = rdb.Del(ctx, emailPrefix+token).Err()
+	if err != nil {
+		return false, err
+	}
+
+	rdb.Close()
+
+	return true, nil
 }
 
 func GetTTLByEmail(email string) (time.Duration, error) {

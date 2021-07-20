@@ -8,6 +8,7 @@ type Auth struct {
 	Password      string
 	EmailVerified bool
 	Rank          string
+	JWTToken      string
 }
 
 func (auth *Auth) Check() (bool, error) {
@@ -42,6 +43,10 @@ func (auth *Auth) Delete() error {
 	return models.DeleteAccount(auth.EMail, auth.Password)
 }
 
-func (auth *Auth) GetUser() (interface{}, error) {
+func (auth *Auth) GetUser() (*models.Auth, error) {
 	return models.GetUser(auth.EMail)
+}
+
+func (auth *Auth) Logout() (bool, error) {
+	return models.Logout(auth.EMail, auth.JWTToken)
 }

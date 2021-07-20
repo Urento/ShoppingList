@@ -54,7 +54,8 @@ func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
 	return shoppinglist, nil
 }
 
-func (s *Shoppinglist) GetLastPosition() (int, error) {
+func (s *Shoppinglist) GetLastPosition() (int64, error) {
+	//TODO
 	return 0, nil
 }
 
