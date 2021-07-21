@@ -6,13 +6,6 @@ import userReducer from "./reducers/userReducer";
 const initialState = {};
 const middleware = [thunk];
 
-//for redux devtool
-declare global {
-  interface Window {
-    __REDUX_DEVTOOLS_EXTENSION__?: typeof compose;
-  }
-}
-
 const reducer = combineReducers({
   user: userReducer,
   UI: uiReducer,
@@ -21,11 +14,7 @@ const reducer = combineReducers({
 const store = createStore(
   reducer,
   initialState,
-  compose(
-    applyMiddleware(...middleware),
-    (window.__REDUX_DEVTOOLS_EXTENSION__ &&
-      window.__REDUX_DEVTOOLS_EXTENSION__()) as any
-  )
+  compose(applyMiddleware(...middleware))
 );
 
 export default store;

@@ -1,5 +1,6 @@
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Dispatch } from "redux";
+import { getJWTToken } from "../../realm/realm";
 import {
   API_URL,
   AUTH_API_URL,
@@ -32,7 +33,7 @@ export const loginUser =
       localStorage.setItem("token", token);
       //TODO: set authorization header in every request
 
-      const userD = await getUserData();
+      const userD = getUserData();
       dispatch({ type: ACTION_TYPES.SET_USER, payload: userD });
       dispatch({ type: ACTION_TYPES.CLEAR_ERRORS });
       navigation.navigate("Home");
@@ -65,9 +66,9 @@ export const getUserData = () => async (dispatch: any) => {
 };
 
 export const logout =
-  (navigation: StackNavigationProp<HomeStackParametersList>) =>
+  (navigation?: StackNavigationProp<HomeStackParametersList>) =>
   async (dispatch: any) => {
-    const token = localStorage.getItem("token");
+    const token = getJWTToken();
     try {
       fetch(`${API_URL}/logout`, {
         method: "GET",
@@ -81,5 +82,7 @@ export const logout =
     }
     localStorage.removeItem("token");
     dispatch({ type: ACTION_TYPES.SET_UNAUTHENTICATED });
-    navigation.navigate("Login");
+    if (navigation != null) {
+      navigation.navigate("Login");
+    }
   };

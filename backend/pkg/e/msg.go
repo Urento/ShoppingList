@@ -1,9 +1,10 @@
 package e
 
 var MsgFlags = map[int]string{
-	SUCCESS:        "ok",
-	ERROR:          "fail",
-	INVALID_PARAMS: "request parameter error",
+	SUCCESS:              "ok",
+	ERROR:                "fail",
+	INVALID_PARAMS:       "request parameter error",
+	ERROR_NOT_AUTHORIZED: "not authorized to access this route",
 }
 
 func GetMsg(code int) string {

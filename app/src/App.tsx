@@ -1,8 +1,14 @@
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
+import { useEffect } from "react";
 import { Provider } from "react-redux";
+import Realm from "realm";
 import { LoginNavigation } from "./navigation/TabNavigation";
+import { ShoppinglistSchema } from "./realm/schema/ShoppinglistSchema";
+import { TokenSchema } from "./realm/schema/TokenSchema";
+import { UserSchema } from "./realm/schema/UserSchema";
 import store from "./redux/store";
+import { CheckAuthentication } from "./util/CheckAuthentication";
 
 const DarkTheme = {
   dark: true,
@@ -18,9 +24,20 @@ const DarkTheme = {
 
 /**
  * TODO: Implement React Query
+ * TODO: Implement Authenticated Only Screens
+ * TODO: Add Schemas more elegant
+ * https://realm.io/
  */
 
+export let realm: Realm;
+
 export const App = () => {
+  realm = new Realm({ schema: [TokenSchema, ShoppinglistSchema, UserSchema] });
+
+  useEffect(() => {
+    CheckAuthentication();
+  }, []);
+
   return (
     <Provider store={store}>
       <NavigationContainer theme={DarkTheme}>

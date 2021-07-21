@@ -54,6 +54,14 @@ func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
 	return shoppinglist, nil
 }
 
+func (s *Shoppinglist) GetListsByOwner() (*[]models.Shoppinglist, error) {
+	shoppinglist, err := models.GetListByEmail(s.Owner)
+	if err != nil {
+		return nil, err
+	}
+	return shoppinglist, err
+}
+
 func (s *Shoppinglist) GetLastPosition() (int64, error) {
 	//TODO
 	return 0, nil

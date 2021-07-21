@@ -118,7 +118,10 @@ func CreateAccount(c *gin.Context) {
 	ok, _ := valid.Valid(a)
 	if !ok {
 		app.MarkErrors(valid.Errors)
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
+			"error": "validation error",
+		})
+		return
 	}
 
 	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default"}
@@ -126,6 +129,7 @@ func CreateAccount(c *gin.Context) {
 	if err != nil {
 		app.MarkErrors(valid.Errors)
 		appGin.Response(http.StatusBadRequest, e.ERROR_CREATING_ACCOUNT, err)
+		return
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
 	"github.com/urento/shoppinglist/pkg/app"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
 	"github.com/urento/shoppinglist/services"
 )
@@ -47,9 +48,24 @@ func GetShoppinglist(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, list)
 }
 
-//TODO
 func GetShoppinglists(c *gin.Context) {
+	appG := app.Gin{C: c}
+	token := c.Request.Header.Get("Authorization")
 
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		return
+	}
+
+	listService := services.Shoppinglist{Owner: email}
+	lists, err := listService.GetListsByOwner()
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, lists)
 }
 
 type CreateAndEditShoppinglistForm struct {
@@ -57,6 +73,7 @@ type CreateAndEditShoppinglistForm struct {
 	Title        string   `form:"title" valid:"Required"`
 	Items        []string `form:"items" valid:"Required"`
 	Owner        string   `form:"owner" valid:"Required"`
+	Position     int      `form:"position" valid:"Required"`
 	Participants []string `form:"participants" valid:"Required"`
 }
 
@@ -90,6 +107,7 @@ func CreateShoppinglist(c *gin.Context) {
 		Items:        form.Items,
 		Owner:        form.Owner,
 		Participants: form.Participants,
+		Position:     form.Position,
 	}
 	if _, err := lists.Create(); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, nil)

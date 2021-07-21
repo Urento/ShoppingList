@@ -50,3 +50,7 @@ func (auth *Auth) GetUser() (*models.Auth, error) {
 func (auth *Auth) Logout() (bool, error) {
 	return models.Logout(auth.EMail, auth.JWTToken)
 }
+
+func (auth *Auth) GetPassword() (string, error) {
+	return models.GetPasswordHash(auth.EMail)
+}

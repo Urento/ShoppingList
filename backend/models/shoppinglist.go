@@ -55,6 +55,15 @@ func GetList(id int) (*Shoppinglist, error) {
 	return &list, nil
 }
 
+func GetListByEmail(email string) (*[]Shoppinglist, error) {
+	var list []Shoppinglist
+	err := db.Model(&Shoppinglist{}).Where("owner = ?", email).Find(&list).Error
+	if err != nil {
+		return nil, err
+	}
+	return &list, nil
+}
+
 func EditList(id int, data map[string]interface{}) error {
 	shoppinglist := Shoppinglist{
 		Title:        data["title"].(string),

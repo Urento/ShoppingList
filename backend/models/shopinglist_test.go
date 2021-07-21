@@ -111,7 +111,6 @@ func TestGetTotalListsByOwnerWithMultipleLists(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while getting the total lists by owner %s", err.Error())
 	}
-	t.Log(owner)
 
 	Equal(t, count, int64(3))
 }

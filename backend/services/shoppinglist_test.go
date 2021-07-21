@@ -55,14 +55,14 @@ func TestCreateAndCheck(t *testing.T) {
 		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 	}
 
-	Equal(t, created, true)
 	Equal(t, id, l.ID)
 	Equal(t, items, l.Items)
 	Equal(t, participants, l.Participants)
 	Equal(t, title, l.Title)
 	Equal(t, owner, l.Owner)
 	Equal(t, position, l.Position)
-	Equal(t, err, nil)
+	Equal(t, nil, err)
+	Equal(t, true, created)
 }
 
 func TestExistsByID(t *testing.T) {
@@ -99,9 +99,9 @@ func TestExistsByID(t *testing.T) {
 		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 	}
 
-	Equal(t, created, true)
-	Equal(t, exists, true)
-	Equal(t, err, nil)
+	Equal(t, true, created)
+	Equal(t, true, exists)
+	Equal(t, nil, err)
 }
 
 func TestCreateAndEdit(t *testing.T) {
@@ -162,7 +162,7 @@ func TestCreateAndEdit(t *testing.T) {
 		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 	}
 
-	Equal(t, created, true)
+	Equal(t, true, created)
 	Equal(t, id, l.ID)
 	Equal(t, items2, l.Items)
 	Equal(t, participants2, l.Participants)
@@ -174,7 +174,7 @@ func TestCreateAndEdit(t *testing.T) {
 	NotEqual(t, title, l.Title)
 	NotEqual(t, participants, l.Participants)
 	NotEqual(t, position, l.Position)
-	Equal(t, err, nil)
+	Equal(t, nil, err)
 }
 
 func StringWithCharset(length int) string {

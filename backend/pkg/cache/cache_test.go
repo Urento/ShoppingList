@@ -24,7 +24,6 @@ func TestCacheJWTToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while caching JWT token %s", err)
 	}
-	t.Log(email)
 
 	Setup()
 
@@ -100,8 +99,6 @@ func TestGetEmailByJWT(t *testing.T) {
 		t.Errorf("Error while getting Email by Token: %s", err)
 	}
 
-	t.Log(token)
-
 	Equal(t, email, val)
 }
 
@@ -151,9 +148,6 @@ func TestDeleteTokenWithEmailThatDoesntExist(t *testing.T) {
 	if err == nil || ok {
 		t.Errorf("No Error thrown 4")
 	}
-
-	t.Log(err)
-	t.Log(ok)
 
 	Setup()
 

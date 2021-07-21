@@ -38,8 +38,8 @@ func TestCreateAccountEmail(t *testing.T) {
 		t.Errorf("check was false")
 	}
 
-	Equal(t, check, true)
-	Equal(t, err, nil)
+	Equal(t, true, check)
+	Equal(t, nil, err)
 }
 
 func TestCreateAccountWithEmailAndUsername(t *testing.T) {
@@ -74,8 +74,8 @@ func TestCreateAccountWithEmailAndUsername(t *testing.T) {
 		t.Errorf("check was false")
 	}
 
-	Equal(t, check, true)
-	Equal(t, err, nil)
+	Equal(t, true, check)
+	Equal(t, nil, err)
 }
 
 func TestLoginWrongPassword(t *testing.T) {
@@ -104,8 +104,8 @@ func TestLoginWrongPassword(t *testing.T) {
 
 	check, _ := checkAuth.Check()
 
-	Equal(t, check, false)
-	Equal(t, err, nil)
+	Equal(t, false, check)
+	Equal(t, nil, err)
 }
 
 func TestDuplicateAccounts(t *testing.T) {
@@ -129,8 +129,8 @@ func TestDuplicateAccounts(t *testing.T) {
 
 	containsError := strings.Contains(err.Error(), "account already exists")
 
-	Equal(t, containsError, true)
-	NotEqual(t, err.Error(), nil)
+	Equal(t, true, containsError)
+	NotEqual(t, nil, err)
 }
 
 func TestInvalidEmail(t *testing.T) {
@@ -154,8 +154,8 @@ func TestInvalidEmail(t *testing.T) {
 
 	containsError := strings.Contains(err.Error(), "email is not valid")
 
-	Equal(t, containsError, true)
-	NotEqual(t, err.Error(), nil)
+	Equal(t, true, containsError)
+	NotEqual(t, nil, err)
 }
 
 func TestDeleteAccount(t *testing.T) {
@@ -186,7 +186,7 @@ func TestDeleteAccount(t *testing.T) {
 		t.Errorf("Error while deleting the account %s", err.Error())
 	}
 
-	Equal(t, err, nil)
+	Equal(t, nil, err)
 }
 
 func TestNotEmailVerified(t *testing.T) {
@@ -212,8 +212,8 @@ func TestNotEmailVerified(t *testing.T) {
 		t.Errorf("Error while checking if email is verified: %s", err.Error())
 	}
 
-	Equal(t, verified, false)
-	Equal(t, err, nil)
+	Equal(t, false, verified)
+	Equal(t, nil, err)
 }
 
 func TestUpdateEmailVerified(t *testing.T) {
@@ -249,9 +249,9 @@ func TestUpdateEmailVerified(t *testing.T) {
 		t.Errorf("Error while checking if email is verified: %s", err.Error())
 	}
 
-	Equal(t, verified1, false)
-	Equal(t, verified2, true)
-	Equal(t, err, nil)
+	Equal(t, nil, err)
+	Equal(t, false, verified1)
+	Equal(t, true, verified2)
 }
 
 func TestSendVerificationEmail(t *testing.T) {
@@ -304,8 +304,8 @@ func TestSetAndGetDefaultRank(t *testing.T) {
 		t.Errorf("Error while getting the default rank %s", err.Error())
 	}
 
-	Equal(t, rank, "default")
-	Equal(t, err, nil)
+	Equal(t, "default", rank)
+	Equal(t, nil, err)
 }
 
 func TestSetAndGetAdminRank(t *testing.T) {
@@ -350,8 +350,8 @@ func TestSetAndGetAdminRank(t *testing.T) {
 		t.Errorf("Error while getting the admin rank %s", err.Error())
 	}
 
-	Equal(t, rank, "admin")
-	Equal(t, err, nil)
+	Equal(t, "admin", rank)
+	Equal(t, nil, err)
 }
 
 func TestSetRankThatDoesntExist(t *testing.T) {
@@ -384,8 +384,8 @@ func TestSetRankThatDoesntExist(t *testing.T) {
 
 	containsError := strings.Contains(err.Error(), "rank does not exist")
 
-	Equal(t, containsError, true)
-	NotEqual(t, err, nil)
+	Equal(t, true, containsError)
+	NotEqual(t, nil, err)
 }
 
 func TestGetUser(t *testing.T) {
@@ -410,7 +410,6 @@ func TestGetUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while getting the user: %s", err.Error())
 	}
-	t.Log(user)
 
 	if user.ID <= 0 {
 		t.Errorf("ID is 0, expected is a number higher or equal to 1")

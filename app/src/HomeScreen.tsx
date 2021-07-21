@@ -13,7 +13,7 @@ interface IProps {
  * TODO: Maybe save the shoppinglist you where last on and instant redirect to that
  */
 
-const HomeScreen: React.FC<IProps> = ({ navigation }) => {
+const HomeScreen: React.FC<IProps> = ({}) => {
   return (
     <SafeAreaView>
       <Text>This is top text.</Text>
