@@ -26,12 +26,14 @@ const DarkTheme = {
  * TODO: Implement React Query
  * TODO: Implement Authenticated Only Screens
  * TODO: Add Schemas more elegant
+ * TODO: Add Tests
  * https://realm.io/
  */
 
 export let realm: Realm;
 
 export const App = () => {
+  //TODO: Dont create a new one everytime just open
   realm = new Realm({ schema: [TokenSchema, ShoppinglistSchema, UserSchema] });
 
   useEffect(() => {

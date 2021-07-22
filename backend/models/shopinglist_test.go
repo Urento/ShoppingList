@@ -168,6 +168,37 @@ func TestGetListsByOwner(t *testing.T) {
 	Equal(t, lists[1].Owner, owner)
 }
 
+func TestExistsByID(t *testing.T) {
+	SetupTest()
+
+	id := seededRand.Intn(90000)
+	title := "title" + StringWithCharset(20)
+	items := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	owner := "owner123123123123" + StringWithCharset(30)
+	participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	position := seededRand.Intn(100)
+	shoppinglist := map[string]interface{}{
+		"id":           id,
+		"title":        title,
+		"items":        items,
+		"owner":        owner,
+		"position":     position,
+		"participants": participants,
+	}
+
+	if err := CreateList(shoppinglist); err != nil {
+		t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
+	}
+
+	exists, err := ExistByID(id)
+	if err != nil {
+		t.Errorf("Error while checking if the shoppinglist exists by id %s", err)
+	}
+
+	Equal(t, true, exists)
+	Equal(t, nil, err)
+}
+
 func StringWithCharset(length int) string {
 	b := make([]byte, length)
 	for i := range b {

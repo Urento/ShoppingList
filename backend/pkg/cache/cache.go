@@ -19,6 +19,8 @@ const (
 
 var rdb *redis.Client
 
+//TODO: Add Cache for Shoppinglists
+
 func Setup() {
 	var err error
 	if util.PROD {
@@ -66,8 +68,6 @@ func CacheJWT(email, token string) error {
 	if err != nil {
 		return err
 	}
-
-	rdb.Close()
 	return nil
 }
 
@@ -78,8 +78,6 @@ func GetJWTByEmail(email string) (string, error) {
 	} else if err != nil {
 		return "", err
 	}
-
-	rdb.Close()
 	return val, nil
 }
 
@@ -90,8 +88,6 @@ func GetEmailByJWT(token string) (string, error) {
 	} else if err != nil {
 		return "", err
 	}
-
-	rdb.Close()
 	return val, nil
 }
 
@@ -126,6 +122,19 @@ func Check(email, token string) (bool, error) {
 	return true, nil
 }
 
+func IsTokenValid(token string) (bool, error) {
+	exists, err := rdb.Exists(context.Background(), emailPrefix+token).Result()
+	if err != nil {
+		return false, err
+	}
+
+	if exists == 1 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
 func DeleteTokenByEmail(email, token string) (bool, error) {
 	var ctx = context.Background()
 	exists, err := EmailExists(email)
@@ -146,8 +155,6 @@ func DeleteTokenByEmail(email, token string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	rdb.Close()
 
 	return true, nil
 }

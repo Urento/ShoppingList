@@ -17,15 +17,9 @@ type Shoppinglist struct {
 }
 
 func ExistByID(id int) (bool, error) {
-	count := int64(0)
-	err := db.Model(&Shoppinglist{}).Where("id = ?", id).Count(&count).Error
-	if err != nil {
-		return false, err
-	}
-	if count > 0 {
-		return true, nil
-	}
-	return false, nil
+	var Found bool
+	err := db.Raw("SELECT EXISTS(SELECT created_on FROM shoppinglists WHERE id = ?) AS found", id).Scan(&Found).Error
+	return Found, err
 }
 
 func GetTotalListsByOwner(ownerID string) (int64, error) {
@@ -76,6 +70,7 @@ func EditList(id int, data map[string]interface{}) error {
 	if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Updates(shoppinglist).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 

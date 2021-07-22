@@ -167,6 +167,38 @@ func TestDeleteTokenWithEmailThatDoesntExist(t *testing.T) {
 	Equal(t, "jwt token not cached", err.Error())
 }
 
+func TestIsTokenValidWithValidToken(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	token := StringWithCharset(155)
+
+	err := CacheJWT(email, token)
+	if err != nil {
+		t.Errorf("Error while caching JWT Token %s", err)
+	}
+
+	Setup()
+
+	valid, err := IsTokenValid(token)
+	if err != nil {
+		t.Errorf("Error while checking if token is valid %s", err)
+	}
+
+	Equal(t, true, valid)
+	Equal(t, nil, err)
+}
+
+func TestIsTokenValidWithInvalidToken(t *testing.T) {
+	Setup()
+
+	token := StringWithCharset(155)
+
+	valid, _ := IsTokenValid(token)
+
+	Equal(t, false, valid)
+}
+
 func StringWithCharset(length int) string {
 	b := make([]byte, length)
 	for i := range b {

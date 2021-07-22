@@ -40,9 +40,6 @@ func GenerateToken(email, password string) (string, error) {
 		return "", err
 	}
 
-	//connect to redis
-	cache.Setup()
-
 	err = cache.CacheJWT(email, token)
 	if err != nil {
 		return "", err

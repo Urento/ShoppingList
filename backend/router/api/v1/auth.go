@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
@@ -20,12 +21,14 @@ type Auth struct {
 
 func Check(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	token := c.Request.Header.Get("Authorization")
+	tok := c.Request.Header.Get("Authorization")
+	token := strings.Replace(tok, "Bearer ", "", -1)
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
 			"success": "false",
 		})
+		return
 	}
 
 	email, err := cache.GetEmailByJWT(token)
@@ -33,6 +36,7 @@ func Check(c *gin.Context) {
 		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 		})
+		return
 	}
 
 	check, err := cache.Check(email, token)
@@ -40,30 +44,36 @@ func Check(c *gin.Context) {
 		appGin.Response(http.StatusBadRequest, e.ERROR_TOKEN_INVALID, map[string]string{
 			"success": "false",
 		})
+		return
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
+		"token":   token,
 	})
 }
 
 func GetUser(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	token := c.Request.Header.Get("Authorization")
+	tok := c.Request.Header.Get("Authorization")
+	token := strings.Replace(tok, "Bearer ", "", -1)
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		return
 	}
 
 	email, err := cache.GetEmailByJWT(token)
 	if err != nil || len(email) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		return
 	}
 
 	authService := auth.Auth{EMail: email}
 	data, err := authService.GetUser()
 	if err != nil {
 		appGin.Response(http.StatusBadRequest, e.ERROR_RETRIEVING_USER_DATA, nil)
+		return
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, data)
@@ -81,6 +91,7 @@ func GetAuth(c *gin.Context) {
 	if !ok {
 		app.MarkErrors(valid.Errors)
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		return
 	}
 
 	authService := auth.Auth{EMail: email, Password: password}

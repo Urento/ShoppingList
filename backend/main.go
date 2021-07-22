@@ -7,6 +7,7 @@ import (
 
 	"github.com/urento/shoppinglist/middleware/ratelimiter"
 	"github.com/urento/shoppinglist/models"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/logging"
 	"github.com/urento/shoppinglist/pkg/setting"
 	"github.com/urento/shoppinglist/pkg/util"
@@ -19,6 +20,7 @@ func init() {
 	models.Setup()
 	util.Setup()
 	ratelimiter.Setup()
+	cache.Setup()
 }
 
 //TODO: Create /user route to retrieve all important user information
@@ -26,6 +28,7 @@ func init() {
 //TODO: Fix Test Equal statement (switch expected and actual)
 //TODO: Check JWT stuff
 //TODO: Invalidate JWT Token
+//TODO: Implement Transactions to SQL Queries
 
 func main() {
 	routersInit := routers.InitRouter()
