@@ -47,7 +47,7 @@ func Setup() {
 
 func RateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		res, err := rrl.Allow(ctx, "shoppinglist:123", redis_rate.PerSecond(10))
+		res, err := rrl.Allow(ctx, "shoppinglist:123", redis_rate.PerMinute(100))
 		code := e.SUCCESS
 		if err != nil {
 			code = e.ERROR_RATE_LIMITER

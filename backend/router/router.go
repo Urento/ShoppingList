@@ -25,16 +25,13 @@ func InitRouter() *gin.Engine {
 
 	apiv1.POST("/auth/check", api.Check)
 	apiv1.GET("/auth/user", api.GetUser)
+	apiv1.POST("/auth/logout", api.Logout)
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)
 	apiv1.PUT("/list", v1.EditShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
-
-	apiv1.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
-	})
 
 	return r
 }

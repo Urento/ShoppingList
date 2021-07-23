@@ -55,19 +55,18 @@ func Setup() {
 
 func CacheJWT(email, token string) error {
 	var ctx = context.Background()
-	var err error
 	//86400 = 24 hours in seconds
-	err = rdb.Set(ctx, tokenPrefix+email, token, 0).Err()
-	rdb.Do(context.Background(), "EXPIRE", tokenPrefix+email, 86400)
+
+	err := rdb.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
 	if err != nil {
 		return err
 	}
 
-	err = rdb.Set(ctx, emailPrefix+token, email, 0).Err()
-	rdb.Do(context.Background(), "EXPIRE", emailPrefix+token, 86400)
+	err = rdb.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

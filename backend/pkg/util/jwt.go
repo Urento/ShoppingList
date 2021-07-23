@@ -1,9 +1,9 @@
 package util
 
 import (
+	"log"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/urento/shoppinglist/pkg/cache"
 )
@@ -18,16 +18,13 @@ type Claims struct {
 
 func GenerateToken(email, password string) (string, error) {
 	nowTime := time.Now()
-	expireTime := nowTime.Add(3 * time.Hour)
+	expireTime := nowTime.Add(24 * time.Hour)
+	log.Print(string(jwtSecret[:]))
 
-	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
-	if err != nil {
-		return "", err
-	}
-
-	claims := Claims{
+	//password will be already encrypted because we story the encrypted password on the client side
+	claims := &Claims{
 		email,
-		passwordHash,
+		password,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "shoppinglist",

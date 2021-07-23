@@ -209,27 +209,43 @@ func DeleteShoppinglist(c *gin.Context) {
 
 	if valid.HasErrors() {
 		app.MarkErrors(valid.Errors)
-		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, map[string]string{
+			"success": "false",
+			"message": "validation error",
+		})
 		return
 	}
 
 	listService := services.Shoppinglist{ID: id}
 	exists, err := listService.ExistsByID()
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_LIST_FAIL, nil)
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_LIST_FAIL, map[string]string{
+			"success": "false",
+			"message": "list does not exist",
+		})
 		return
 	}
 
 	if !exists {
-		appG.Response(http.StatusOK, e.ERROR_LIST_DOES_NOT_EXIST, nil)
+		appG.Response(http.StatusOK, e.ERROR_LIST_DOES_NOT_EXIST, map[string]string{
+			"success": "false",
+			"message": "list does not exist",
+		})
 		return
 	}
 
 	err = listService.Delete()
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_DELETE_LIST_FAIL, nil)
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_DELETE_LIST_FAIL, map[string]string{
+			"success": "false",
+			"message": "error deleting the list",
+		})
 		return
 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, nil)
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+	})
 }

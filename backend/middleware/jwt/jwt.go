@@ -15,7 +15,6 @@ import (
 func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var code int
-		var data interface{}
 
 		code = e.SUCCESS
 		token := c.Request.Header.Get("Authorization")
@@ -26,11 +25,13 @@ func JWT() gin.HandlerFunc {
 			//check if token is valid in redis
 			tokenValid, err := cache.IsTokenValid(splitToken)
 			if err != nil || !tokenValid {
+				log.Print(err)
 				code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
 			}
 
 			if tokenValid {
 				_, err := util.ParseToken(splitToken)
+
 				if err != nil {
 					switch err.(*jwt.ValidationError).Errors {
 					case jwt.ValidationErrorExpired:
@@ -42,13 +43,11 @@ func JWT() gin.HandlerFunc {
 			}
 		}
 
-		log.Print(code == 200)
-
 		if code != e.SUCCESS {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    code,
 				"message": e.GetMsg(code),
-				"data":    data,
+				"data":    splitToken,
 			})
 			c.Abort()
 			return
