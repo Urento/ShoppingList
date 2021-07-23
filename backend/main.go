@@ -29,7 +29,6 @@ func init() {
 //TODO: Check JWT stuff
 //TODO: Implement Transactions to SQL Queries
 //TODO: Implement 2FA and auto filout form when SMS comes in
-//TODO: Change JWT Library (https://github.com/square/go-jose)
 
 func main() {
 	routersInit := routers.InitRouter()
