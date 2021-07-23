@@ -24,7 +24,7 @@ func ExistByID(id int) (bool, error) {
 
 func GetTotalListsByOwner(ownerID string) (int64, error) {
 	var count int64
-	if err := db.Model(&Shoppinglist{}).Where("owner = ? AND deleted_at = ?", ownerID, nil).Count(&count).Error; err != nil {
+	if err := db.Model(&Shoppinglist{}).Where("owner = ?", ownerID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil
@@ -32,7 +32,7 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 
 func GetLists(owner string) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Raw("SELECT * FROM shoppinglists WHERE owner = ? AND deleted_at = ?", owner, nil).Scan(&lists).Error
+	err := db.Raw("SELECT * FROM shoppinglists WHERE owner = ?", owner).Scan(&lists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func GetList(id int) (*Shoppinglist, error) {
 
 func GetListByEmail(email string) (*[]Shoppinglist, error) {
 	var list []Shoppinglist
-	err := db.Model(&Shoppinglist{}).Where("owner = ? AND deleted_at = ?", email, nil).Find(&list).Error
+	err := db.Model(&Shoppinglist{}).Where("owner = ?", email).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
