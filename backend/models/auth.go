@@ -13,21 +13,19 @@ import (
  */
 
 type Auth struct {
-	ID            int    `gorm:"primary_key" json:"id"`
-	EMail         string `json:"email"`
-	EmailVerified bool   `json:"email_verified"`
-	Username      string `json:"username"`
-	Password      string `json:"password"`
-	Rank          string `json:"rank"` //admin or default
+	ID                      int    `gorm:"primary_key" json:"id"`
+	EMail                   string `json:"email"`
+	EmailVerified           bool   `json:"email_verified"`
+	Username                string `json:"username"`
+	Password                string `json:"password"`
+	Rank                    string `json:"rank"` //admin or default
+	TwoFactorAuthentication bool   `json:"twofactorauthentication"`
 }
 
 func GetPasswordHash(email string) (string, error) {
 	var password string
 	err := db.Model(&Auth{}).Select("password").Where("e_mail = ?", email).First(&password).Error
-	if err != nil {
-		return "", err
-	}
-	return password, nil
+	return password, err
 }
 
 func CheckAuth(email, password string) (bool, error) {
@@ -56,6 +54,7 @@ func CheckAuth(email, password string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	if auth.ID > 0 && match {
 		return true, nil
 	}
@@ -93,11 +92,12 @@ func CreateAccount(email, username, password string) error {
 	}
 
 	authObj := Auth{
-		EMail:         email,
-		Username:      username,
-		Password:      passwordHash,
-		EmailVerified: false,
-		Rank:          "default",
+		EMail:                   email,
+		Username:                username,
+		Password:                passwordHash,
+		EmailVerified:           false,
+		Rank:                    "default",
+		TwoFactorAuthentication: false,
 	}
 
 	err = db.Create(&authObj).Error
@@ -127,6 +127,7 @@ func DeleteAccount(email, password string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -140,10 +141,8 @@ func Logout(email, token string) (bool, error) {
 
 func GetRank(email string) (string, error) {
 	var rank string
-	if err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("rank").First(&rank).Error; err != nil {
-		return "", err
-	}
-	return rank, nil
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("rank").First(&rank).Error
+	return rank, err
 }
 
 func SetRank(email, rank string) error {
@@ -152,17 +151,13 @@ func SetRank(email, rank string) error {
 		return errors.New("rank does not exist")
 	}
 
-	if err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("rank", rank).Error; err != nil {
-		return err
-	}
-	return nil
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("rank", rank).Error
+
+	return err
 }
 
 func rankExists(rank string) bool {
-	if rank == "default" || rank == "admin" {
-		return true
-	}
-	return false
+	return rank == "default" || rank == "admin"
 }
 
 func Exists(email string) (exists bool, err error) {
@@ -177,23 +172,31 @@ func IsEmailVerified(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if !verified {
-		return false, nil
-	}
-	return true, nil
+	return verified, nil
 }
 
 func VerifyEmail(email string) error {
 	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("email_verified", true).Error
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func SendVerifyEmail(email string) error {
 	//TODO: SEND EMAIL
 	return errors.New("not implemented yet")
+}
+
+func SetTwoFactorAuthentication(email string, status bool) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("two_factor_authentication = ?", status).Error
+	return err
+}
+
+func IsTwoFactorEnabled(email string) (bool, error) {
+	var status bool
+	err := db.Model(&Auth{}).Where("e_mail = ?").Select("two_factor_authentication").First(&status).Error
+	if err != nil {
+		return false, err
+	}
+	return status, nil
 }
 
 func Count(email string) (int64, error) {

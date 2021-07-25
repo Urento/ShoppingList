@@ -16,9 +16,11 @@ import (
 )
 
 type Auth struct {
-	Email    string `valid:"Required;"`
-	Username string
-	Password string `valid:"Required"`
+	Email                   string `valid:"Required;"`
+	Username                string
+	Password                string `valid:"Required"`
+	EmailVerified           bool
+	TwoFactorAuthentication bool
 }
 
 func Check(c *gin.Context) {
@@ -83,16 +85,36 @@ func GetUser(c *gin.Context) {
 	appGin.Response(http.StatusOK, e.SUCCESS, data)
 }
 
-func GetAuth(c *gin.Context) {
+type LoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func Login(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
 
-	email := c.PostForm("email")
-	password := c.PostForm("password")
+	//TODO: Maybe decode the token and check expire time
 
+	var user LoginUser
+
+	if err := c.BindJSON(&user); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		return
+	}
+
+	//email := c.PostForm("email")
+	//password := c.PostForm("password")
+	email := user.Email
+	password := user.Password
+
+	log.Print(email)
+	log.Print(password)
 	a := Auth{Email: email, Password: password}
-	ok, _ := valid.Valid(&a)
+	ok, err := valid.Valid(&a)
 	if !ok {
+		log.Print(err)
 		app.MarkErrors(valid.Errors)
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
 		return
@@ -210,4 +232,12 @@ func Logout(c *gin.Context) {
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
 	})
+}
+
+func UpdateEmailVerified(c *gin.Context) {
+	//TODO
+}
+
+func UpdateTwoFactorAuthentication(c *gin.Context) {
+	//TODO
 }

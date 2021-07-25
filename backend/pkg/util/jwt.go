@@ -1,7 +1,6 @@
 package util
 
 import (
-	"log"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,9 +18,9 @@ type Claims struct {
 func GenerateToken(email, password string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(24 * time.Hour)
-	log.Print(string(jwtSecret[:]))
 
-	//password will be already encrypted because we story the encrypted password on the client side
+	//TODO: Get Encrypted Password
+
 	claims := &Claims{
 		email,
 		password,

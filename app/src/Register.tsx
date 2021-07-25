@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "./App.css";
 import { LockClosedIcon } from "@heroicons/react/solid";
 import { AUTH_API_URL } from "./util/constants";
-import { Link } from "react-router-dom";
 
 interface DataResponse {
   token: string;
@@ -13,22 +12,14 @@ interface LoginJSONResponse {
   data: DataResponse;
 }
 
-const checkLogin = async () => {
-  const token = localStorage.getItem("token");
-  if (token != null && token!.length > 0) {
-    //TODO: send request to backend to check auth token
-  }
-};
-
-const Login: React.FC = () => {
-  checkLogin();
+const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleEmailChange = (event: any) => setEmail(event.target.value);
   const handlePasswordChange = (event: any) => setPassword(event.target.value);
 
-  const login = async (event: any) => {
+  const register = async (event: any) => {
     event.preventDefault();
     console.log("khjdfbngkjhdbnfg");
     console.log(process.env.NODE_ENV);
@@ -48,6 +39,7 @@ const Login: React.FC = () => {
       return alert("error while logging in");
     localStorage.setItem("token", fJson.data.token);
     //TODO: do redux stuff
+    //TODO: add auth stuff and check exp time on jwt token
   };
 
   return (
@@ -55,19 +47,19 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Login
+            Register
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{" "}
-            <Link
-              to="/register"
+            <a
+              href="#"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Create a new Account!
-            </Link>
+              Login into an already existing account!
+            </a>
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={login}>
+        <form className="mt-8 space-y-6" onSubmit={register}>
           <input type="hidden" name="remember" defaultValue="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -117,7 +109,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onSubmit={login}
+              onSubmit={register}
             >
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                 <LockClosedIcon
@@ -134,4 +126,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Register;

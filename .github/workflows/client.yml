@@ -29,10 +29,6 @@ jobs:
         working-directory: ./app
         run: yarn install --frozen-lockfile
 
-      - name: Check types
+      - name: Test
         working-directory: ./app
-        run: yarn run check-types
-
-      - name: Lint
-        working-directory: ./app
-        run: yarn run lint
+        run: yarn run test

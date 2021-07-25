@@ -443,3 +443,44 @@ func TestGetUserThatDoesntExist(t *testing.T) {
 
 	NotEqual(t, nil, err)
 }
+
+func TestEnableTwoFactorAuthentication(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	auth := Auth{
+		EMail:                   email,
+		Username:                username,
+		Password:                pwd,
+		EmailVerified:           false,
+		TwoFactorAuthentication: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: default %s", err.Error())
+	}
+
+	twoFAUser := Auth{
+		EMail:                   email,
+		Username:                username,
+		Password:                pwd,
+		EmailVerified:           false,
+		TwoFactorAuthentication: true,
+	}
+
+	err = twoFAUser.SetTwoFactorAuthentication()
+	if err != nil {
+		t.Errorf("Error while updating Two Factor Authentication Status %s", err)
+	}
+
+	isEnabled, err := auth.IsTwoFactorEnabled()
+	if err != nil {
+		t.Errorf("Error while getting Two Factor Authentication Status %s", err)
+	}
+
+	Equal(t, nil, err)
+	Equal(t, true, isEnabled)
+}

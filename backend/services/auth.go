@@ -3,12 +3,13 @@ package services
 import "github.com/urento/shoppinglist/models"
 
 type Auth struct {
-	EMail         string
-	Username      string
-	Password      string
-	EmailVerified bool
-	Rank          string
-	JWTToken      string
+	EMail                   string
+	Username                string
+	Password                string
+	EmailVerified           bool
+	Rank                    string
+	JWTToken                string
+	TwoFactorAuthentication bool
 }
 
 func (auth *Auth) Check() (bool, error) {
@@ -53,4 +54,12 @@ func (auth *Auth) Logout() (bool, error) {
 
 func (auth *Auth) GetPassword() (string, error) {
 	return models.GetPasswordHash(auth.EMail)
+}
+
+func (auth *Auth) SetTwoFactorAuthentication() error {
+	return models.SetTwoFactorAuthentication(auth.EMail, auth.TwoFactorAuthentication)
+}
+
+func (auth *Auth) IsTwoFactorEnabled() (bool, error) {
+	return models.IsTwoFactorEnabled(auth.EMail)
 }

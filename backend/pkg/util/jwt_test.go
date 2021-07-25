@@ -7,6 +7,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/cache"
 )
 
 var seededRand *rand.Rand = rand.New(
@@ -19,7 +20,14 @@ func TestGenerateTokenAndParse(t *testing.T) {
 	email := StringWithCharset(10) + "@gmail.com"
 	password := StringWithCharset(30)
 
-	token, err := GenerateToken(email, password)
+	hashedPwd, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		t.Errorf("Error while hashing password %s", err)
+	}
+
+	cache.Setup()
+
+	token, err := GenerateToken(email, hashedPwd)
 	if err != nil {
 		t.Errorf("Error while generating token %s", err)
 	}
