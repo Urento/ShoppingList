@@ -9,7 +9,6 @@ This Project is to mostly learn Go and React with Tailwind
   - go-redis
   - gorm (postgres)
   - jwt-go
-- ## React Native
+- ## React
   - Redux
-  - Realm
-  - React Native Elements
+  - TailwindCSS
