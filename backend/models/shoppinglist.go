@@ -18,7 +18,7 @@ type Shoppinglist struct {
 
 func ExistByID(id int) (bool, error) {
 	var Found bool
-	err := db.Raw("SELECT EXISTS(SELECT created_on FROM shoppinglists WHERE id = ?) AS found", id, nil).Scan(&Found).Error
+	err := db.Raw("SELECT EXISTS(SELECT created_on FROM shoppinglists WHERE id = ?) AS found", id).Scan(&Found).Error
 	return Found, err
 }
 

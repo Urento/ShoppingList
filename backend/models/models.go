@@ -47,6 +47,7 @@ func Setup() {
 
 	db.AutoMigrate(&Shoppinglist{})
 	db.AutoMigrate(&Auth{})
+	db.AutoMigrate(&ResetPassword{})
 
 	sqlDB, err := db.DB()
 	if err != nil {

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"os"
@@ -15,6 +16,7 @@ import (
 const (
 	tokenPrefix = "token:"
 	emailPrefix = "email:"
+	userPrefix  = "user:"
 )
 
 var rdb *redis.Client
@@ -53,16 +55,107 @@ func Setup() {
 	}
 }
 
-func CacheJWT(email, token string) error {
-	var ctx = context.Background()
-	//86400 = 24 hours in seconds
+type User struct {
+	EMail                   string `json:"e_mail"`
+	Username                string `json:"username"`
+	Password                string `json:"password"`
+	EmailVerified           bool   `json:"email_verified"`
+	Rank                    string `json:"rank"`
+	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
+}
 
-	err := rdb.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
+func CacheUser(user User) error {
+	b, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
 
-	err = rdb.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
+	err = rdb.Set(context.Background(), userPrefix+user.EMail, b, 0).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetUser(email string) (*User, error) {
+	var user User
+	u, err := rdb.Get(context.Background(), userPrefix+email).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	d := []byte(u)
+	err = json.Unmarshal(d, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+//TODO: Let only specific fields get updated
+func UpdateUser(user User) error {
+	var ctx = context.Background()
+	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		err := rdb.Del(ctx, userPrefix+user.EMail).Err()
+		if err != nil {
+			return err
+		}
+
+		b, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
+
+		err = rdb.Set(ctx, userPrefix+user.EMail, b, 0).Err()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteUser(email string) error {
+	err := rdb.Del(context.Background(), userPrefix+email).Err()
+	return err
+}
+
+func IsUserCached(email string) (bool, error) {
+	exists, err := rdb.Exists(context.Background(), userPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	if exists == 1 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func CacheJWT(email, token string) error {
+	var ctx = context.Background()
+	//86400 = 24 hours in seconds
+
+	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		err := rdb.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
+		if err != nil {
+			return err
+		}
+
+		err = rdb.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		return err
 	}

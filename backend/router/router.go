@@ -39,5 +39,9 @@ func InitRouter() *gin.Engine {
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 
+	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
+	apiv1.POST("/resetpassword", api.SendResetPassword)
+	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
+
 	return r
 }

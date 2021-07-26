@@ -23,12 +23,12 @@ func init() {
 	cache.Setup()
 }
 
-//TODO: Create /user route to retrieve all important user information
-//TODO: Create /logout route to invalidate old token
-//TODO: Fix Test Equal statement (switch expected and actual)
 //TODO: Check JWT stuff
 //TODO: Implement Transactions to SQL Queries
 //TODO: Implement 2FA and auto filout form when SMS comes in
+//TODO: Add Update User Route and allow to only update specific fields
+//TODO: BeforeEach and AfterEach in Tests?
+//TODO: Implement User Cache
 
 func main() {
 	routersInit := routers.InitRouter()

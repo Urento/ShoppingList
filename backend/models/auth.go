@@ -14,12 +14,12 @@ import (
 
 type Auth struct {
 	ID                      int    `gorm:"primary_key" json:"id"`
-	EMail                   string `json:"email"`
+	EMail                   string `json:"e_mail"`
 	EmailVerified           bool   `json:"email_verified"`
 	Username                string `json:"username"`
 	Password                string `json:"password"`
 	Rank                    string `json:"rank"` //admin or default
-	TwoFactorAuthentication bool   `json:"twofactorauthentication"`
+	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -186,13 +186,13 @@ func SendVerifyEmail(email string) error {
 }
 
 func SetTwoFactorAuthentication(email string, status bool) error {
-	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("two_factor_authentication = ?", status).Error
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("two_factor_authentication", status).Error
 	return err
 }
 
 func IsTwoFactorEnabled(email string) (bool, error) {
 	var status bool
-	err := db.Model(&Auth{}).Where("e_mail = ?").Select("two_factor_authentication").First(&status).Error
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("two_factor_authentication").First(&status).Error
 	if err != nil {
 		return false, err
 	}
