@@ -1,6 +1,9 @@
 package models
 
 import (
+	"errors"
+	"time"
+
 	"github.com/rs/xid"
 	"gorm.io/gorm"
 )
@@ -14,30 +17,40 @@ type ResetPassword struct {
 }
 
 //Maybe change to redis?
-//TODO: Let them expire after 1 hour (just check createdat and add 1 hour)
+//TODO: Let them expire after 1 hour (just check createdat and add 1 day)
 
 func ExistsResetPassword(email string) (bool, error) {
+	valid, err := IsStillValid(email)
+	if err != nil || !valid {
+		return false, err
+	}
+
 	var Exists bool
-	err := db.Raw("SELECT EXISTS(SELECT created_on FROM reset_passwords WHERE email = ? AND already_verified = ?) AS found", email, false).Scan(&Exists).Error
+	err = db.Raw("SELECT EXISTS(SELECT created_on FROM reset_passwords WHERE email = ? AND already_verified = ?) AS found", email, false).Scan(&Exists).Error
 	return Exists, err
 }
 
 func DeleteResetPassword(email string) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		err := db.Model(&ResetPassword{}).Where("email = ?", email).Update("already_verified", true).Error
+		err := tx.Model(&ResetPassword{}).Where("email = ?", email).Update("already_verified", true).Error
 		if err != nil {
 			return err
 		}
 
-		err = db.Where("email = ?", email).Delete(&ResetPassword{}).Error
+		err = tx.Where("email = ?", email).Delete(&ResetPassword{}).Error
 		return err
 	})
 	return err
 }
 
 func GetVerificationId(email string) (string, error) {
+	valid, err := IsStillValid(email)
+	if err != nil || !valid {
+		return "", err
+	}
+
 	var verificationId string
-	err := db.Model(&ResetPassword{}).Where("email = ?", email).Select("verification_id").First(&verificationId).Error
+	err = db.Model(&ResetPassword{}).Where("email = ?", email).Select("verification_id").First(&verificationId).Error
 	if err != nil {
 		return "", err
 	}
@@ -45,8 +58,13 @@ func GetVerificationId(email string) (string, error) {
 }
 
 func VerifyVerificationId(email, verificationId string) (bool, error) {
+	valid, err := IsStillValid(email)
+	if err != nil || !valid {
+		return false, err
+	}
+
 	var Correct int64
-	err := db.Model(&ResetPassword{}).Where("email = ? AND verification_id = ?", email, verificationId).Count(&Correct).Error
+	err = db.Model(&ResetPassword{}).Where("email = ? AND verification_id = ?", email, verificationId).Count(&Correct).Error
 	if err != nil {
 		return false, err
 	}
@@ -75,6 +93,21 @@ func CreateResetPassword(email string) error {
 	}
 
 	return nil
+}
+
+func IsStillValid(email string) (bool, error) {
+	var createdOn int64
+	err := db.Model(&ResetPassword{}).Where("email = ?", email).Select("created_on").Find(&createdOn).Error
+	if err != nil {
+		return false, err
+	}
+	currentDate := time.Now().AddDate(0, 0, 1)
+
+	if currentDate.Unix() >= createdOn {
+		return true, nil
+	}
+
+	return false, errors.New("resetpassword request already expired")
 }
 
 func sendEmail(email string) error {

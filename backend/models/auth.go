@@ -6,6 +6,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/urento/shoppinglist/pkg/cache"
+	"gorm.io/gorm"
 )
 
 /**
@@ -13,6 +14,8 @@ import (
  */
 
 type Auth struct {
+	Model
+
 	ID                      int    `gorm:"primary_key" json:"id"`
 	EMail                   string `json:"e_mail"`
 	EmailVerified           bool   `json:"email_verified"`
@@ -20,6 +23,7 @@ type Auth struct {
 	Password                string `json:"password"`
 	Rank                    string `json:"rank"` //admin or default
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
+	IPAddress               string `json:"ipaddress"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -28,13 +32,12 @@ func GetPasswordHash(email string) (string, error) {
 	return password, err
 }
 
-func CheckAuth(email, password string) (bool, error) {
+func CheckAuth(email, password, ip string) (bool, error) {
 	exists, err := Exists(email)
 	if err != nil || !exists {
 		return false, nil
 	}
 
-	var auth Auth
 	pwdHash, err1 := GetPasswordHash(email)
 	if err1 != nil {
 		return false, nil
@@ -45,12 +48,13 @@ func CheckAuth(email, password string) (bool, error) {
 		return false, nil
 	}
 
-	authEmail := Auth{
-		EMail:    email,
-		Password: pwdHash,
-	}
+	var auth Auth
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Select("id").Model(&Auth{}).Where("e_mail = ?", email).First(&auth).Error
+		err = tx.Model(&Auth{}).Where("e_mail = ?", email).Update("ip_address", ip).Error
+		return err
+	})
 
-	err = db.Select("id").Model(&Auth{}).Where(authEmail).First(&auth).Error
 	if err != nil {
 		return false, err
 	}
@@ -71,7 +75,7 @@ func GetUser(email string) (*Auth, error) {
 	return &user, nil
 }
 
-func CreateAccount(email, username, password string) error {
+func CreateAccount(email, username, password, ip string) error {
 	validEmail := validateEmail(email)
 	if !validEmail {
 		return errors.New("email is not valid")
@@ -83,7 +87,7 @@ func CreateAccount(email, username, password string) error {
 	}
 
 	if exists {
-		return errors.New("account already exists")
+		return errors.New("email is already being used")
 	}
 
 	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
@@ -93,11 +97,12 @@ func CreateAccount(email, username, password string) error {
 
 	authObj := Auth{
 		EMail:                   email,
-		Username:                username,
 		Password:                passwordHash,
+		Username:                username,
 		EmailVerified:           false,
 		Rank:                    "default",
 		TwoFactorAuthentication: false,
+		IPAddress:               ip,
 	}
 
 	err = db.Create(&authObj).Error
@@ -106,6 +111,21 @@ func CreateAccount(email, username, password string) error {
 	}
 
 	return nil
+}
+
+func SetUsername(email, username string) error {
+	if len(username) > 32 {
+		return errors.New("username can only be a maximum of 32 characters long")
+	}
+
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("username", username).Error
+	return err
+}
+
+func GetUsername(email string) (string, error) {
+	var username string
+	err := db.Model(&Auth{}).Select("username").Where("e_mail = ?", email).Find(&username).Error
+	return username, err
 }
 
 func DeleteAccount(email, password string) error {
@@ -136,6 +156,7 @@ func Logout(email, token string) (bool, error) {
 	if err != nil || !ok {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -196,7 +217,19 @@ func IsTwoFactorEnabled(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return status, nil
+}
+
+func UpdateIP(email, ip string) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("ip_address", ip).Error
+	return err
+}
+
+func GetIP(email string) (string, error) {
+	var ip string
+	err := db.Model(&Auth{}).Select("ip_address").Where("e_mail = ?", email).Find(&ip).Error
+	return ip, err
 }
 
 func Count(email string) (int64, error) {

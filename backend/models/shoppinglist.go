@@ -8,6 +8,7 @@ import (
 
 type Shoppinglist struct {
 	Model
+
 	ID           int `gorm:"primaryKey"`
 	Title        string
 	Items        pq.StringArray `gorm:"type:text[]"`
@@ -32,7 +33,8 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 
 func GetLists(owner string) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Raw("SELECT * FROM shoppinglists WHERE owner = ?", owner).Scan(&lists).Error
+	err := db.Model(&Shoppinglist{}).Where("owner = ?", owner).Find(&lists).Error
+	//err := db.Raw("SELECT * FROM shoppinglists WHERE owner = ?", owner).Scan(&lists).Error
 	if err != nil {
 		return nil, err
 	}

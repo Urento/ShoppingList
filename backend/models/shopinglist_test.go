@@ -164,8 +164,14 @@ func TestGetListsByOwner(t *testing.T) {
 		t.Errorf("List is Empty")
 	}
 
-	Equal(t, lists[0].Owner, owner)
-	Equal(t, lists[1].Owner, owner)
+	Equal(t, owner, lists[0].Owner)
+	Equal(t, owner, lists[1].Owner)
+	Equal(t, title, lists[0].Title)
+	Equal(t, position, lists[0].Position)
+	Equal(t, id, lists[0].ID)
+	Equal(t, title2, lists[1].Title)
+	Equal(t, position2, lists[1].Position)
+	Equal(t, id2, lists[1].ID)
 }
 
 func TestExistsByID(t *testing.T) {

@@ -1,8 +1,12 @@
 package api
 
 import (
+	"errors"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -104,13 +108,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//email := c.PostForm("email")
-	//password := c.PostForm("password")
 	email := user.Email
 	password := user.Password
+	ip, err := GetClientIPHelper(c.Request)
+	if err != nil {
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_IP, map[string]string{
+			"success": "false",
+			"error":   "error while resolving ip address",
+		})
+	}
 
-	log.Print(email)
-	log.Print(password)
 	a := Auth{Email: email, Password: password}
 	ok, err := valid.Valid(&a)
 	if !ok {
@@ -143,7 +150,7 @@ func Login(c *gin.Context) {
 	}
 
 	// if the user doesnt have a valid token in cache = generate new one
-	authService := auth.Auth{EMail: email, Password: password}
+	authService := auth.Auth{EMail: email, Password: password, IPAddress: ip}
 	exists, err := authService.Check()
 	if err != nil {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
@@ -166,13 +173,35 @@ func Login(c *gin.Context) {
 	})
 }
 
+type RegisterUser struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func CreateAccount(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
 
-	email := c.PostForm("email")
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	var user RegisterUser
+
+	if err := c.BindJSON(&user); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		return
+	}
+
+	email := user.Email
+	username := user.Username
+	password := user.Password
+	ip, err := GetClientIPHelper(c.Request)
+	if err != nil {
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_IP, map[string]string{
+			"success": "false",
+			"error":   "error resolving the ip address",
+		})
+		return
+	}
 
 	a := Auth{Email: email, Username: username, Password: password}
 	ok, _ := valid.Valid(a)
@@ -184,11 +213,15 @@ func CreateAccount(c *gin.Context) {
 		return
 	}
 
-	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default"}
-	err := acc.Create()
+	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default", IPAddress: ip}
+	err = acc.Create()
 	if err != nil {
+		log.Print(err)
 		app.MarkErrors(valid.Errors)
-		appGin.Response(http.StatusBadRequest, e.ERROR_CREATING_ACCOUNT, err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_CREATING_ACCOUNT, map[string]string{
+			"error":   "email is already being used",
+			"success": "false",
+		})
 		return
 	}
 
@@ -240,4 +273,132 @@ func UpdateEmailVerified(c *gin.Context) {
 
 func UpdateTwoFactorAuthentication(c *gin.Context) {
 	//TODO
+}
+
+// GetClientIPHelper gets the client IP using a mixture of techniques.
+// This is how it is with golang at the moment.
+func GetClientIPHelper(req *http.Request) (ipResult string, errResult error) {
+
+	// Try lots of ways :) Order is important.
+
+	//  Try Request Header ("Origin")
+	url, err := url.Parse(req.Header.Get("Origin"))
+	if err == nil {
+		host := url.Host
+		ip, _, err := net.SplitHostPort(host)
+		if err == nil {
+			log.Printf("debug: Found IP using Header (Origin) sniffing. ip: %v", ip)
+			return ip, nil
+		}
+	}
+
+	// Try by Request
+	ip, err := getClientIPByRequestRemoteAddr(req)
+	if err == nil {
+		log.Printf("debug: Found IP using Request sniffing. ip: %v", ip)
+		return ip, nil
+	}
+
+	// Try Request Headers (X-Forwarder). Client could be behind a Proxy
+	ip, err = getClientIPByHeaders(req)
+	if err == nil {
+		log.Printf("debug: Found IP using Request Headers sniffing. ip: %v", ip)
+		return ip, nil
+	}
+
+	err = errors.New("error: Could not find clients IP address")
+	return "", err
+}
+
+// getClientIPByRequest tries to get directly from the Request.
+// https://blog.golang.org/context/userip/userip.go
+func getClientIPByRequestRemoteAddr(req *http.Request) (ip string, err error) {
+
+	// Try via request
+	ip, port, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		log.Printf("debug: Getting req.RemoteAddr %v", err)
+		return "", err
+	} else {
+		log.Printf("debug: With req.RemoteAddr found IP:%v; Port: %v", ip, port)
+	}
+
+	userIP := net.ParseIP(ip)
+	if userIP == nil {
+		message := fmt.Sprintf("debug: Parsing IP from Request.RemoteAddr got nothing.")
+		log.Printf(message)
+		return "", fmt.Errorf(message)
+
+	}
+	log.Printf("debug: Found IP: %v", userIP)
+	return userIP.String(), nil
+
+}
+
+// getClientIPByHeaders tries to get directly from the Request Headers.
+// This is only way when the client is behind a Proxy.
+func getClientIPByHeaders(req *http.Request) (ip string, err error) {
+
+	// Client could be behid a Proxy, so Try Request Headers (X-Forwarder)
+	ipSlice := []string{}
+
+	ipSlice = append(ipSlice, req.Header.Get("X-Forwarded-For"))
+	ipSlice = append(ipSlice, req.Header.Get("x-forwarded-for"))
+	ipSlice = append(ipSlice, req.Header.Get("X-FORWARDED-FOR"))
+
+	for _, v := range ipSlice {
+		log.Printf("debug: client request header check gives ip: %v", v)
+		if v != "" {
+			return v, nil
+		}
+	}
+	err = errors.New("error: Could not find clients IP address from the Request Headers")
+	return "", err
+
+}
+
+// getMyInterfaceAddr gets this private network IP. Basically the Servers IP.
+func getMyInterfaceAddr() (net.IP, error) {
+
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	addresses := []net.IP{}
+	for _, iface := range ifaces {
+
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			addresses = append(addresses, ip)
+		}
+	}
+	if len(addresses) == 0 {
+		return nil, fmt.Errorf("no address Found, net.InterfaceAddrs: %v", addresses)
+	}
+	//only need first
+	return addresses[0], nil
 }

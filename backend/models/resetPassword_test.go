@@ -133,3 +133,22 @@ func TestVerifyVerificationIdWithWrongId(t *testing.T) {
 	Equal(t, false, ok)
 	Equal(t, nil, err)
 }
+
+func TestIsStillValid(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+
+	err := CreateResetPassword(email)
+	if err != nil {
+		t.Errorf("Error while creating reset password: %s", err)
+	}
+
+	valid, err := IsStillValid(email)
+	if err != nil {
+		t.Errorf("Error while checking if reset password request is still valid: %s", err)
+	}
+
+	Equal(t, true, valid)
+	Equal(t, nil, err)
+}

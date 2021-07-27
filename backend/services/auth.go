@@ -1,6 +1,8 @@
 package services
 
-import "github.com/urento/shoppinglist/models"
+import (
+	"github.com/urento/shoppinglist/models"
+)
 
 type Auth struct {
 	EMail                   string
@@ -10,14 +12,23 @@ type Auth struct {
 	Rank                    string
 	JWTToken                string
 	TwoFactorAuthentication bool
+	IPAddress               string
 }
 
 func (auth *Auth) Check() (bool, error) {
-	return models.CheckAuth(auth.EMail, auth.Password)
+	return models.CheckAuth(auth.EMail, auth.Password, auth.IPAddress)
 }
 
 func (auth *Auth) Create() error {
-	return models.CreateAccount(auth.EMail, auth.Username, auth.Password)
+	return models.CreateAccount(auth.EMail, auth.Username, auth.Password, auth.IPAddress)
+}
+
+func (auth *Auth) UpdateIP() error {
+	return models.UpdateIP(auth.EMail, auth.IPAddress)
+}
+
+func (auth *Auth) GetIP() (string, error) {
+	return models.GetIP(auth.EMail)
 }
 
 func (auth *Auth) VerifyEmail() error {
@@ -62,4 +73,12 @@ func (auth *Auth) SetTwoFactorAuthentication() error {
 
 func (auth *Auth) IsTwoFactorEnabled() (bool, error) {
 	return models.IsTwoFactorEnabled(auth.EMail)
+}
+
+func (auth *Auth) SetUsername() error {
+	return models.SetUsername(auth.EMail, auth.Username)
+}
+
+func (auth *Auth) GetUsername() (string, error) {
+	return models.GetUsername(auth.EMail)
 }

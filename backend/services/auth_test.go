@@ -1,8 +1,11 @@
 package services
 
 import (
+	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/stretchr/testify/assert"
 )
@@ -12,10 +15,13 @@ func TestCreateAccountEmail(t *testing.T) {
 
 	pwd := StringWithCharset(20)
 	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(20)
+	ip := RandomIPAddress()
 	auth := Auth{
-		EMail:    email,
-		Username: "",
-		Password: pwd,
+		EMail:     email,
+		Username:  username,
+		Password:  pwd,
+		IPAddress: ip,
 	}
 
 	err := auth.Create()
@@ -23,10 +29,11 @@ func TestCreateAccountEmail(t *testing.T) {
 		t.Errorf("Error while creating user %s", err.Error())
 	}
 
+	ip2 := RandomIPAddress()
 	checkAuth := Auth{
-		EMail:    email,
-		Username: "",
-		Password: pwd,
+		EMail:     email,
+		Password:  pwd,
+		IPAddress: ip2,
 	}
 
 	check, err := checkAuth.Check()
@@ -483,4 +490,116 @@ func TestEnableTwoFactorAuthentication(t *testing.T) {
 
 	Equal(t, nil, err)
 	Equal(t, true, isEnabled)
+}
+
+func TestUpdateIPAndGet(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	auth := Auth{
+		EMail:                   email,
+		Password:                pwd,
+		EmailVerified:           false,
+		TwoFactorAuthentication: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating the account with rank: default %s", err.Error())
+	}
+
+	ip := RandomIPAddress()
+	updateIpAuthObj := Auth{
+		EMail:     email,
+		IPAddress: ip,
+	}
+
+	err = updateIpAuthObj.UpdateIP()
+	if err != nil {
+		t.Errorf("Error while updating ip: %s", err)
+	}
+
+	newIP, err := auth.GetIP()
+	if err != nil {
+		t.Errorf("Error while getting ip: %s", err)
+	}
+
+	Equal(t, ip, newIP)
+	Equal(t, nil, err)
+}
+
+func TestUpdateUsername(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	auth := Auth{
+		EMail:                   email,
+		Password:                pwd,
+		EmailVerified:           false,
+		TwoFactorAuthentication: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	username := StringWithCharset(30)
+	updateUsernameAuthObj := Auth{
+		EMail:    email,
+		Username: username,
+	}
+
+	err = updateUsernameAuthObj.SetUsername()
+	if err != nil {
+		t.Errorf("Error while updating username: %s", err)
+	}
+
+	uName, err := auth.GetUsername()
+	if err != nil {
+		t.Errorf("Error while getting username: %s", err)
+	}
+
+	Equal(t, username, uName)
+	Equal(t, nil, err)
+}
+
+func TestUpdateUsernameWithOver32Charcters(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	auth := Auth{
+		EMail:                   email,
+		Password:                pwd,
+		EmailVerified:           false,
+		TwoFactorAuthentication: false,
+	}
+
+	err := auth.Create()
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	username := StringWithCharset(34)
+	updateUsernameAuthObj := Auth{
+		EMail:    email,
+		Username: username,
+	}
+
+	err = updateUsernameAuthObj.SetUsername()
+	if err == nil {
+		t.Errorf("No Error thrown even though the username is over 32 characters")
+	}
+
+	Equal(t, "username can only be a maximum of 32 characters long", err.Error())
+	NotEqual(t, nil, err)
+}
+
+func RandomIPAddress() string {
+	rand.Seed(time.Now().Unix())
+	ip := fmt.Sprintf("%d.%d.%d.%d", rand.Intn(255), rand.Intn(255), rand.Intn(255), rand.Intn(255))
+	return ip
 }
