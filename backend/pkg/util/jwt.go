@@ -3,7 +3,7 @@ package util
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/urento/shoppinglist/pkg/cache"
 )
 

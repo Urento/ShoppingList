@@ -1,13 +1,25 @@
 package routers
 
 import (
+	"log"
+	"os"
+
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/urento/shoppinglist/middleware/jwt"
 	"github.com/urento/shoppinglist/middleware/ratelimiter"
+	util "github.com/urento/shoppinglist/pkg"
 	"github.com/urento/shoppinglist/router/api/v1"
 	v1 "github.com/urento/shoppinglist/router/api/v1/shoppinglist"
 )
+
+type RedisData struct {
+	Address  string
+	Password string
+}
 
 func InitRouter() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
@@ -16,11 +28,20 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(ratelimiter.RateLimit())
 
+	redisAddress, redisPassword, err := GetRedisData()
+	if err != nil {
+		log.Fatal(err)
+	}
+	//sessionSecret := GetSessionSecret()
+	sessionSecret := GetSessionSecret()
+	store, _ := redis.NewStore(10, "tcp", redisAddress, redisPassword, []byte(sessionSecret))
+	r.Use(sessions.Sessions("loginsession", store))
+
 	//cors setup
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 	config.AllowCredentials = true
-	config.AddAllowHeaders("Authorization")
+	config.AddAllowHeaders("Authorization") //TODO: Maybe remove since I handle logins different now
 	r.Use(cors.New(config))
 
 	r.POST("/api/auth", api.Login)
@@ -44,4 +65,31 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
 
 	return r
+}
+
+func GetRedisData() (string, string, error) {
+	var err error
+	if util.PROD {
+		err = godotenv.Load()
+	} else if util.GITHUB_TESTING {
+		err = nil
+	} else if util.LOCAL_TESTING {
+		err = godotenv.Load("../../.env")
+	} else {
+		err = godotenv.Load()
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	address := os.Getenv("REDIS_ADDR")
+	password := os.Getenv("REDIS_PASSWORD")
+
+	return address, password, nil
+}
+
+func GetSessionSecret() string {
+	secret := os.Getenv("SESSION_SECRET")
+	return secret
 }

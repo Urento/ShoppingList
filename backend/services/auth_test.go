@@ -134,7 +134,7 @@ func TestDuplicateAccounts(t *testing.T) {
 		t.Errorf("No Duplication error thrown")
 	}
 
-	containsError := strings.Contains(err.Error(), "account already exists")
+	containsError := strings.Contains(err.Error(), "email is already being used")
 
 	Equal(t, true, containsError)
 	NotEqual(t, nil, err)

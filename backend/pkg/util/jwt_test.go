@@ -22,19 +22,19 @@ func TestGenerateTokenAndParse(t *testing.T) {
 
 	hashedPwd, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
-		t.Errorf("Error while hashing password %s", err)
+		t.Errorf("Error while hashing password: %s", err)
 	}
 
 	cache.Setup()
 
 	token, err := GenerateToken(email, hashedPwd)
 	if err != nil {
-		t.Errorf("Error while generating token %s", err)
+		t.Errorf("Error while generating token: %s", err)
 	}
 
 	parsed, err := ParseToken(token)
 	if err != nil {
-		t.Errorf("Error while parsing token %s", err)
+		t.Errorf("Error while parsing token: %s", err)
 	}
 
 	pwdHashOk, err := argon2id.ComparePasswordAndHash(password, parsed.Password)

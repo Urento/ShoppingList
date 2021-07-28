@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -11,12 +10,17 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/validation"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
 	"github.com/urento/shoppinglist/pkg/util"
 	auth "github.com/urento/shoppinglist/services"
+)
+
+var (
+	tokenCookieName = "token"
 )
 
 type Auth struct {
@@ -29,8 +33,19 @@ type Auth struct {
 
 func Check(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+	//tok := c.Request.Header.Get("Authorization")
+	//token := strings.Replace(tok, "Bearer ", "", -1)
+	token, err := GetSession(c)
+	log.Print(token)
+
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
@@ -97,6 +112,12 @@ type LoginUser struct {
 func Login(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
+	session := sessions.Default(c)
+	t, err := GetSession(c)
+	if err != nil {
+		log.Print(err.Error())
+	}
+	log.Print(t)
 
 	//TODO: Maybe decode the token and check expire time
 
@@ -135,11 +156,24 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	//TODO: Maybe decode token and validate the actual token again
+
+	//user still has a valid token
 	if ex {
 		token, err := cache.GetJWTByEmail(email)
 		if err != nil {
 			log.Print(err)
 			appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+			return
+		}
+
+		session.Set(tokenCookieName, token)
+		if err := session.Save(); err != nil {
+			log.Print(err)
+			appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
+				"error":   err.Error(),
+				"success": "false",
+			})
 			return
 		}
 
@@ -168,9 +202,36 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	//err = SetSession(c, token)
+	session.Set(tokenCookieName, token)
+	if err := session.Save(); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"token": token,
 	})
+}
+
+func SetSession(c *gin.Context, token string) error {
+	session := sessions.Default(c)
+	session.Set(tokenCookieName, token)
+	err := session.Save()
+	return err
+}
+
+func GetSession(c *gin.Context) (string, error) {
+	session := sessions.Default(c)
+	token := session.Get(tokenCookieName)
+	if token == nil {
+		return "", errors.New("error while getting session token: token is null")
+	}
+	return token.(string), nil
 }
 
 type RegisterUser struct {
@@ -325,9 +386,9 @@ func getClientIPByRequestRemoteAddr(req *http.Request) (ip string, err error) {
 
 	userIP := net.ParseIP(ip)
 	if userIP == nil {
-		message := fmt.Sprintf("debug: Parsing IP from Request.RemoteAddr got nothing.")
-		log.Printf(message)
-		return "", fmt.Errorf(message)
+		message := "parsing ip from request.remoteaddr got nothing"
+		log.Print(message)
+		return "", errors.New(message)
 
 	}
 	log.Printf("debug: Found IP: %v", userIP)
@@ -355,50 +416,4 @@ func getClientIPByHeaders(req *http.Request) (ip string, err error) {
 	err = errors.New("error: Could not find clients IP address from the Request Headers")
 	return "", err
 
-}
-
-// getMyInterfaceAddr gets this private network IP. Basically the Servers IP.
-func getMyInterfaceAddr() (net.IP, error) {
-
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		return nil, err
-	}
-	addresses := []net.IP{}
-	for _, iface := range ifaces {
-
-		if iface.Flags&net.FlagUp == 0 {
-			continue // interface down
-		}
-		if iface.Flags&net.FlagLoopback != 0 {
-			continue // loopback interface
-		}
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			if ip == nil || ip.IsLoopback() {
-				continue
-			}
-			ip = ip.To4()
-			if ip == nil {
-				continue // not an ipv4 address
-			}
-			addresses = append(addresses, ip)
-		}
-	}
-	if len(addresses) == 0 {
-		return nil, fmt.Errorf("no address Found, net.InterfaceAddrs: %v", addresses)
-	}
-	//only need first
-	return addresses[0], nil
 }

@@ -9,6 +9,7 @@ import (
 	utils "github.com/urento/shoppinglist/pkg"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var db *gorm.DB
@@ -36,13 +37,25 @@ func Setup() {
 		log.Fatal(err)
 	}
 
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second,   // Slow SQL threshold
+			LogLevel:                  logger.Silent, // Log level
+			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,         // Disable color
+		},
+	)
+
 	db, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:                  os.Getenv("DATABASE_DSN"),
 		PreferSimpleProtocol: true,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
-		log.Fatalf("models.Setup err: %v", err)
+		log.Fatalf("Error while connecting to database: %s", err)
 	}
 
 	db.AutoMigrate(&Shoppinglist{})
@@ -51,7 +64,7 @@ func Setup() {
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("models.Setup err: %v", err)
+		log.Fatalf("Error while connecting to database: %s", err)
 	}
 
 	sqlDB.SetMaxIdleConns(1000)

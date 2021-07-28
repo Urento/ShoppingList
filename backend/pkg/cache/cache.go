@@ -62,6 +62,7 @@ type User struct {
 	EmailVerified           bool   `json:"email_verified"`
 	Rank                    string `json:"rank"`
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
+	IPAddress               string `json:"ipaddress"`
 }
 
 func CacheUser(user User) error {

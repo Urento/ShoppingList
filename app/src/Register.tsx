@@ -52,7 +52,7 @@ const Register: React.FC = () => {
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{" "}
             <a
-              href="#"
+              href="/"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Login into an already existing account!

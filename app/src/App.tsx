@@ -3,13 +3,15 @@ import "./App.css";
 import { LockClosedIcon } from "@heroicons/react/solid";
 import { AUTH_API_URL } from "./util/constants";
 import { Link } from "react-router-dom";
+import swal from "sweetalert";
+import clsx from "clsx";
 
 interface DataResponse {
   token: string;
 }
 interface LoginJSONResponse {
   code: string;
-  message: string;
+  message: "fail" | "ok";
   data: DataResponse;
 }
 
@@ -24,14 +26,16 @@ const Login: React.FC = () => {
   checkLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState({
+    email: false,
+    password: false,
+  });
 
   const handleEmailChange = (event: any) => setEmail(event.target.value);
   const handlePasswordChange = (event: any) => setPassword(event.target.value);
 
   const login = async (event: any) => {
     event.preventDefault();
-    console.log("khjdfbngkjhdbnfg");
-    console.log(process.env.NODE_ENV);
     const f = await fetch(AUTH_API_URL, {
       method: "POST",
       headers: {
@@ -43,10 +47,17 @@ const Login: React.FC = () => {
       }),
     });
     const fJson: LoginJSONResponse = await f.json();
-    if (fJson.message === "fail")
-      //change to sweetalert
-      return alert("error while logging in");
-    localStorage.setItem("token", fJson.data.token);
+    if (fJson.message === "fail") {
+      setError({ email: true, password: true });
+    } else if (fJson.message === "ok") {
+      swal({
+        icon: "success",
+        title: "Successful Login",
+        text: "You have been successfully logged in!",
+      });
+    } else {
+      setError({ email: true, password: true });
+    }
     //TODO: do redux stuff
   };
 
@@ -80,12 +91,24 @@ const Login: React.FC = () => {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={clsx(
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 pl-12 ${
+                    error.email ? "border-red-500" : ""
+                  }`
+                )}
                 placeholder="Email address"
                 onChange={handleEmailChange}
               />
+              {error.email ? (
+                <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                  Invalid email or password!
+                </span>
+              ) : (
+                ""
+              )}
             </div>
-            <div>
+
+            <div style={{ paddingTop: "2%" }}>
               <label htmlFor="password" className="sr-only">
                 Password
               </label>
@@ -95,11 +118,22 @@ const Login: React.FC = () => {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={clsx(
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 pl-12 ${
+                    error.password ? "border-red-500" : ""
+                  }`
+                )}
                 placeholder="Password"
                 onChange={handlePasswordChange}
               />
             </div>
+            {error.password ? (
+              <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                Invalid email or password!
+              </span>
+            ) : (
+              ""
+            )}
           </div>
 
           <div className="flex items-center justify-between">
