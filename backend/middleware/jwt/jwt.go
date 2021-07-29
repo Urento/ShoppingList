@@ -30,9 +30,15 @@ func JWT() gin.HandlerFunc {
 			}
 
 			if tokenValid {
-				_, err := util.ParseToken(splitToken)
+				data, parseErr := util.ParseToken(splitToken)
 
-				if err != nil {
+				ok, err := cache.VerifySecretId(data.Email, data.SecretId)
+				if err != nil || !ok {
+					log.Print(err)
+					code = e.ERROR_VERIFYING_VERIFICATION_ID
+				}
+
+				if parseErr != nil {
 					switch err.(*jwt.ValidationError).Errors {
 					case jwt.ValidationErrorExpired:
 						code = e.ERROR_AUTH_CHECK_TOKEN_TIMEOUT
@@ -41,6 +47,16 @@ func JWT() gin.HandlerFunc {
 					}
 				}
 			}
+		}
+
+		if code == e.ERROR_VERIFYING_VERIFICATION_ID {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    code,
+				"message": e.GetMsg(code),
+				"data":    "jwt token is invalid",
+			})
+			c.Abort()
+			return
 		}
 
 		if code != e.SUCCESS {

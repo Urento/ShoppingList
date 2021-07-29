@@ -29,6 +29,10 @@ jobs:
         working-directory: ./app
         run: yarn install --frozen-lockfile
 
+      - name: Build
+        working-directory: ./app
+        run: yarn run build
+
       - name: Test
         working-directory: ./app
         run: yarn run test

@@ -9,14 +9,16 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	util "github.com/urento/shoppinglist/pkg"
 )
 
-const (
-	tokenPrefix = "token:"
-	emailPrefix = "email:"
-	userPrefix  = "user:"
+var (
+	redisJwtPrefix = "jwt:"
+	tokenPrefix    = "token:"
+	emailPrefix    = "email:"
+	userPrefix     = "user:"
 )
 
 var rdb *redis.Client
@@ -52,91 +54,6 @@ func Setup() {
 			Password: redisPassword,
 			DB:       0,
 		})
-	}
-}
-
-type User struct {
-	EMail                   string `json:"e_mail"`
-	Username                string `json:"username"`
-	Password                string `json:"password"`
-	EmailVerified           bool   `json:"email_verified"`
-	Rank                    string `json:"rank"`
-	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
-	IPAddress               string `json:"ipaddress"`
-}
-
-func CacheUser(user User) error {
-	b, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
-
-	err = rdb.Set(context.Background(), userPrefix+user.EMail, b, 0).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GetUser(email string) (*User, error) {
-	var user User
-	u, err := rdb.Get(context.Background(), userPrefix+email).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	d := []byte(u)
-	err = json.Unmarshal(d, &user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-//TODO: Let only specific fields get updated
-func UpdateUser(user User) error {
-	var ctx = context.Background()
-	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		err := rdb.Del(ctx, userPrefix+user.EMail).Err()
-		if err != nil {
-			return err
-		}
-
-		b, err := json.Marshal(user)
-		if err != nil {
-			return err
-		}
-
-		err = rdb.Set(ctx, userPrefix+user.EMail, b, 0).Err()
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func DeleteUser(email string) error {
-	err := rdb.Del(context.Background(), userPrefix+email).Err()
-	return err
-}
-
-func IsUserCached(email string) (bool, error) {
-	exists, err := rdb.Exists(context.Background(), userPrefix+email).Result()
-	if err != nil {
-		return false, err
-	}
-
-	if exists == 1 {
-		return true, nil
-	} else {
-		return false, nil
 	}
 }
 
@@ -258,6 +175,130 @@ func GetTTLByEmail(email string) (time.Duration, error) {
 		return -1, err
 	}
 	return ttl, nil
+}
+
+type User struct {
+	EMail                   string `json:"e_mail"`
+	Username                string `json:"username"`
+	Password                string `json:"password"`
+	EmailVerified           bool   `json:"email_verified"`
+	Rank                    string `json:"rank"`
+	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
+	IPAddress               string `json:"ipaddress"`
+}
+
+func CacheUser(user User) error {
+	b, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+
+	err = rdb.Set(context.Background(), userPrefix+user.EMail, b, 0).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetUser(email string) (*User, error) {
+	var user User
+	u, err := rdb.Get(context.Background(), userPrefix+email).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	d := []byte(u)
+	err = json.Unmarshal(d, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+//TODO: Let only specific fields get updated
+func UpdateUser(user User) error {
+	var ctx = context.Background()
+	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
+		err := rdb.Del(ctx, userPrefix+user.EMail).Err()
+		if err != nil {
+			return err
+		}
+
+		b, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
+
+		err = rdb.Set(ctx, userPrefix+user.EMail, b, 0).Err()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteUser(email string) error {
+	err := rdb.Del(context.Background(), userPrefix+email).Err()
+	return err
+}
+
+func IsUserCached(email string) (bool, error) {
+	exists, err := rdb.Exists(context.Background(), userPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	if exists == 1 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+type JWTModel struct {
+	SecretId string `json:"secret_id"`
+	Email    string `json:"email"`
+}
+
+func GenerateSecretId(email string) (string, error) {
+	secretId, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+
+	jwtModel := JWTModel{
+		Email:    email,
+		SecretId: secretId.String(),
+	}
+
+	b, err := json.Marshal(jwtModel)
+	if err != nil {
+		return "", err
+	}
+
+	err = rdb.Set(context.Background(), redisJwtPrefix+email, b, 86400*time.Second).Err()
+	if err != nil {
+		return "", err
+	}
+
+	return secretId.String(), nil
+}
+
+func VerifySecretId(email, secretId string) (bool, error) {
+	r, err := rdb.Exists(context.Background(), redisJwtPrefix+email).Result()
+
+	if err != nil || r == 0 {
+		return false, errors.New("secretid is not valid")
+	}
+
+	return true, nil
 }
 
 func LoadEnv() error {

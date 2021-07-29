@@ -1,50 +1,89 @@
 import React, { useState } from "react";
 import "./App.css";
 import { LockClosedIcon } from "@heroicons/react/solid";
-import { AUTH_API_URL } from "./util/constants";
+import { AUTH_API_URL, AUTH_REGISTER_API_URL } from "./util/constants";
+import swal from "sweetalert";
+import clsx from "clsx";
+import { Redirect } from "react-router-dom";
 
 interface DataResponse {
-  token: string;
+  created: "true" | "false";
+  email: string;
+  username: string;
+  error: string;
+  success: "true" | "false";
 }
+
 interface LoginJSONResponse {
   code: string;
   message: string;
   data: DataResponse;
 }
 
+//TODO: Add more custom error cases
+
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState({
+    email: false,
+    username: false,
+    password: false,
+  });
+  const [redirect, setRedirect] = useState(false);
 
-  const handleEmailChange = (event: any) => setEmail(event.target.value);
-  const handlePasswordChange = (event: any) => setPassword(event.target.value);
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setEmail(event.target.value);
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(event.target.value);
+  const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setUsername(event.target.value);
 
   const register = async (event: any) => {
     event.preventDefault();
-    console.log("khjdfbngkjhdbnfg");
-    console.log(process.env.NODE_ENV);
-    const f = await fetch(AUTH_API_URL, {
+    const f = await fetch(AUTH_REGISTER_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
+      cache: "no-cache",
+      credentials: "include",
       body: JSON.stringify({
         email: email,
         password: password,
       }),
     });
     const fJson: LoginJSONResponse = await f.json();
-    if (fJson.message === "fail")
-      //change to sweetalert
-      return alert("error while logging in");
-    localStorage.setItem("token", fJson.data.token);
-    //TODO: do redux stuff
-    //TODO: add auth stuff and check exp time on jwt token
+    if (fJson.data.error === "email is already being used") {
+      swal({
+        icon: "error",
+        title: "Email is already being used!",
+        text: "Please try another email!",
+      });
+    } else if (fJson.message === "fail") {
+      setError({ email: true, password: true, username: true });
+    } else if (fJson.message === "ok") {
+      //display modal
+      swal({
+        icon: "success",
+        title: "Successfully created your account!",
+        text: "You have successfully created your account!",
+      });
+
+      //update state
+      setError({ email: false, password: false, username: false });
+      setRedirect(true);
+    } else {
+      setError({ email: true, password: true, username: true });
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        {redirect && <Redirect to="/"></Redirect>}
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Register
@@ -72,12 +111,50 @@ const Register: React.FC = () => {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={clsx(
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
+                    error.email ? "border-red-500" : ""
+                  }`
+                )}
                 placeholder="Email address"
                 onChange={handleEmailChange}
               />
+              {error.email ? (
+                <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                  Invalid email, username or password!
+                </span>
+              ) : (
+                ""
+              )}
             </div>
-            <div>
+
+            <div style={{ paddingTop: "2%" }}>
+              <label htmlFor="username" className="sr-only">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className={clsx(
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
+                    error.username ? "border-red-500" : ""
+                  }`
+                )}
+                placeholder="Username"
+                onChange={handleUsernameChange}
+              />
+              {error.email ? (
+                <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                  Invalid email, username or password!
+                </span>
+              ) : (
+                ""
+              )}
+            </div>
+            <div style={{ paddingTop: "2%" }}>
               <label htmlFor="password" className="sr-only">
                 Password
               </label>
@@ -87,24 +164,23 @@ const Register: React.FC = () => {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={clsx(
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
+                    error.email ? "border-red-500" : ""
+                  }`
+                )}
                 placeholder="Password"
                 onChange={handlePasswordChange}
               />
+              {error.password ? (
+                <span className="flex items-center font-medium tracking-wide text-red-500 text-xs mt-1 ml-1">
+                  Invalid email, username or password!
+                </span>
+              ) : (
+                ""
+              )}
             </div>
           </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <a
-                href="#"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Forgot your password?
-              </a>
-            </div>
-          </div>
-
           <div>
             <button
               type="submit"
@@ -117,7 +193,7 @@ const Register: React.FC = () => {
                   aria-hidden="true"
                 />
               </span>
-              Login
+              Create Account
             </button>
           </div>
         </form>

@@ -6,11 +6,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
-	"strings"
 
 	"github.com/astaxie/beego/validation"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
@@ -20,7 +19,7 @@ import (
 )
 
 var (
-	tokenCookieName = "token"
+	sessionName = "token"
 )
 
 type Auth struct {
@@ -33,11 +32,7 @@ type Auth struct {
 
 func Check(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	//tok := c.Request.Header.Get("Authorization")
-	//token := strings.Replace(tok, "Bearer ", "", -1)
-	token, err := GetSession(c)
-	log.Print(token)
-
+	token, err := GetCookie(c)
 	if err != nil {
 		log.Print(err)
 		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -46,6 +41,7 @@ func Check(c *gin.Context) {
 		})
 		return
 	}
+	log.Print(token)
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
@@ -80,8 +76,15 @@ func Check(c *gin.Context) {
 
 func GetUser(c *gin.Context) {
 	appGin := app.Gin{C: c}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+	token, err := GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
@@ -112,8 +115,7 @@ type LoginUser struct {
 func Login(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
-	session := sessions.Default(c)
-	t, err := GetSession(c)
+	t, err := GetCookie(c)
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -167,8 +169,8 @@ func Login(c *gin.Context) {
 			return
 		}
 
-		session.Set(tokenCookieName, token)
-		if err := session.Save(); err != nil {
+		err = SetCookie(c, token)
+		if err != nil {
 			log.Print(err)
 			appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
 				"error":   err.Error(),
@@ -196,15 +198,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GenerateToken(email, password)
+	token, err := util.GenerateToken(email)
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
 		return
 	}
 
-	//err = SetSession(c, token)
-	session.Set(tokenCookieName, token)
-	if err := session.Save(); err != nil {
+	err = SetCookie(c, token)
+	if err != nil {
 		log.Print(err)
 		appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
 			"error":   err.Error(),
@@ -214,24 +215,80 @@ func Login(c *gin.Context) {
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"token": token,
+		"token":   token,
+		"success": "true",
 	})
 }
 
-func SetSession(c *gin.Context, token string) error {
-	session := sessions.Default(c)
-	session.Set(tokenCookieName, token)
-	err := session.Save()
-	return err
+func Logout(c *gin.Context) {
+	appGin := app.Gin{C: c}
+	token, err := GetCookie(c)
+	if err != nil {
+		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
+			"success": "false",
+			"message": "You have to be logged in to log out!",
+		})
+		return
+	}
+
+	if len(token) <= 0 {
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil || len(email) <= 0 {
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"message": "jwt token is invalid",
+		})
+		return
+	}
+
+	ok, err := cache.DeleteTokenByEmail(email, token)
+	if err != nil || !ok {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_WHILE_INVALIDATING_TOKEN, map[string]string{
+			"success": strconv.FormatBool(ok),
+			"error":   "error while invalidating token",
+		})
+	}
+
+	RemoveCookie(c)
+
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+	})
 }
 
-func GetSession(c *gin.Context) (string, error) {
-	session := sessions.Default(c)
-	token := session.Get(tokenCookieName)
-	if token == nil {
-		return "", errors.New("error while getting session token: token is null")
+func SetCookie(ctx *gin.Context, token string) error {
+	domain := os.Getenv("DOMAIN")
+	ctx.SetCookie("token", token, 24*60*60, "/", domain, util.IsProd(), true)
+	return nil
+}
+
+func GetCookie(ctx *gin.Context) (string, error) {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return "", err
 	}
-	return token.(string), nil
+
+	if len(token.Value) <= 0 {
+		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
+	}
+
+	if len(token.Value) <= 50 {
+		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
+	}
+
+	return token.Value, nil
+}
+
+func RemoveCookie(ctx *gin.Context) {
+	domain := os.Getenv("DOMAIN")
+	ctx.SetCookie("token", "", -1, "/", domain, util.IsProd(), true)
 }
 
 type RegisterUser struct {
@@ -290,41 +347,6 @@ func CreateAccount(c *gin.Context) {
 		"created":  "true",
 		"email":    email,
 		"username": username,
-	})
-}
-
-func Logout(c *gin.Context) {
-	appGin := app.Gin{C: c}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
-
-	if len(token) <= 0 {
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
-			"success": "false",
-		})
-		return
-	}
-
-	email, err := cache.GetEmailByJWT(token)
-	if err != nil || len(email) <= 0 {
-		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
-			"success": "false",
-			"message": "jwt token is invalid",
-		})
-		return
-	}
-
-	ok, err := cache.DeleteTokenByEmail(email, token)
-	if err != nil || !ok {
-		log.Print(err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR_WHILE_INVALIDATING_TOKEN, map[string]string{
-			"success": strconv.FormatBool(ok),
-			"error":   "error while invalidating token",
-		})
-	}
-
-	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"success": "true",
 	})
 }
 

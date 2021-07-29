@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import "./App.css";
 import { LockClosedIcon } from "@heroicons/react/solid";
 import { AUTH_API_URL } from "./util/constants";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import swal from "sweetalert";
 import clsx from "clsx";
+import { useEffect } from "react";
 
 interface DataResponse {
   token: string;
@@ -15,24 +16,19 @@ interface LoginJSONResponse {
   data: DataResponse;
 }
 
-const checkLogin = async () => {
-  const token = localStorage.getItem("token");
-  if (token != null && token!.length > 0) {
-    //TODO: send request to backend to check auth token
-  }
-};
-
 const Login: React.FC = () => {
-  checkLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState({
     email: false,
     password: false,
   });
+  const [redirect, setRedirect] = useState(false);
 
-  const handleEmailChange = (event: any) => setEmail(event.target.value);
-  const handlePasswordChange = (event: any) => setPassword(event.target.value);
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setEmail(event.target.value);
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(event.target.value);
 
   const login = async (event: any) => {
     event.preventDefault();
@@ -40,7 +36,10 @@ const Login: React.FC = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
+      cache: "no-cache",
+      credentials: "include",
       body: JSON.stringify({
         email: email,
         password: password,
@@ -50,11 +49,16 @@ const Login: React.FC = () => {
     if (fJson.message === "fail") {
       setError({ email: true, password: true });
     } else if (fJson.message === "ok") {
+      //display modal
       swal({
         icon: "success",
         title: "Successful Login",
         text: "You have been successfully logged in!",
       });
+
+      //update state
+      setError({ email: false, password: false });
+      setRedirect(true);
     } else {
       setError({ email: true, password: true });
     }
@@ -63,6 +67,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {redirect && <Redirect to="/dashboard"></Redirect>}
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -92,7 +97,7 @@ const Login: React.FC = () => {
                 autoComplete="email"
                 required
                 className={clsx(
-                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 pl-12 ${
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
                     error.email ? "border-red-500" : ""
                   }`
                 )}
@@ -119,7 +124,7 @@ const Login: React.FC = () => {
                 autoComplete="current-password"
                 required
                 className={clsx(
-                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 pl-12 ${
+                  `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
                     error.password ? "border-red-500" : ""
                   }`
                 )}

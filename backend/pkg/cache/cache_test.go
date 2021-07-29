@@ -19,7 +19,7 @@ func TestCacheJWTToken(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -36,7 +36,7 @@ func TestGetTokenByEmail(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -56,7 +56,7 @@ func TestDoesTokenExpireAfter1Day(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -79,7 +79,7 @@ func TestGetEmailByJWT(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -98,7 +98,7 @@ func TestDeleteToken(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -128,7 +128,7 @@ func TestDeleteTokenWithEmailThatDoesntExist(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	ok, err := DeleteTokenByEmail(email, token)
 	if err == nil || ok {
@@ -153,7 +153,7 @@ func TestIsTokenValidWithValidToken(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	err := CacheJWT(email, token)
 	if err != nil {
@@ -172,7 +172,7 @@ func TestIsTokenValidWithValidToken(t *testing.T) {
 func TestIsTokenValidWithInvalidToken(t *testing.T) {
 	Setup()
 
-	token := StringWithCharset(155)
+	token := StringWithCharset(245)
 
 	valid, _ := IsTokenValid(token)
 
@@ -375,6 +375,39 @@ func TestDeleteUser(t *testing.T) {
 
 	Equal(t, nil, err)
 	NotEqual(t, nil, shouldErr)
+}
+
+func TestGenerateSecretIdAndVerify(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+
+	secretId, err := GenerateSecretId(email)
+	if err != nil {
+		t.Errorf("Error while generating secret id: %s", err)
+	}
+
+	ok, err := VerifySecretId(email, secretId)
+	if err != nil {
+		t.Errorf("Error while verifying secert id: %s", err)
+	}
+
+	Equal(t, true, ok)
+	Equal(t, nil, err)
+}
+
+func TestVerifySecretIdWithWrongId(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+
+	ok, err := VerifySecretId(email, "secretId")
+	if err == nil {
+		t.Errorf("No error thrown even though the secretId is wrong and doesn't exist")
+	}
+
+	Equal(t, false, ok)
+	Equal(t, "secretid is not valid", err.Error())
 }
 
 func StringWithCharset(length int) string {

@@ -11,19 +11,22 @@ var jwtSecret []byte
 
 type Claims struct {
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	SecretId string `json:"secretId"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(email, password string) (string, error) {
+func GenerateToken(email string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(24 * time.Hour)
 
-	//TODO: Get Encrypted Password
+	secretId, err := cache.GenerateSecretId(email)
+	if err != nil {
+		return "", err
+	}
 
 	claims := &Claims{
 		email,
-		password,
+		secretId,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "shoppinglist",
