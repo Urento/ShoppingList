@@ -66,8 +66,6 @@ func Check(c *gin.Context) {
 		return
 	}
 
-	//TODO: Check Expire Time in JWT Token
-
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
 		"token":   token,

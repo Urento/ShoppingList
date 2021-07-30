@@ -5,6 +5,7 @@ import { AUTH_API_URL } from "./util/constants";
 import { Link, Redirect } from "react-router-dom";
 import swal from "sweetalert";
 import clsx from "clsx";
+import jwtDecode from "jwt-decode";
 import { useEffect } from "react";
 
 interface DataResponse {
@@ -16,6 +17,11 @@ interface LoginJSONResponse {
   data: DataResponse;
 }
 
+interface JWTPayload {
+  email: string;
+  secretId: string;
+}
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +30,21 @@ const Login: React.FC = () => {
     password: false,
   });
   const [redirect, setRedirect] = useState(false);
+  const loggedIn = Boolean(localStorage.getItem("authenticated"));
+  console.log("loggedIn: " + loggedIn);
+
+  useEffect(() => {
+    if (loggedIn) {
+      setRedirect(true);
+    }
+  }, []);
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setEmail(event.target.value);
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setPassword(event.target.value);
 
-  const login = async (event: any) => {
+  const doLogin = async (event: any) => {
     event.preventDefault();
     const f = await fetch(AUTH_API_URL, {
       method: "POST",
@@ -46,9 +60,20 @@ const Login: React.FC = () => {
       }),
     });
     const fJson: LoginJSONResponse = await f.json();
+
     if (fJson.message === "fail") {
       setError({ email: true, password: true });
     } else if (fJson.message === "ok") {
+      const secretId = getSecretIdByJwtToken(fJson.data.token);
+      if (secretId == null) {
+        swal({
+          icon: "error",
+          title: "JWT Token couldn't get decoded",
+          text: "Error while decoding jwt token! Try again later!",
+        });
+      }
+      console.log(secretId);
+
       //display modal
       swal({
         icon: "success",
@@ -59,10 +84,17 @@ const Login: React.FC = () => {
       //update state
       setError({ email: false, password: false });
       setRedirect(true);
+      localStorage.setItem("authenticated", "true");
+      console.log("loggedIn2: " + loggedIn);
     } else {
       setError({ email: true, password: true });
     }
     //TODO: do redux stuff
+  };
+
+  const getSecretIdByJwtToken = (token: string) => {
+    const decoded = jwtDecode<JWTPayload>(token);
+    return decoded.secretId;
   };
 
   return (
@@ -83,7 +115,7 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={login}>
+        <form className="mt-8 space-y-6" onSubmit={doLogin}>
           <input type="hidden" name="remember" defaultValue="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -156,7 +188,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onSubmit={login}
+              onSubmit={doLogin}
             >
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                 <LockClosedIcon

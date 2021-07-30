@@ -1,9 +1,5 @@
-import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
-import { store } from "./app/store";
-import { Provider } from "react-redux";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Login from "./App";
 import Register from "./Register";
@@ -12,12 +8,10 @@ import Register from "./Register";
 
 ReactDOM.render(
   <BrowserRouter>
-    <Provider store={store}>
-      <Switch>
-        <Route exact path="/register" component={Register} />
-        <Route exact path="/" component={Login} />
-      </Switch>
-    </Provider>
+    <Switch>
+      <Route exact path="/register" component={Register} />
+      <Route exact path="/" component={Login} />
+    </Switch>
   </BrowserRouter>,
   document.getElementById("root")
 );

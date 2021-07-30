@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import { LockClosedIcon } from "@heroicons/react/solid";
-import { AUTH_API_URL, AUTH_REGISTER_API_URL } from "./util/constants";
+import { AUTH_REGISTER_API_URL } from "./util/constants";
 import swal from "sweetalert";
 import clsx from "clsx";
 import { Redirect } from "react-router-dom";
@@ -52,6 +52,7 @@ const Register: React.FC = () => {
       credentials: "include",
       body: JSON.stringify({
         email: email,
+        username: username,
         password: password,
       }),
     });

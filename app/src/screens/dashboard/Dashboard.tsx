@@ -1,7 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Redirect } from "react-router-dom";
+import useAuthCheck from "../../hooks/useAuthCheck";
 
 export const Dashboard: React.FC = () => {
-  useEffect(() => {});
+  const [redirect, setRedirect] = useState(false);
 
-  return <h1>Dashboard</h1>;
+  const authStatus = useAuthCheck();
+  if (authStatus != "success") {
+    localStorage.removeItem("authenticated");
+    setRedirect(true);
+  }
+
+  return (
+    <div>
+      {redirect && <Redirect to="/"></Redirect>}
+      <h1>dfgsfdgasdfsadf</h1>
+    </div>
+  );
 };
