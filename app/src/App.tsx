@@ -7,6 +7,7 @@ import swal from "sweetalert";
 import clsx from "clsx";
 import jwtDecode from "jwt-decode";
 import { useEffect } from "react";
+import { Button } from "./components/Button";
 
 interface DataResponse {
   token: string;
@@ -30,10 +31,11 @@ const Login: React.FC = () => {
     password: false,
   });
   const [redirect, setRedirect] = useState(false);
+  const [loading, setLoading] = useState(false);
   const loggedIn = Boolean(localStorage.getItem("authenticated"));
-  console.log("loggedIn: " + loggedIn);
 
   useEffect(() => {
+    //redirect for checking if the user is actually authenticated
     if (loggedIn) {
       setRedirect(true);
     }
@@ -46,6 +48,8 @@ const Login: React.FC = () => {
 
   const doLogin = async (event: any) => {
     event.preventDefault();
+    setLoading(true);
+
     const f = await fetch(AUTH_API_URL, {
       method: "POST",
       headers: {
@@ -85,11 +89,11 @@ const Login: React.FC = () => {
       setError({ email: false, password: false });
       setRedirect(true);
       localStorage.setItem("authenticated", "true");
-      console.log("loggedIn2: " + loggedIn);
     } else {
       setError({ email: true, password: true });
     }
-    //TODO: do redux stuff
+    //update loading state
+    setLoading(false);
   };
 
   const getSecretIdByJwtToken = (token: string) => {
@@ -185,19 +189,7 @@ const Login: React.FC = () => {
           </div>
 
           <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onSubmit={doLogin}
-            >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <LockClosedIcon
-                  className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400"
-                  aria-hidden="true"
-                />
-              </span>
-              Login
-            </button>
+            <Button loading={loading} onClick={doLogin} text="Login"></Button>
           </div>
         </form>
       </div>

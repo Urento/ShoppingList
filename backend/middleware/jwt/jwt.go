@@ -1,9 +1,9 @@
 package jwt
 
 import (
+	"errors"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -17,20 +17,24 @@ func JWT() gin.HandlerFunc {
 		var code int
 
 		code = e.SUCCESS
-		token := c.Request.Header.Get("Authorization")
-		splitToken := strings.Replace(token, "Bearer ", "", -1)
-		if splitToken == "" {
+		token, err := GetCookie(c)
+		if err != nil {
+			code = e.ERROR_GETTING_HTTPONLY_COOKIE
+		}
+		log.Printf("jwt token: %s", token)
+
+		if token == "" {
 			code = e.ERROR_NOT_AUTHORIZED
 		} else {
 			//check if token is valid in redis
-			tokenValid, err := cache.IsTokenValid(splitToken)
+			tokenValid, err := cache.IsTokenValid(token)
 			if err != nil || !tokenValid {
 				log.Print(err)
 				code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
 			}
 
 			if tokenValid {
-				data, parseErr := util.ParseToken(splitToken)
+				data, parseErr := util.ParseToken(token)
 
 				ok, err := cache.VerifySecretId(data.Email, data.SecretId)
 				if err != nil || !ok {
@@ -71,4 +75,21 @@ func JWT() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func GetCookie(ctx *gin.Context) (string, error) {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return "", err
+	}
+
+	if len(token.Value) <= 0 {
+		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
+	}
+
+	if len(token.Value) <= 50 {
+		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
+	}
+
+	return token.Value, nil
 }

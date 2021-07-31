@@ -3,14 +3,14 @@ import "./index.css";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Login from "./App";
 import Register from "./Register";
-
-//TODO: add auth stuff and check exp time on jwt token
+import { Dashboard } from "./screens/dashboard/Dashboard";
 
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
       <Route exact path="/register" component={Register} />
       <Route exact path="/" component={Login} />
+      <Route exact path="/dashboard" component={Dashboard} />
     </Switch>
   </BrowserRouter>,
   document.getElementById("root")

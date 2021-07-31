@@ -58,16 +58,16 @@ func Setup() {
 }
 
 func CacheJWT(email, token string) error {
-	var ctx = context.Background()
+	ctx := context.Background()
 	//86400 = 24 hours in seconds
 
 	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		err := rdb.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
+		err := pipe.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
 		if err != nil {
 			return err
 		}
 
-		err = rdb.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
+		err = pipe.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func IsTokenValid(token string) (bool, error) {
 }
 
 func DeleteTokenByEmail(email, token string) (bool, error) {
-	var ctx = context.Background()
+	ctx := context.Background()
 	exists, err := EmailExists(email)
 	if err != nil {
 		return false, err
@@ -184,10 +184,10 @@ type User struct {
 	EmailVerified           bool   `json:"email_verified"`
 	Rank                    string `json:"rank"`
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
-	IPAddress               string `json:"ipaddress"`
+	IPAddress               string `json:"ip_address"`
 }
 
-func CacheUser(user User) error {
+func (user User) CacheUser() error {
 	b, err := json.Marshal(user)
 	if err != nil {
 		return err
@@ -198,11 +198,12 @@ func CacheUser(user User) error {
 		return err
 	}
 
-	return nil
+	return err
 }
 
 func GetUser(email string) (*User, error) {
 	var user User
+
 	u, err := rdb.Get(context.Background(), userPrefix+email).Result()
 	if err != nil {
 		return nil, err
@@ -217,11 +218,11 @@ func GetUser(email string) (*User, error) {
 	return &user, nil
 }
 
-//TODO: Let only specific fields get updated
+//TODO: also let only specific fields get updated
 func UpdateUser(user User) error {
-	var ctx = context.Background()
+	ctx := context.Background()
 	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		err := rdb.Del(ctx, userPrefix+user.EMail).Err()
+		err := pipe.Del(ctx, userPrefix+user.EMail).Err()
 		if err != nil {
 			return err
 		}
@@ -231,7 +232,7 @@ func UpdateUser(user User) error {
 			return err
 		}
 
-		err = rdb.Set(ctx, userPrefix+user.EMail, b, 0).Err()
+		err = pipe.Set(ctx, userPrefix+user.EMail, b, 0).Err()
 		if err != nil {
 			return err
 		}

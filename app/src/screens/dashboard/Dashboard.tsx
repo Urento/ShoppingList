@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Redirect } from "react-router-dom";
+import React, { useState } from "react";
+import { Loading } from "../../components/Loading";
 import useAuthCheck from "../../hooks/useAuthCheck";
 
 export const Dashboard: React.FC = () => {
-  const [redirect, setRedirect] = useState(false);
+  //const [redirect, setRedirect] = useState(false);
 
   const authStatus = useAuthCheck();
-  if (authStatus != "success") {
+  console.log(authStatus);
+  if (authStatus === "fail") {
     localStorage.removeItem("authenticated");
-    setRedirect(true);
+    //TODO: actually redirect back to login
   }
 
-  return (
-    <div>
-      {redirect && <Redirect to="/"></Redirect>}
-      <h1>dfgsfdgasdfsadf</h1>
-    </div>
-  );
+  return <>{authStatus === "pending" && <Loading />}Dashboard</>;
 };

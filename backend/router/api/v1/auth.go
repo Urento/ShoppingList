@@ -41,7 +41,7 @@ func Check(c *gin.Context) {
 		})
 		return
 	}
-	log.Print(token)
+	log.Printf("check Token: %s", token)
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
@@ -113,11 +113,6 @@ type LoginUser struct {
 func Login(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
-	t, err := GetCookie(c)
-	if err != nil {
-		log.Print(err.Error())
-	}
-	log.Print(t)
 
 	//TODO: Maybe decode the token and check expire time
 
@@ -310,6 +305,15 @@ func CreateAccount(c *gin.Context) {
 	email := user.Email
 	username := user.Username
 	password := user.Password
+
+	if len(username) > 32 {
+		appGin.Response(http.StatusBadRequest, e.ERROR_USERNAME_TOO_LONG, map[string]string{
+			"success": "false",
+			"error":   "username can not be longer than 32 characters",
+		})
+		return
+	}
+
 	ip, err := GetClientIPHelper(c.Request)
 	if err != nil {
 		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_IP, map[string]string{

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -188,6 +189,7 @@ func TestCacheUser(t *testing.T) {
 	emailVerified := RandomBoolean()
 	rank := RandomRank()
 	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
 
 	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
@@ -201,9 +203,10 @@ func TestCacheUser(t *testing.T) {
 		EmailVerified:           emailVerified,
 		Rank:                    rank,
 		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
 	}
 
-	err = CacheUser(u)
+	err = u.CacheUser()
 	if err != nil {
 		t.Errorf("Error while caching user %s", err)
 	}
@@ -220,6 +223,7 @@ func TestGetUser(t *testing.T) {
 	emailVerified := RandomBoolean()
 	rank := RandomRank()
 	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
 
 	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
@@ -233,12 +237,15 @@ func TestGetUser(t *testing.T) {
 		EmailVerified:           emailVerified,
 		Rank:                    rank,
 		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
 	}
 
-	err = CacheUser(u)
+	err = u.CacheUser()
 	if err != nil {
 		t.Errorf("Error while caching user %s", err)
 	}
+	t.Log(email)
+	t.Log(u.EMail)
 
 	user, err := GetUser(email)
 	if err != nil {
@@ -259,7 +266,7 @@ func TestGetUserThatDoesntExist(t *testing.T) {
 
 	_, err := GetUser("dkjfgbksdjhfgbkjdhfsgb@gmail.com")
 
-	NotEqual(t, nil, err)
+	Equal(t, "user is not cached", err.Error())
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -271,6 +278,7 @@ func TestUpdateUser(t *testing.T) {
 	emailVerified := RandomBoolean()
 	rank := RandomRank()
 	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
 
 	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
@@ -284,9 +292,10 @@ func TestUpdateUser(t *testing.T) {
 		EmailVerified:           emailVerified,
 		Rank:                    rank,
 		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
 	}
 
-	err = CacheUser(u)
+	err = u.CacheUser()
 	if err != nil {
 		t.Errorf("Error while caching user %s", err)
 	}
@@ -300,6 +309,7 @@ func TestUpdateUser(t *testing.T) {
 	newEmailVerified := RandomBoolean()
 	newRank := RandomRank()
 	newTwoFactorAuthentication := RandomBoolean()
+	newIp := RandomIPAddress()
 	newUser := User{
 		EMail:                   email,
 		Username:                newUsername,
@@ -307,6 +317,7 @@ func TestUpdateUser(t *testing.T) {
 		EmailVerified:           newEmailVerified,
 		Rank:                    newRank,
 		TwoFactorAuthentication: newTwoFactorAuthentication,
+		IPAddress:               newIp,
 	}
 
 	err = UpdateUser(newUser)
@@ -343,6 +354,7 @@ func TestDeleteUser(t *testing.T) {
 	emailVerified := RandomBoolean()
 	rank := RandomRank()
 	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
 
 	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
@@ -356,9 +368,10 @@ func TestDeleteUser(t *testing.T) {
 		EmailVerified:           emailVerified,
 		Rank:                    rank,
 		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
 	}
 
-	err = CacheUser(u)
+	err = u.CacheUser()
 	if err != nil {
 		t.Errorf("Error while caching user: %s", err)
 	}
@@ -429,4 +442,10 @@ func RandomRank() string {
 		return "admin"
 	}
 	return "default"
+}
+
+func RandomIPAddress() string {
+	rand.Seed(time.Now().Unix())
+	ip := fmt.Sprintf("%d.%d.%d.%d", rand.Intn(255), rand.Intn(255), rand.Intn(255), rand.Intn(255))
+	return ip
 }

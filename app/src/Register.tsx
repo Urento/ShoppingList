@@ -5,6 +5,7 @@ import { AUTH_REGISTER_API_URL } from "./util/constants";
 import swal from "sweetalert";
 import clsx from "clsx";
 import { Redirect } from "react-router-dom";
+import { Button } from "./components/Button";
 
 interface DataResponse {
   created: "true" | "false";
@@ -32,6 +33,7 @@ const Register: React.FC = () => {
     password: false,
   });
   const [redirect, setRedirect] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setEmail(event.target.value);
@@ -42,6 +44,8 @@ const Register: React.FC = () => {
 
   const register = async (event: any) => {
     event.preventDefault();
+    setLoading(true);
+
     const f = await fetch(AUTH_REGISTER_API_URL, {
       method: "POST",
       headers: {
@@ -63,6 +67,15 @@ const Register: React.FC = () => {
         title: "Email is already being used!",
         text: "Please try another email!",
       });
+    } else if (
+      fJson.data.error != null &&
+      fJson.data.error.includes("32 characters")
+    ) {
+      swal({
+        icon: "error",
+        title: "Username has to be shorter!",
+        text: "Username can't be longer than 32 characters!",
+      });
     } else if (fJson.message === "fail") {
       setError({ email: true, password: true, username: true });
     } else if (fJson.message === "ok") {
@@ -79,6 +92,8 @@ const Register: React.FC = () => {
     } else {
       setError({ email: true, password: true, username: true });
     }
+    //update loading state
+    setLoading(false);
   };
 
   return (
@@ -138,7 +153,6 @@ const Register: React.FC = () => {
                 name="username"
                 type="text"
                 autoComplete="username"
-                required
                 className={clsx(
                   `text-sm sm:text-base relative w-full border rounded placeholder-gray-400 focus:border-indigo-400 focus:outline-none py-2 pr-2 ${
                     error.username ? "border-red-500" : ""
@@ -183,19 +197,11 @@ const Register: React.FC = () => {
             </div>
           </div>
           <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onSubmit={register}
-            >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <LockClosedIcon
-                  className="h-5 w-5 text-indigo-500 group-hover:text-indigo-400"
-                  aria-hidden="true"
-                />
-              </span>
-              Create Account
-            </button>
+            <Button
+              loading={loading}
+              text="Create Account"
+              onClick={register}
+            />
           </div>
         </form>
       </div>
