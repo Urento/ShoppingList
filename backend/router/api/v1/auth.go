@@ -41,7 +41,6 @@ func Check(c *gin.Context) {
 		})
 		return
 	}
-	log.Printf("check Token: %s", token)
 
 	if len(token) <= 0 {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{

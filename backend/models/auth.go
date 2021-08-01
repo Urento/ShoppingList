@@ -23,7 +23,7 @@ type Auth struct {
 	Password                string `json:"password"`
 	Rank                    string `json:"rank"` //admin or default
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
-	IPAddress               string `json:"ipaddress"`
+	IPAddress               string `json:"ip_address"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -68,7 +68,7 @@ func CheckAuth(email, password, ip string) (bool, error) {
 
 func GetUser(email string) (*Auth, error) {
 	var user Auth
-	err := db.Model(&Auth{}).Where("e_mail = ?", email).First(&user).Error
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("id, e_mail, email_verified, username, rank, two_factor_authentication, creadted_on, modified_on, deleted_at").First(&user).Error
 	if err != nil {
 		return nil, err
 	}

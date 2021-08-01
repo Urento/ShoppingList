@@ -189,7 +189,12 @@ const Login: React.FC = () => {
           </div>
 
           <div>
-            <Button loading={loading} onClick={doLogin} text="Login"></Button>
+            <Button
+              showIcon={true}
+              loading={loading}
+              onClick={doLogin}
+              text="Login"
+            ></Button>
           </div>
         </form>
       </div>

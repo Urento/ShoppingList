@@ -1,11 +1,11 @@
 package v1
 
 import (
+	"errors"
 	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/astaxie/beego/validation"
@@ -14,6 +14,7 @@ import (
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
+	"github.com/urento/shoppinglist/pkg/util"
 	"github.com/urento/shoppinglist/services"
 )
 
@@ -24,8 +25,15 @@ func GetShoppinglist(c *gin.Context) {
 	valid.Min(id, 1, "id")
 
 	//TODO: Check if the Shoppinglist belongs to the request maker
-	tok := c.Request.Header.Get("Authentication")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	emailOfRequestMaker, err := cache.GetEmailByJWT(token)
 	if err != nil {
@@ -69,8 +77,15 @@ func GetShoppinglist(c *gin.Context) {
 
 func GetShoppinglists(c *gin.Context) {
 	appG := app.Gin{C: c}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	email, err := cache.GetEmailByJWT(token)
 	if err != nil {
@@ -89,7 +104,6 @@ func GetShoppinglists(c *gin.Context) {
 }
 
 type CreateShoppinglistForm struct {
-	ID           int      `form:"id"`
 	Title        string   `form:"title" valid:"Required"`
 	Items        []string `form:"items" valid:"Required"`
 	Owner        string   `form:"owner" valid:"Required"`
@@ -248,4 +262,21 @@ func DeleteShoppinglist(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
 	})
+}
+
+func GetCookie(ctx *gin.Context) (string, error) {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return "", err
+	}
+
+	if len(token.Value) <= 0 {
+		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
+	}
+
+	if len(token.Value) <= 50 {
+		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
+	}
+
+	return token.Value, nil
 }

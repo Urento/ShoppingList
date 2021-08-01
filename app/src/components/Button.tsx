@@ -6,9 +6,15 @@ interface Props {
   text: string;
   onClick: FormEventHandler<HTMLButtonElement>;
   loading: boolean;
+  showIcon: boolean;
 }
 
-export const Button: React.FC<Props> = ({ text, onClick, loading = false }) => {
+export const Button: React.FC<Props> = ({
+  text,
+  onClick,
+  loading = false,
+  showIcon = false,
+}) => {
   return (
     <button
       type="submit"
@@ -17,11 +23,12 @@ export const Button: React.FC<Props> = ({ text, onClick, loading = false }) => {
       )}
       onSubmit={onClick}
     >
-      {loading ? (
+      {loading && (
         <svg className="loading-svg" viewBox="25 25 50 50">
           <circle className="loading-circle" cx="50" cy="50" r="20"></circle>
         </svg>
-      ) : (
+      )}
+      {showIcon && !loading ? (
         <span
           className={clsx(`absolute left-0 inset-y-0 flex items-center pl-3`)}
         >
@@ -30,6 +37,8 @@ export const Button: React.FC<Props> = ({ text, onClick, loading = false }) => {
             aria-hidden="true"
           />
         </span>
+      ) : (
+        ""
       )}
       {!loading && text}
     </button>

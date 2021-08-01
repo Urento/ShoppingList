@@ -1,18 +1,31 @@
 import ReactDOM from "react-dom";
 import "./index.css";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { BrowserRouter, Switch, Route, Redirect } from "react-router-dom";
 import Login from "./App";
 import Register from "./Register";
-import { Dashboard } from "./screens/dashboard/Dashboard";
+import { Dashboard } from "./screens/Dashboard";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { Settings } from "./screens/Settings";
+import { NotFound } from "./screens/NotFound";
 
+//TODO: Store User Info in Redux
+
+const queryClient = new QueryClient();
 ReactDOM.render(
-  <BrowserRouter>
-    <Switch>
-      <Route exact path="/register" component={Register} />
-      <Route exact path="/" component={Login} />
-      <Route exact path="/dashboard" component={Dashboard} />
-    </Switch>
-  </BrowserRouter>,
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Switch>
+        <Route exact path="/register" component={Register} />
+        <Route exact path="/" component={Login} />
+
+        <Route exact path="/dashboard" component={Dashboard} />
+        <Route exact path="/settings" component={Settings} />
+
+        <Route exact path="/404" component={NotFound} />
+        <Redirect to="/404" />
+      </Switch>
+    </BrowserRouter>
+  </QueryClientProvider>,
   document.getElementById("root")
 );
 

@@ -9,12 +9,12 @@ import (
 type Shoppinglist struct {
 	Model
 
-	ID           int `gorm:"primaryKey"`
-	Title        string
-	Items        pq.StringArray `gorm:"type:text[]"`
-	Owner        string
-	Participants pq.StringArray `gorm:"type:text[]"`
-	Position     int
+	ID           int            `gorm:"primaryKey" json:"id"`
+	Title        string         `json:"title"`
+	Items        pq.StringArray `gorm:"type:text[]" json:"items"`
+	Owner        string         `json:"owner"`
+	Participants pq.StringArray `gorm:"type:text[]" json:"participants"`
+	Position     int            `json:"position"`
 }
 
 func ExistByID(id int) (bool, error) {

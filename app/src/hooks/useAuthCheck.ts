@@ -31,7 +31,11 @@ const useAuthCheck = () => {
       });
       const fJson: AuthCheckResponse = await response.json();
       console.log(fJson);
-      if (fJson.data.success != "true" || fJson.message === "fail")
+      if (
+        fJson.data.success !== "true" ||
+        fJson.message === "fail" ||
+        fJson.message === "not authorized to access this route"
+      )
         return setStatus("fail");
       else return setStatus("success");
     };

@@ -266,7 +266,7 @@ func TestGetUserThatDoesntExist(t *testing.T) {
 
 	_, err := GetUser("dkjfgbksdjhfgbkjdhfsgb@gmail.com")
 
-	Equal(t, "user is not cached", err.Error())
+	NotEqual(t, nil, err)
 }
 
 func TestUpdateUser(t *testing.T) {

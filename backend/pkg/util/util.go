@@ -1,10 +1,12 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	util "github.com/urento/shoppinglist/pkg"
 )
@@ -64,4 +66,21 @@ func IsProd() bool {
 	}
 
 	return os.Getenv("ENVIRONMENT") == "production"
+}
+
+func GetCookie(ctx *gin.Context) (string, error) {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return "", err
+	}
+
+	if len(token.Value) <= 0 {
+		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
+	}
+
+	if len(token.Value) <= 50 {
+		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
+	}
+
+	return token.Value, nil
 }

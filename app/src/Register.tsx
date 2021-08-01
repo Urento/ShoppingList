@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./App.css";
-import { LockClosedIcon } from "@heroicons/react/solid";
 import { AUTH_REGISTER_API_URL } from "./util/constants";
 import swal from "sweetalert";
 import clsx from "clsx";
@@ -198,6 +197,7 @@ const Register: React.FC = () => {
           </div>
           <div>
             <Button
+              showIcon={true}
               loading={loading}
               text="Create Account"
               onClick={register}
