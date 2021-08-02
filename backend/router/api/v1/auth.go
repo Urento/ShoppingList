@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net"
@@ -9,8 +10,10 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
+	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
@@ -102,6 +105,98 @@ func GetUser(c *gin.Context) {
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, data)
+}
+
+type UpdateUserStruct struct {
+	EMail         string `json:"e_mail"`
+	EmailVerified bool   `json:"email_verified"`
+	Username      string `json:"username"`
+	OldPassword   string `json:"old_password"`
+	Password      string `json:"password"`
+	WithPassword  bool   `json:"with_password"`
+}
+
+func UpdateUser(c *gin.Context) {
+	appGin := app.Gin{C: c}
+	token, err := GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	var data UpdateUserStruct
+
+	if err := c.BindJSON(&data); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+		return
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_BINDING_JSON_DATA, map[string]string{
+			"success": "false",
+			"message": "error decoding struct",
+		})
+		return
+	}
+
+	var lokifdgh models.Auth
+	if err := json.Unmarshal([]byte(b), &lokifdgh); err != nil {
+		appGin.Response(http.StatusInternalServerError, e.ERROR_BINDING_JSON_DATA, map[string]string{
+			"success": "false",
+			"message": "error decoding struct 2",
+		})
+		return
+	}
+
+	if data.WithPassword {
+		//TODO: maybe even check the cache and not postgres
+		ok, err := models.CheckPassword(email, data.OldPassword)
+		if !ok || err != nil {
+			appGin.Response(http.StatusBadRequest, e.ERROR_WRONG_OLD_PASSWORD, map[string]string{
+				"success": "false",
+				"message": "Old Password is incorrect!",
+			})
+			return
+		}
+
+		passwordHash, err := argon2id.CreateHash(lokifdgh.Password, argon2id.DefaultParams)
+		if err != nil {
+			appGin.Response(http.StatusInternalServerError, e.ERROR_ENCRYPTING_PASSWORD, map[string]string{
+				"success": "false",
+				"message": "error encrypting password",
+			})
+			return
+		}
+
+		lokifdgh.Password = passwordHash
+	}
+
+	err = lokifdgh.UpdateUser(email)
+	if err != nil {
+		appGin.Response(http.StatusInternalServerError, e.ERROR_UPDATING_USER, map[string]string{
+			"success": "false",
+			"message": "error updating user",
+		})
+		return
+	}
+
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+	})
 }
 
 type LoginUser struct {
@@ -355,8 +450,70 @@ func UpdateEmailVerified(c *gin.Context) {
 	//TODO
 }
 
+func DisplayTwoFactorAuthenticationQRCode(c *gin.Context) {
+
+}
+
+type TwoFactorAuthentictionUpdate struct {
+	Status    bool   `json:"status"`
+	UserToken string `json:"user_token"`
+}
+
 func UpdateTwoFactorAuthentication(c *gin.Context) {
-	//TODO
+	//TODO https://github.com/sec51/twofactor
+	appGin := app.Gin{C: c}
+	token, err := GetCookie(c)
+	if err != nil {
+		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
+			"success": "false",
+			"message": "You have to be logged in to log out!",
+		})
+		return
+	}
+
+	var data TwoFactorAuthentictionUpdate
+
+	if err := c.BindJSON(&data); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		return
+	}
+
+	//check if the two factor authentication status is the same as in the cache; if yes = dont process the request
+	//TODO: UNCOMMENT ONCE I IMPLEMENT USER CACHING
+	/*currentStatus, err := cache.GetTwoFactorAuthenticationStatus(email)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_TWOFACTORAUTHENTICATION_STATUS_FROM_CACHE, nil)
+		return
+	}
+
+	if currentStatus == data.Status {
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success": "false",
+			"message": "can't update the status if the status in the request is the same as in the cache",
+		})
+		return
+	}*/
+
+	err = models.SetTwoFactorAuthentication(email, data.Status)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_CHANING_TWOFACTORAUTHENTICATION_STATUS, nil)
+		return
+	}
+
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+		"status":  strconv.FormatBool(data.Status),
+	})
 }
 
 // GetClientIPHelper gets the client IP using a mixture of techniques.

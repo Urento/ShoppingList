@@ -423,6 +423,46 @@ func TestVerifySecretIdWithWrongId(t *testing.T) {
 	Equal(t, "secretid is not valid", err.Error())
 }
 
+func TestGetTwoFactorAuthenticationStatus(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(10)
+	password := StringWithCharset(30)
+	emailVerified := RandomBoolean()
+	rank := RandomRank()
+	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
+
+	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		t.Errorf("Error while creating password hash: %s", err)
+	}
+
+	u := User{
+		EMail:                   email,
+		Username:                username,
+		Password:                pwdHash,
+		EmailVerified:           emailVerified,
+		Rank:                    rank,
+		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
+	}
+
+	err = u.CacheUser()
+	if err != nil {
+		t.Errorf("Error while caching user: %s", err)
+	}
+
+	status, err := GetTwoFactorAuthenticationStatus(email)
+	if err != nil {
+		t.Errorf("Error while getting two factor authentication status: %s", err)
+	}
+
+	Equal(t, twoFactorAuthentication, status)
+	Equal(t, nil, err)
+}
+
 func StringWithCharset(length int) string {
 	b := make([]byte, length)
 	for i := range b {

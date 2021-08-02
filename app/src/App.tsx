@@ -23,6 +23,7 @@ interface JWTPayload {
   secretId: string;
 }
 
+//Implement 2FA Screen
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

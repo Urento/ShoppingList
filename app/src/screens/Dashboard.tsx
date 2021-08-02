@@ -6,7 +6,6 @@ import { Sidebar } from "../components/Sidebar";
 import useAuthCheck from "../hooks/useAuthCheck";
 
 export const Dashboard: React.FC = () => {
-  //const [redirect, setRedirect] = useState(false);
   const history = useHistory();
   const authStatus = useAuthCheck();
 

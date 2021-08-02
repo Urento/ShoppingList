@@ -35,6 +35,7 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/auth/check", api.Check)
 	apiv1.GET("/auth/user", api.GetUser)
 	apiv1.POST("/auth/logout", api.Logout)
+	apiv1.POST("/auth/update", api.UpdateUser)
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)
@@ -45,6 +46,8 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
 	apiv1.POST("/resetpassword", api.SendResetPassword)
 	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
+
+	apiv1.POST("/twofactorauthentication", api.UpdateTwoFactorAuthentication)
 
 	return r
 }

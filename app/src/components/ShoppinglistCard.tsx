@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useQuery } from "react-query";
 import swal from "sweetalert";
 import { API_URL } from "../util/constants";
+import { Button } from "./Button";
 
 interface ListData {
   title: string;
@@ -10,22 +11,24 @@ interface ListData {
   owner: string;
   participants: string[];
   position: number;
+  created_on: string;
+  modified_on: number;
 }
 
-interface Props {}
+export const ShoppinglistCard: React.FC = ({}) => {
+  const [shoppinglists, setShoppinglists] = useState<any>();
 
-export const ShoppinglistCard: React.FC<Props> = ({}) => {
-  const { isLoading, error, data } = useQuery<ListData[], Error>(
-    "shoppinglists",
-    () =>
-      fetch(`${API_URL}/lists`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      }).then((res: any) => res.json())
+  const { isLoading, error, data } = useQuery<any, Error>("shoppinglists", () =>
+    fetch(`${API_URL}/lists`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
+      .then((res: Response) => res.json())
+      .then((data) => setShoppinglists(data.data))
   );
 
   if (isLoading) {
@@ -40,36 +43,62 @@ export const ShoppinglistCard: React.FC<Props> = ({}) => {
     });
   }
 
-  console.log(data);
+  const unixToDate = (UNIX_timestamp: number) => {
+    const a = new Date(UNIX_timestamp);
+    var months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    var year = a.getFullYear();
+    var month = months[a.getMonth()];
+    var date = a.getDate();
+    var hour = a.getHours();
+    var min = a.getMinutes() < 9 ? "0" + a.getMinutes() : a.getMinutes();
+    var time = date + " " + month + " " + year + " " + hour + ":" + min;
+    return time;
+  };
 
   return (
     <div>
-      <div className="max-w-screen md:w-3/4 mx-auto">
-        <div className="flex flex-row space-y-2 items-center justify-center h-full py-4 bg-gray-800 rounded-xl space-x-10">
-          <div className="w-2/3">
-            <p className="w-full text-2xl font-semibold text-white">
-              We love pixels
+      {shoppinglists.map((e: ListData) => (
+        <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
+          <div>
+            <h2 className="text-white text-3xl font-semibold">{e.title}</h2>
+            <p className="mt-2 text-white">
+              <span className="font-bold">Participants</span>: <br />
+              {e.participants
+                .toString()
+                .split(" ")
+                .join(",")
+                .replace(",", ", ")
+                .substring(0, 100)}
             </p>
-            <p className="w-full pb-8 text-sm tracking-wide leading-tight text-white">
-              The card layouts can vary to support the types of content they
-              contain.
+            <p className="mt-2 text-white">
+              <span className="font-bold">Last Edited</span>:{" "}
+              {unixToDate(e.modified_on)}
             </p>
-            <div className="rounded w-1/3">
-              <div className="opacity-95 border rounded-lg border-white px-4">
-                <p className="m-auto inset-0 text-sm font-medium leading-normal text-center text-white py-2">
-                  License
-                </p>
-              </div>
-            </div>
+            <p className="mt-2 text-white">
+              <span className="font-bold">Created</span>:{" "}
+              {unixToDate(e.modified_on)}
+            </p>
           </div>
-          <div className="w-auto h-">
-            <img
-              className="flex-1 h-full rounded-lg"
-              src="https://via.placeholder.com/96x136"
-            />
+          <div className="flex justify-end mt-4">
+            <a href="#" className="text-xl font-medium text-white">
+              View Shoppinglist
+            </a>
           </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 };

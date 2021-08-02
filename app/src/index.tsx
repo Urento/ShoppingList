@@ -10,7 +10,7 @@ import { NotFound } from "./screens/NotFound";
 
 //TODO: Store User Info in Redux
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 ReactDOM.render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>

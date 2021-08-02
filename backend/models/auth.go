@@ -75,6 +75,26 @@ func GetUser(email string) (*Auth, error) {
 	return &user, nil
 }
 
+func (auth *Auth) UpdateUser(email string) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Updates(auth).Error
+	return err
+}
+
+func CheckPassword(email, pwd string) (bool, error) {
+	var password string
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("password").First(&password).Error
+	if err != nil {
+		return false, err
+	}
+
+	ok, err := argon2id.ComparePasswordAndHash(pwd, password)
+	if !ok || err != nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func CreateAccount(email, username, password, ip string) error {
 	validEmail := validateEmail(email)
 	if !validEmail {

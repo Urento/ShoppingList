@@ -30,14 +30,16 @@ const useAuthCheck = () => {
         credentials: "include",
       });
       const fJson: AuthCheckResponse = await response.json();
-      console.log(fJson);
+
       if (
         fJson.data.success !== "true" ||
         fJson.message === "fail" ||
         fJson.message === "not authorized to access this route"
-      )
+      ) {
         return setStatus("fail");
-      else return setStatus("success");
+      } else {
+        return setStatus("success");
+      }
     };
 
     checkAuth();

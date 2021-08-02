@@ -21,7 +21,6 @@ func JWT() gin.HandlerFunc {
 		if err != nil {
 			code = e.ERROR_GETTING_HTTPONLY_COOKIE
 		}
-		log.Printf("jwt token: %s", token)
 
 		if token == "" {
 			code = e.ERROR_NOT_AUTHORIZED

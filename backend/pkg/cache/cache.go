@@ -218,6 +218,15 @@ func GetUser(email string) (*User, error) {
 	return &user, nil
 }
 
+func GetTwoFactorAuthenticationStatus(email string) (bool, error) {
+	user, err := GetUser(email)
+	if err != nil {
+		return false, err
+	}
+
+	return user.TwoFactorAuthentication, nil
+}
+
 //TODO: also let only specific fields get updated
 func UpdateUser(user User) error {
 	ctx := context.Background()
