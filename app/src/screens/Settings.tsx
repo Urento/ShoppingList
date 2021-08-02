@@ -102,7 +102,7 @@ export const Settings: React.FC = () => {
         credentials: "include",
       }),
     {
-      onSuccess: () => queryClient.invalidateQueries("todos"),
+      onSuccess: () => queryClient.invalidateQueries("user"),
     }
   );
 
