@@ -16,7 +16,7 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(ratelimiter.RateLimit())
+	r.Use(ratelimiter.Ratelimiter())
 	r.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"OPTIONS", "PUT", "GET", "POST", "DELETE", "PATCH"},
 		AllowOrigins:     []string{"http://localhost:3000"},

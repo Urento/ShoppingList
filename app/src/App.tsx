@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./App.css";
-import { LockClosedIcon } from "@heroicons/react/solid";
 import { AUTH_API_URL } from "./util/constants";
 import { Link, Redirect } from "react-router-dom";
 import swal from "sweetalert";

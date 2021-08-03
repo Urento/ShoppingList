@@ -1,5 +1,3 @@
-import { LockClosedIcon } from "@heroicons/react/solid";
-import clsx from "clsx";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useMutation, useQuery } from "react-query";
@@ -10,7 +8,6 @@ import { Loading } from "../components/Loading";
 import { Sidebar } from "../components/Sidebar";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import useAuthCheck from "../hooks/useAuthCheck";
-import { useFetchUserData } from "../hooks/useFetchUserData";
 import { API_URL } from "../util/constants";
 
 interface UserInfo {
@@ -152,7 +149,7 @@ export const Settings: React.FC = () => {
       }),
     });
     const fJson: TwoFactorAuthenticationResponse = await response.json();
-    if (fJson.code != 200) {
+    if (fJson.code !== 200) {
       swal({
         icon: "error",
         title: `Error ${
@@ -180,7 +177,7 @@ export const Settings: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (password != confirmPassword) {
+    if (password !== confirmPassword) {
       swal({
         icon: "error",
         title: "Password and Confirm Password have to be the same",
@@ -201,16 +198,16 @@ export const Settings: React.FC = () => {
         email: email,
         username: username,
         password: password,
-        with_password: password != "" ? true : false,
+        with_password: password !== "" ? true : false,
         old_password: oldPassword,
       }),
     });
     const fJson: UpdateUserResponse = await response.json();
-    if (fJson.code != 200) {
+    if (fJson.code !== 200) {
       swal({
         icon: "error",
         title: "Error while updating profile!",
-        text: fJson.data != null ? fJson.data.message : fJson.message,
+        text: fJson.data !== null ? fJson.data.message : fJson.message,
       });
       return;
     }

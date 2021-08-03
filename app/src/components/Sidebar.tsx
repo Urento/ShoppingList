@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React from "react";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { API_URL } from "../util/constants";
