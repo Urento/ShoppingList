@@ -74,9 +74,9 @@ func GetAndUpdateLimit(c *gin.Context) (int64, error) {
 		return 0, errors.New("limit reached")
 	}
 
-	limit = v
+	limit = v + 1
 
-	err = rdb.Set(ctx, "ratelimit:"+ip, strconv.FormatInt(limit+1, 10), redis.KeepTTL).Err()
+	err = rdb.Set(ctx, "ratelimit:"+ip, strconv.FormatInt(limit, 10), redis.KeepTTL).Err()
 	if err != nil {
 		return 0, err
 	}
