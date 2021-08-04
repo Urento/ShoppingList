@@ -201,6 +201,7 @@ const Register: React.FC = () => {
               loading={loading}
               text="Create Account"
               onClick={register}
+              type="submit"
             />
           </div>
         </form>

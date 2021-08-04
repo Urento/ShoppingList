@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "react-query";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "..";
+import { Button } from "../components/Button";
 import { Loading } from "../components/Loading";
 import { Sidebar } from "../components/Sidebar";
 import { ToggleSwitch } from "../components/ToggleSwitch";
@@ -61,6 +62,7 @@ export const Settings: React.FC = () => {
   );
   const [username, setUsername] = useState<string | undefined>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmail(e.target.value);
@@ -149,6 +151,7 @@ export const Settings: React.FC = () => {
       }),
     });
     const fJson: TwoFactorAuthenticationResponse = await response.json();
+
     if (fJson.code !== 200) {
       swal({
         icon: "error",
@@ -161,6 +164,7 @@ export const Settings: React.FC = () => {
       });
       return;
     }
+
     swal({
       icon: "success",
       title: `Two Factor Authentication ${
@@ -170,6 +174,7 @@ export const Settings: React.FC = () => {
         fJson.data.status === "true" ? "enabled" : "disabled"
       } Two Factor Authentication`,
     });
+    queryClient.invalidateQueries("user");
     setToggled(fJson.data.status === "true");
   };
 
@@ -285,6 +290,15 @@ export const Settings: React.FC = () => {
                     onClick={updateTwoFactorAuthentication}
                     toggled={toggled!}
                     title="Two Factor Authentication"
+                  />
+                </div>
+                <div className="mb-4">
+                  <Button
+                    loading={loadingLogout}
+                    onClick={() => setLoadingLogout(!loadingLogout)}
+                    text="LOG EVERYONE OUT"
+                    showIcon={true}
+                    type="button"
                   />
                 </div>
                 <div className="mb-4 md:flex md:justify-between">

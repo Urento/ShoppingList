@@ -36,6 +36,7 @@ func InitRouter() *gin.Engine {
 	apiv1.GET("/auth/user", api.GetUser)
 	apiv1.POST("/auth/logout", api.Logout)
 	apiv1.POST("/auth/update", api.UpdateUser)
+	apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)

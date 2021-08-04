@@ -238,17 +238,17 @@ func Login(c *gin.Context) {
 	}
 
 	//check if the user still has a valid token
-	ex, err := cache.EmailExists(email)
+	/*ex, err := cache.EmailExists(email)
 	if err != nil {
 		log.Print(err)
 		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
 		return
-	}
+	}*/
 
 	//TODO: Maybe decode token and validate the actual token again
 
 	//user still has a valid token
-	if ex {
+	/*if ex {
 		token, err := cache.GetJWTByEmail(email)
 		if err != nil {
 			log.Print(err)
@@ -270,7 +270,7 @@ func Login(c *gin.Context) {
 			"token": token,
 		})
 		return
-	}
+	}*/
 
 	// if the user doesnt have a valid token in cache = generate new one
 	authService := auth.Auth{EMail: email, Password: password, IPAddress: ip}
@@ -307,6 +307,10 @@ func Login(c *gin.Context) {
 	})
 }
 
+type LogoutSettings struct {
+	LogoutEveryone bool `json:"logout_everyone"`
+}
+
 func Logout(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	token, err := GetCookie(c)
@@ -318,10 +322,11 @@ func Logout(c *gin.Context) {
 		return
 	}
 
-	if len(token) <= 0 {
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
-			"success": "false",
-		})
+	var logoutSettings LogoutSettings
+
+	if err := c.BindJSON(&logoutSettings); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
 		return
 	}
 
@@ -334,6 +339,33 @@ func Logout(c *gin.Context) {
 		return
 	}
 
+	//if you want to invalidate all jwt tokens and log everyone out
+	if logoutSettings.LogoutEveryone {
+		err := cache.InvalidateAllJWTTokens(email)
+		if err != nil {
+			log.Print(err)
+			appGin.Response(http.StatusInternalServerError, e.ERROR_INVALIDATING_JWT_TOKENS, map[string]string{
+				"success": "false",
+				"message": "error while invalidating jwt token",
+			})
+		}
+
+		RemoveCookie(c)
+
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success": "true",
+		})
+		return
+	}
+
+	if len(token) <= 0 {
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	//if its just a normal logout
 	ok, err := cache.DeleteTokenByEmail(email, token)
 	if err != nil || !ok {
 		log.Print(err)
@@ -346,6 +378,70 @@ func Logout(c *gin.Context) {
 	RemoveCookie(c)
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+	})
+}
+
+type InvalidateSpecificJWTTokenStruct struct {
+	JWTToken string `json:"jwt_token"`
+}
+
+func InvalidateSpecificJWTToken(c *gin.Context) {
+	appGin := app.Gin{C: c}
+	token, err := GetCookie(c)
+	if err != nil {
+		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
+			"success": "false",
+			"message": "You have to be logged in to log out!",
+		})
+		return
+	}
+
+	var jwtTokenSettings InvalidateSpecificJWTTokenStruct
+
+	if err := c.BindJSON(&jwtTokenSettings); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil || len(email) <= 0 {
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"message": "jwt token is invalid",
+		})
+		return
+	}
+
+	ok, err := cache.DoesTokenBelongToEmail(email, jwtTokenSettings.JWTToken)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_JWT_TOKEN_DOES_NOT_BELONG_TO_EMAIL, map[string]string{
+			"success": "false",
+			"message": "JWT Token does not belong to your account!",
+		})
+		return
+	}
+
+	if !ok {
+		appGin.Response(http.StatusBadRequest, e.ERROR_JWT_TOKEN_DOES_NOT_BELONG_TO_EMAIL, map[string]string{
+			"success": "false",
+			"message": "JWT Token does not belong to your account!",
+		})
+		return
+	}
+
+	err = cache.InvalidateSpecificJWTToken(email, jwtTokenSettings.JWTToken)
+	if err != nil {
+		appGin.Response(http.StatusInternalServerError, e.ERROR_INVALIDATING_JWT_TOKENS, map[string]string{
+			"success": "false",
+			"message": "An error occurred while invalidating a specific JWT Token!",
+		})
+		return
+	}
+
+	appGin.Response(http.StatusBadRequest, e.ERROR_JWT_TOKEN_DOES_NOT_BELONG_TO_EMAIL, map[string]string{
 		"success": "true",
 	})
 }

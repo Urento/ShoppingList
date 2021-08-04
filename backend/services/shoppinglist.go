@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/urento/shoppinglist/models"
 )
 
@@ -60,6 +62,14 @@ func (s *Shoppinglist) GetListsByOwner() (*[]models.Shoppinglist, error) {
 		return nil, err
 	}
 	return shoppinglist, err
+}
+
+func (s *Shoppinglist) SendInvitationEmails() error {
+	for _, val := range s.Participants {
+		log.Print(val)
+		//TODO: Send Emails
+	}
+	return nil
 }
 
 func (s *Shoppinglist) GetLastPosition() (int64, error) {

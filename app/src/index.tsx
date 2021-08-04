@@ -7,8 +7,10 @@ import { Dashboard } from "./screens/Dashboard";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Settings } from "./screens/Settings";
 import { NotFound } from "./screens/NotFound";
+import { NewShoppinglist } from "./screens/shoppinglist/NewShoppinglist";
+import { ViewShoppinglist } from "./screens/shoppinglist/ViewShoppinglist";
 
-//TODO: Store User Info in Redux
+//TODO: Store User Info in Redux?
 
 export const queryClient = new QueryClient();
 ReactDOM.render(
@@ -20,6 +22,8 @@ ReactDOM.render(
 
         <Route exact path="/dashboard" component={Dashboard} />
         <Route exact path="/settings" component={Settings} />
+        <Route exact path="/lists/create" component={NewShoppinglist} />
+        <Route path="/list/:id" component={ViewShoppinglist} />
 
         <Route exact path="/404" component={NotFound} />
         <Redirect to="/404" />

@@ -1,6 +1,7 @@
 package ratelimiter
 
 import (
+	"net"
 	"net/http"
 	"testing"
 
@@ -19,10 +20,11 @@ func TestRatelimitMiddleware(t *testing.T) {
 	})
 
 	go r.Run(":9999")
+	ip := GetOutboundIP(t)
 
 	c := &http.Client{}
 	for i := 0; i < 302; i++ {
-		resp, err := c.Get("http://127.0.0.1:9999")
+		resp, err := c.Get("http://" + ip.String() + ":9999")
 		if err != nil {
 			t.Errorf("An error occurred while making the requests: %s", err)
 		}
@@ -38,8 +40,20 @@ func TestRatelimitMiddleware(t *testing.T) {
 		}
 	}
 
-	err := ResetLimit("127.0.0.1")
+	err := ResetLimit(ip.String())
 	if err != nil {
 		t.Errorf("Error while resetting limit: %s", err)
 	}
+}
+
+func GetOutboundIP(t *testing.T) net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		t.Error(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }

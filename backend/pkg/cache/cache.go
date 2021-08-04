@@ -81,6 +81,73 @@ func CacheJWT(email, token string) error {
 	return nil
 }
 
+func InvalidateSpecificJWTToken(email, token string) error {
+	ctx := context.Background()
+	pipe := rdb.Pipeline()
+
+	err := pipe.Del(ctx, "email:"+token).Err()
+	if err != nil {
+		return err
+	}
+
+	err = pipe.Del(ctx, "jwt:"+email).Err()
+	if err != nil {
+		return err
+	}
+
+	err = pipe.Del(ctx, "token:"+email).Err()
+	if err != nil {
+		return err
+	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DoesTokenBelongToEmail(email, token string) (bool, error) {
+	val, err := rdb.Get(context.Background(), "token:"+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	if val != token {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+//TODO: Invalidate email:token keys
+func InvalidateAllJWTTokens(email string) error {
+	ctx := context.Background()
+	pipe := rdb.Pipeline()
+
+	keys, err := rdb.Keys(ctx, "token:"+email).Result()
+	if err != nil {
+		return err
+	}
+
+	err = pipe.Del(ctx, redisJwtPrefix+email).Err()
+	if err != nil {
+		return err
+	}
+
+	for _, key := range keys {
+		pipe.Del(ctx, key)
+	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetJWTByEmail(email string) (string, error) {
 	val, err := rdb.Get(context.Background(), tokenPrefix+email).Result()
 	if err == redis.Nil {
@@ -278,6 +345,15 @@ type JWTModel struct {
 }
 
 func GenerateSecretId(email string) (string, error) {
+	existingSecretId, has, err := HasSecretId(email)
+	if err != nil {
+		return "", err
+	}
+
+	if has {
+		return existingSecretId, nil
+	}
+
 	secretId, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
@@ -302,13 +378,60 @@ func GenerateSecretId(email string) (string, error) {
 }
 
 func VerifySecretId(email, secretId string) (bool, error) {
-	r, err := rdb.Exists(context.Background(), redisJwtPrefix+email).Result()
+	ctx := context.Background()
+
+	r, err := rdb.Exists(ctx, redisJwtPrefix+email).Result()
 
 	if err != nil || r == 0 {
 		return false, errors.New("secretid is not valid")
 	}
 
-	return true, nil
+	//verify secretId
+	obj, err := rdb.Get(ctx, redisJwtPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	var kds JWTModel
+	if err := json.Unmarshal([]byte(obj), &kds); err != nil {
+		return false, err
+	}
+
+	if kds.SecretId == secretId {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func HasSecretId(email string) (string, bool, error) {
+	ctx := context.Background()
+
+	exists, err := rdb.Exists(ctx, redisJwtPrefix+email).Result()
+	if err != nil {
+		return "", false, err
+	}
+
+	if exists != 1 {
+		return "", false, nil
+	}
+
+	val, err := rdb.Get(ctx, redisJwtPrefix+email).Result()
+	if err != nil {
+		return "", false, err
+	}
+
+	var kds JWTModel
+	if err := json.Unmarshal([]byte(val), &kds); err != nil {
+		return "", false, err
+	}
+
+	return kds.SecretId, true, nil
+}
+
+func InvalidateSecretId(email string) error {
+	err := rdb.Del(context.Background(), redisJwtPrefix+email).Err()
+	return err
 }
 
 func LoadEnv() error {

@@ -16,11 +16,10 @@ type Response struct {
 func Ratelimiter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		remaining, err := GetAndUpdateLimit(c)
-		log.Print(remaining)
 
 		//TODO: make exceptions for some routes maybe?
 
-		c.Header("Ratelimit-Remaining", strconv.FormatInt(remaining, 10))
+		c.Header("Ratelimit-Remaining", strconv.FormatInt(300-remaining, 10))
 		c.Header("Ratelimit-Limit", "300")
 
 		if err != nil && err.Error() == "limit reached" {

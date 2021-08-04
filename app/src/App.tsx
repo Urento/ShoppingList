@@ -194,6 +194,7 @@ const Login: React.FC = () => {
               loading={loading}
               onClick={doLogin}
               text="Login"
+              type="submit"
             ></Button>
           </div>
         </form>

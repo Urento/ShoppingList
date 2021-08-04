@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { API_URL } from "../util/constants";
@@ -28,6 +29,7 @@ export const Sidebar: React.FC = ({}) => {
       },
       cache: "no-cache",
       credentials: "include",
+      body: JSON.stringify({ logout_everyone: false }),
     });
     const fJson: LogoutResponse = await response.json();
     if (fJson.message !== "fail" && fJson.data.success === "true") {

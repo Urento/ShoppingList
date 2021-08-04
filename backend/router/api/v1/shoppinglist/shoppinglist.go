@@ -104,40 +104,76 @@ func GetShoppinglists(c *gin.Context) {
 }
 
 type CreateShoppinglistForm struct {
-	Title        string   `form:"title" valid:"Required"`
-	Items        []string `form:"items" valid:"Required"`
-	Owner        string   `form:"owner" valid:"Required"`
-	Position     int      `form:"position" valid:"Required"`
-	Participants []string `form:"participants" valid:"Required"`
+	Title        string   `form:"title"`
+	Position     int      `form:"position"`
+	Participants []string `form:"participants"`
 }
 
 func CreateShoppinglist(c *gin.Context) {
 	var (
-		appG       = app.Gin{C: c}
-		form       CreateShoppinglistForm
+		appG                  = app.Gin{C: c}
 		seededRand *rand.Rand = rand.New(
 			rand.NewSource(time.Now().UnixNano()))
 	)
 
-	httpCode, errCode := app.BindAndValid(c, &form)
-	if errCode != e.SUCCESS {
-		appG.Response(httpCode, errCode, map[string]string{
-			"error": "validation error",
+	var f CreateShoppinglistForm
+
+	if err := c.BindJSON(&f); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	//TODO: Validate data some other way
+
+	if f.Participants == nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	if f.Title == "" {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
 		})
 		return
 	}
 
 	randomId := seededRand.Intn(900000)
-
-	lists := services.Shoppinglist{
-		ID:           randomId,
-		Title:        form.Title,
-		Items:        form.Items,
-		Owner:        form.Owner,
-		Participants: form.Participants,
-		Position:     form.Position,
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		return
 	}
 
+	//TODO: Check if all the participants have an account before sending the invite
+	lists := services.Shoppinglist{
+		ID:           randomId,
+		Title:        f.Title,
+		Items:        nil,
+		Owner:        owner,
+		Participants: f.Participants,
+		Position:     0,
+	}
+
+	//TODO: maybe remove?
 	exists, err := lists.ExistsByID()
 	if err != nil || exists {
 		log.Print(err)
@@ -149,7 +185,10 @@ func CreateShoppinglist(c *gin.Context) {
 	}
 
 	if _, err := lists.Create(); err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, nil)
+		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, map[string]string{
+			"success": "false",
+			"message": "Error while creating Shoppinglist",
+		})
 		return
 	}
 
@@ -188,7 +227,6 @@ func EditShoppinglist(c *gin.Context) {
 		return
 	}
 
-	//TODO: Validate all Emails in Participants
 	list := services.Shoppinglist{
 		ID:           id,
 		Title:        form.Title,
@@ -197,6 +235,7 @@ func EditShoppinglist(c *gin.Context) {
 		Participants: form.Participants,
 		Position:     form.Position,
 	}
+
 	exists, err := list.ExistsByID()
 	if err != nil || !exists {
 		log.Print(err)
