@@ -145,6 +145,7 @@ export const ShoppinglistCard: React.FC = ({}) => {
 
   return (
     <div className="flex flex-wrap">
+      {shoppinglists.length <= 0 && <NoItemsToDisplay />}
       {shoppinglists.map((e: ListData) => (
         <div className="pt-2 pl-2">
           <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
@@ -193,4 +194,9 @@ export const ShoppinglistCard: React.FC = ({}) => {
       ))}
     </div>
   );
+};
+
+//TODO
+const NoItemsToDisplay: React.FC = () => {
+  return <h1>You dont have any Shoppinglists yet!</h1>;
 };

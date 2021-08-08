@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import "./App.css";
 import { AUTH_API_URL } from "./util/constants";
-import { Link, Redirect } from "react-router-dom";
+import { Link, Redirect, useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import clsx from "clsx";
 import jwtDecode from "jwt-decode";
 import { useEffect } from "react";
 import { Button } from "./components/Button";
+import { isLoggedIn } from "./storage/UserStorage";
 
 interface DataResponse {
   token: string;
+  success: "true" | "false";
+  otp: boolean;
+  error: string;
 }
 interface LoginJSONResponse {
   code: string;
@@ -22,7 +26,6 @@ interface JWTPayload {
   secretId: string;
 }
 
-//Implement 2FA Screen
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,14 +33,14 @@ const Login: React.FC = () => {
     email: false,
     password: false,
   });
-  const [redirect, setRedirect] = useState(false);
   const [loading, setLoading] = useState(false);
-  const loggedIn = Boolean(localStorage.getItem("authenticated"));
+  const loggedIn = isLoggedIn();
+  const history = useHistory();
 
   useEffect(() => {
-    //redirect for checking if the user is actually authenticated
+    //redirect for checking if the user is actually already authenticated
     if (loggedIn) {
-      setRedirect(true);
+      history.push("/dashboard");
     }
   }, []);
 
@@ -67,7 +70,12 @@ const Login: React.FC = () => {
 
     if (fJson.message === "fail") {
       setError({ email: true, password: true });
-    } else if (fJson.message === "ok") {
+    } else if (fJson.message === "ok" && fJson.data.otp) {
+      history.push({
+        pathname: "/twofactorauthentication",
+        state: { email: email },
+      });
+    } else if (fJson.message === "ok" && !fJson.data.otp) {
       const secretId = getSecretIdByJwtToken(fJson.data.token);
       if (secretId == null) {
         swal({
@@ -76,7 +84,6 @@ const Login: React.FC = () => {
           text: "Error while decoding jwt token! Try again later!",
         });
       }
-      console.log(secretId);
 
       //display modal
       swal({
@@ -87,7 +94,7 @@ const Login: React.FC = () => {
 
       //update state
       setError({ email: false, password: false });
-      setRedirect(true);
+      history.push("/dashboard");
       localStorage.setItem("authenticated", "true");
     } else {
       setError({ email: true, password: true });
@@ -103,7 +110,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      {redirect && <Redirect to="/dashboard"></Redirect>}
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -195,6 +201,7 @@ const Login: React.FC = () => {
               onClick={doLogin}
               text="Login"
               type="submit"
+              danger={false}
             ></Button>
           </div>
         </form>

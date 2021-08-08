@@ -9,24 +9,18 @@ import (
 type Shoppinglist struct {
 	ID           int
 	Title        string
-	Items        []string
+	Items        models.Item
 	Owner        string
 	Participants []string
-	Position     int //TODO
 	PageNum      int
 	PageSize     int
 }
-
-//TODO: Encrypt Emails
-//TODO: Add Order to Items
 
 func (s *Shoppinglist) Create() (created bool, err error) {
 	shoppinglist := map[string]interface{}{
 		"id":           s.ID,
 		"title":        s.Title,
-		"items":        s.Items,
 		"owner":        s.Owner,
-		"position":     s.Position,
 		"participants": s.Participants,
 	}
 
@@ -39,28 +33,23 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 
 func (s *Shoppinglist) Edit() error {
 	shoppinglist := map[string]interface{}{
+		"id":           s.ID,
 		"title":        s.Title,
 		"items":        s.Items,
 		"owner":        s.Owner,
-		"position":     s.Position,
 		"participants": s.Participants,
 	}
+
 	return models.EditList(s.ID, shoppinglist)
 }
 
 func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
-	shoppinglist, err := models.GetList(s.ID)
-	if err != nil {
-		return nil, err
-	}
-	return shoppinglist, nil
+	shoppinglist, err := models.GetList(s.ID, s.Owner)
+	return shoppinglist, err
 }
 
 func (s *Shoppinglist) GetListsByOwner() (*[]models.Shoppinglist, error) {
 	shoppinglist, err := models.GetListByEmail(s.Owner)
-	if err != nil {
-		return nil, err
-	}
 	return shoppinglist, err
 }
 
@@ -85,6 +74,10 @@ func (s *Shoppinglist) ExistsByID() (bool, error) {
 	return models.ExistByID(s.ID)
 }
 
-func DropTable() {
-	models.DropTable()
+func (s *Shoppinglist) GetItems() ([]models.Item, error) {
+	return models.GetItems(s.ID, s.Owner)
+}
+
+func (s *Shoppinglist) AddItem() error {
+	return models.AddItem(s.Items)
 }

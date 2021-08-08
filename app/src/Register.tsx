@@ -3,7 +3,7 @@ import "./App.css";
 import { AUTH_REGISTER_API_URL } from "./util/constants";
 import swal from "sweetalert";
 import clsx from "clsx";
-import { Redirect } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import { Button } from "./components/Button";
 
 interface DataResponse {
@@ -31,8 +31,8 @@ const Register: React.FC = () => {
     username: false,
     password: false,
   });
-  const [redirect, setRedirect] = useState(false);
   const [loading, setLoading] = useState(false);
+  const history = useHistory();
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setEmail(event.target.value);
@@ -87,7 +87,7 @@ const Register: React.FC = () => {
 
       //update state
       setError({ email: false, password: false, username: false });
-      setRedirect(true);
+      history.push("/dashboard");
     } else {
       setError({ email: true, password: true, username: true });
     }
@@ -98,7 +98,6 @@ const Register: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {redirect && <Redirect to="/"></Redirect>}
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Register
@@ -202,6 +201,7 @@ const Register: React.FC = () => {
               text="Create Account"
               onClick={register}
               type="submit"
+              danger={false}
             />
           </div>
         </form>

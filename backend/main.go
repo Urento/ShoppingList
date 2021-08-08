@@ -8,7 +8,6 @@ import (
 	"github.com/urento/shoppinglist/middleware/ratelimiter"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/cache"
-	"github.com/urento/shoppinglist/pkg/logging"
 	"github.com/urento/shoppinglist/pkg/setting"
 	"github.com/urento/shoppinglist/pkg/util"
 	routers "github.com/urento/shoppinglist/router"
@@ -16,7 +15,6 @@ import (
 
 func init() {
 	setting.Setup()
-	logging.Setup()
 	models.Setup()
 	util.Setup()
 	ratelimiter.Setup()

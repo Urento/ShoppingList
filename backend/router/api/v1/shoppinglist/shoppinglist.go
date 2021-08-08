@@ -11,6 +11,7 @@ import (
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
+	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
@@ -24,7 +25,6 @@ func GetShoppinglist(c *gin.Context) {
 	valid := validation.Validation{}
 	valid.Min(id, 1, "id")
 
-	//TODO: Check if the Shoppinglist belongs to the request maker
 	token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -37,37 +37,35 @@ func GetShoppinglist(c *gin.Context) {
 
 	emailOfRequestMaker, err := cache.GetEmailByJWT(token)
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+		})
 		return
 	}
 
 	if valid.HasErrors() {
 		app.MarkErrors(valid.Errors)
-		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
+			"success": "false",
+		})
 		return
 	}
 
-	listService := services.Shoppinglist{ID: id}
-	exists, err := listService.ExistsByID()
-	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_LIST_FAIL, nil)
-		return
-	}
-
-	if !exists {
-		appG.Response(http.StatusOK, e.ERROR_LIST_DOES_NOT_EXIST, nil)
-		return
-	}
-
+	listService := services.Shoppinglist{ID: id, Owner: emailOfRequestMaker}
 	list, err := listService.GetList()
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, nil)
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, map[string]string{
+			"success": "false",
+		})
 		return
 	}
 
 	if list.Owner != emailOfRequestMaker {
 		appG.Response(http.StatusBadRequest, e.ERROR_LIST_DOES_NOT_BELONG_TO_TOKEN, map[string]string{
-			"error": "list does not belong to reuqest maker",
+			"error":   "list does not belong to reuqest maker",
+			"success": "false",
 		})
 		return
 	}
@@ -105,7 +103,6 @@ func GetShoppinglists(c *gin.Context) {
 
 type CreateShoppinglistForm struct {
 	Title        string   `form:"title"`
-	Position     int      `form:"position"`
 	Participants []string `form:"participants"`
 }
 
@@ -167,10 +164,8 @@ func CreateShoppinglist(c *gin.Context) {
 	lists := services.Shoppinglist{
 		ID:           randomId,
 		Title:        f.Title,
-		Items:        nil,
 		Owner:        owner,
 		Participants: f.Participants,
-		Position:     0,
 	}
 
 	//TODO: maybe remove?
@@ -196,57 +191,58 @@ func CreateShoppinglist(c *gin.Context) {
 }
 
 type EditShoppinglistForm struct {
-	ID           int      `form:"id"`
-	Title        string   `form:"title" valid:"Required"`
-	Items        []string `form:"items" valid:"Required"`
-	Owner        string   `form:"owner" valid:"Required"`
-	Position     int      `form:"position" valid:"Required"`
-	Participants []string `form:"participants" valid:"Required"`
+	ID           int         `form:"id"`
+	Title        string      `form:"title" valid:"Required"`
+	Items        models.Item `form:"items"`
+	Owner        string      `form:"owner" valid:"Required"`
+	Participants []string    `form:"participants" valid:"Required"`
 }
 
 func EditShoppinglist(c *gin.Context) {
 	appG := app.Gin{C: c}
-	id, err := strconv.Atoi(c.PostForm("id"))
-	if err != nil {
+	var form EditShoppinglistForm
+
+	if err := c.BindJSON(&form); err != nil {
 		log.Print(err)
-		appG.Response(http.StatusBadRequest, e.ERROR_ID_IS_INVALID, map[string]string{
-			"error": "id is invalid",
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
 		})
 		return
 	}
 
-	var (
-		form = EditShoppinglistForm{ID: id}
-	)
+	//TODO: Validate data some other way
 
-	httpCode, errCode := app.BindAndValid(c, &form)
-	if errCode != e.SUCCESS {
-		appG.Response(httpCode, errCode, map[string]string{
-			"error": "validation error",
+	if form.Owner == "" {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	if form.Title == "" {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
 		})
 		return
 	}
 
 	list := services.Shoppinglist{
-		ID:           id,
+		ID:           form.ID,
 		Title:        form.Title,
 		Items:        form.Items,
 		Owner:        form.Owner,
 		Participants: form.Participants,
-		Position:     form.Position,
 	}
 
-	exists, err := list.ExistsByID()
-	if err != nil || !exists {
-		log.Print(err)
-		appG.Response(http.StatusBadRequest, e.ERROR_CHECK_EXIST_LIST_FAIL, nil)
-		return
-	}
+	//TODO: check if exists necessary?
 
-	err = list.Edit()
+	err := list.Edit()
 	if err != nil {
 		log.Print(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_EDIT_LIST_FAIL, nil)
+		appG.Response(http.StatusInternalServerError, e.ERROR_EDIT_LIST_FAIL, map[string]string{"success": "false"})
 		return
 	}
 
@@ -301,6 +297,48 @@ func DeleteShoppinglist(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
 	})
+}
+
+func GetListItems(c *gin.Context) {
+	appG := app.Gin{C: c}
+	valid := validation.Validation{}
+	id := com.StrTo(c.Param("id")).MustInt()
+	valid.Min(id, 1, "id")
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	shoppinglist := services.Shoppinglist{
+		ID:    id,
+		Owner: email,
+	}
+
+	items, err := shoppinglist.GetItems()
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_LISTS_BY_OWNER, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, items)
 }
 
 func GetCookie(ctx *gin.Context) (string, error) {

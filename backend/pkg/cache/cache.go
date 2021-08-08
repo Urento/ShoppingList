@@ -19,6 +19,7 @@ var (
 	tokenPrefix    = "token:"
 	emailPrefix    = "email:"
 	userPrefix     = "user:"
+	totpPrefix     = "totp:"
 )
 
 var rdb *redis.Client
@@ -85,17 +86,17 @@ func InvalidateSpecificJWTToken(email, token string) error {
 	ctx := context.Background()
 	pipe := rdb.Pipeline()
 
-	err := pipe.Del(ctx, "email:"+token).Err()
+	err := pipe.Del(ctx, emailPrefix+token).Err()
 	if err != nil {
 		return err
 	}
 
-	err = pipe.Del(ctx, "jwt:"+email).Err()
+	err = pipe.Del(ctx, redisJwtPrefix+email).Err()
 	if err != nil {
 		return err
 	}
 
-	err = pipe.Del(ctx, "token:"+email).Err()
+	err = pipe.Del(ctx, tokenPrefix+email).Err()
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func InvalidateSpecificJWTToken(email, token string) error {
 }
 
 func DoesTokenBelongToEmail(email, token string) (bool, error) {
-	val, err := rdb.Get(context.Background(), "token:"+email).Result()
+	val, err := rdb.Get(context.Background(), tokenPrefix+email).Result()
 	if err != nil {
 		return false, err
 	}
@@ -126,7 +127,7 @@ func InvalidateAllJWTTokens(email string) error {
 	ctx := context.Background()
 	pipe := rdb.Pipeline()
 
-	keys, err := rdb.Keys(ctx, "token:"+email).Result()
+	keys, err := rdb.Keys(ctx, tokenPrefix+email).Result()
 	if err != nil {
 		return err
 	}
@@ -380,16 +381,10 @@ func GenerateSecretId(email string) (string, error) {
 func VerifySecretId(email, secretId string) (bool, error) {
 	ctx := context.Background()
 
-	r, err := rdb.Exists(ctx, redisJwtPrefix+email).Result()
-
-	if err != nil || r == 0 {
-		return false, errors.New("secretid is not valid")
-	}
-
 	//verify secretId
 	obj, err := rdb.Get(ctx, redisJwtPrefix+email).Result()
-	if err != nil {
-		return false, err
+	if err != nil || err == redis.Nil {
+		return false, errors.New("secretid is not valid")
 	}
 
 	var kds JWTModel
@@ -407,18 +402,10 @@ func VerifySecretId(email, secretId string) (bool, error) {
 func HasSecretId(email string) (string, bool, error) {
 	ctx := context.Background()
 
-	exists, err := rdb.Exists(ctx, redisJwtPrefix+email).Result()
-	if err != nil {
-		return "", false, err
-	}
-
-	if exists != 1 {
-		return "", false, nil
-	}
-
 	val, err := rdb.Get(ctx, redisJwtPrefix+email).Result()
-	if err != nil {
-		return "", false, err
+	if err != nil || err == redis.Nil {
+		log.Print(err)
+		return "", false, nil
 	}
 
 	var kds JWTModel
@@ -432,6 +419,29 @@ func HasSecretId(email string) (string, bool, error) {
 func InvalidateSecretId(email string) error {
 	err := rdb.Del(context.Background(), redisJwtPrefix+email).Err()
 	return err
+}
+
+func CacheTOTPSecret(email, secret string) error {
+	err := rdb.Set(context.Background(), totpPrefix+email, secret, 0).Err()
+	return err
+}
+
+func GetTOTPSecret(email string) (string, error) {
+	val, err := rdb.Get(context.Background(), totpPrefix+email).Result()
+	if err != nil {
+		return "not cached", errors.New("totp secret is not cached")
+	}
+	return val, nil
+}
+
+func DeleteTOTPSecret(email string) error {
+	err := rdb.Del(context.Background(), totpPrefix+email).Err()
+	return err
+}
+
+func IsTOTPSecretCached(email string) (bool, error) {
+	exists, err := rdb.Exists(context.Background(), totpPrefix+email).Result()
+	return exists == 1, err
 }
 
 func LoadEnv() error {

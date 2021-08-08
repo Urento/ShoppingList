@@ -36,12 +36,13 @@ func InitRouter() *gin.Engine {
 	apiv1.GET("/auth/user", api.GetUser)
 	apiv1.POST("/auth/logout", api.Logout)
 	apiv1.POST("/auth/update", api.UpdateUser)
-	apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this
+	apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this and add this to the frontend
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)
 	apiv1.PUT("/list", v1.EditShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
+	apiv1.GET("/list/items/:id", v1.GetListItems) //TODO: Start using this when displaying items on the frontend
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
@@ -49,6 +50,7 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
 
 	apiv1.POST("/twofactorauthentication", api.UpdateTwoFactorAuthentication)
+	r.POST("/twofactorauthentication/verify", api.VerifyTwoFactorAuthentication)
 
 	return r
 }

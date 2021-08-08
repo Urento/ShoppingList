@@ -424,7 +424,7 @@ func TestVerifySecretIdWithWrongIdWithExistingAccount(t *testing.T) {
 		t.Errorf("Error while verifying secert id: %s", err)
 	}
 
-	Equal(t, true, ok)
+	Equal(t, false, ok)
 	Equal(t, nil, err)
 }
 
@@ -687,6 +687,102 @@ func TestInvalidateSpecificJWTToken(t *testing.T) {
 	Equal(t, true, exists)
 	Equal(t, true, ok)
 	Equal(t, false, ok2)
+}
+
+func TestCacheAndGetTOTPSecret(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	secret := StringWithCharset(16)
+
+	err := CacheTOTPSecret(email, secret)
+	if err != nil {
+		t.Errorf("Error while caching TOTP Secret: %s", err)
+	}
+
+	totpSecret, err := GetTOTPSecret(email)
+	if err != nil {
+		t.Errorf("Error while getting TOTP Secret: %s", err)
+	}
+
+	Equal(t, secret, totpSecret)
+	Equal(t, nil, err)
+}
+
+func TestGetTOTPSecretThatDoesntExist(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+
+	_, err := GetTOTPSecret(email)
+
+	Equal(t, "totp secret is not cached", err.Error())
+}
+
+func TestDeleteTOTPSecret(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	secret := StringWithCharset(16)
+
+	err := CacheTOTPSecret(email, secret)
+	if err != nil {
+		t.Errorf("Error while caching TOTP Secret: %s", err)
+	}
+
+	totpSecret, err := GetTOTPSecret(email)
+	if err != nil {
+		t.Errorf("Error while getting TOTP Secret: %s", err)
+	}
+
+	err = DeleteTOTPSecret(email)
+	if err != nil {
+		t.Errorf("Error while deleting TOTP Secret: %s", err)
+	}
+
+	_, delErr := GetTOTPSecret(email)
+
+	Equal(t, secret, totpSecret)
+	Equal(t, nil, err)
+	Equal(t, "totp secret is not cached", delErr.Error())
+}
+
+func TestIsTOTPCached(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+	secret := StringWithCharset(16)
+
+	err := CacheTOTPSecret(email, secret)
+	if err != nil {
+		t.Errorf("Error while caching TOTP Secret: %s", err)
+	}
+
+	totpSecret, err := GetTOTPSecret(email)
+	if err != nil {
+		t.Errorf("Error while getting TOTP Secret: %s", err)
+	}
+
+	ok, err := IsTOTPSecretCached(email)
+	if err != nil {
+		t.Errorf("Error while checking if TOTP Secret is cached: %s", err)
+	}
+
+	Equal(t, secret, totpSecret)
+	Equal(t, true, ok)
+}
+
+func TestIsTOTPCachedWhenItsNotCached(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(10) + "@gmail.com"
+
+	_, err := GetTOTPSecret(email)
+
+	ok, _ := IsTOTPSecretCached(email)
+
+	Equal(t, false, ok)
+	Equal(t, "totp secret is not cached", err.Error())
 }
 
 func StringWithCharset(length int) string {

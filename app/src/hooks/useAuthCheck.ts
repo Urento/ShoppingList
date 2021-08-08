@@ -3,7 +3,7 @@ import { API_URL } from "../util/constants";
 
 interface DataResponse {
   success: "true" | "false";
-  token: string;
+  error: string;
 }
 
 interface AuthCheckResponse {
@@ -19,7 +19,6 @@ const useAuthCheck = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      console.log(`${API_URL}/auth/check`);
       const response = await fetch(`${API_URL}/auth/check`, {
         method: "POST",
         headers: {

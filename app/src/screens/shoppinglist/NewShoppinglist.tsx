@@ -6,6 +6,7 @@ import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "../..";
 import { Sidebar } from "../../components/Sidebar";
+import { useGetUserData } from "../../hooks/useGetUserData";
 import { API_URL } from "../../util/constants";
 
 const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -130,6 +131,7 @@ export const NewShoppinglist: React.FC = ({}) => {
   const [currParticipant, setCurrParticipant] = useState("");
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const userData = useGetUserData();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setTitle(e.target.value);
@@ -139,6 +141,13 @@ export const NewShoppinglist: React.FC = ({}) => {
 
   const addParticipant = (email: string) => {
     if (email === "" || participants.indexOf(email) !== -1) return;
+
+    if (email === userData?.email)
+      return swal({
+        icon: "error",
+        title: "You cant invite yourself!",
+        text: "Please enter a email address from someone else",
+      });
 
     if (!regexEmail.test(email)) {
       swal({
@@ -185,7 +194,6 @@ export const NewShoppinglist: React.FC = ({}) => {
       body: JSON.stringify({
         title: title,
         participants: participants,
-        position: 0,
       }),
     });
 
@@ -244,15 +252,15 @@ export const NewShoppinglist: React.FC = ({}) => {
                   <div className="md:ml-2">
                     <label
                       className="mb-2 text-sm font-bold text-gray-700"
-                      htmlFor="username"
+                      htmlFor="email"
                     >
                       Participants
                     </label>
                     <input
                       className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
-                      id="username"
-                      type="text"
-                      placeholder="Username"
+                      id="email"
+                      type="email"
+                      placeholder="Email of the Participant"
                       onChange={handleCurrParticipantChange}
                     />
                     <button

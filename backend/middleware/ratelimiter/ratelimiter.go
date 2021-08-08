@@ -52,33 +52,30 @@ func Setup() {
 func GetAndUpdateLimit(c *gin.Context) (int64, error) {
 	ctx := context.Background()
 	var limit int64
-
 	ip := c.ClientIP()
 
-	err := rdb.SetNX(ctx, "ratelimit:"+ip, 0, 180*time.Second).Err()
-	if err != nil {
-		return 0, err
-	}
-
 	val, err := rdb.Get(ctx, "ratelimit:"+ip).Result()
-	if err != nil {
-		return 0, err
-	}
+	if err != nil || err == redis.Nil {
+		//first time sending a request so create a new entry
+		err = rdb.Set(ctx, "ratelimit:"+ip, 1, 180*time.Second).Err()
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		//is already in the database; just incr the old number
+		v, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			return 0, errors.New("unable to parse the remaining requests from string to int64")
+		}
 
-	v, err := strconv.ParseInt(val, 10, 64)
-	if err != nil {
-		return 0, errors.New("unable to parse the remaining requests from string to int64")
-	}
-
-	if v >= 300 {
-		return 0, errors.New("limit reached")
-	}
-
-	limit = v + 1
-
-	err = rdb.Set(ctx, "ratelimit:"+ip, strconv.FormatInt(limit, 10), redis.KeepTTL).Err()
-	if err != nil {
-		return 0, err
+		if v >= 300 {
+			return 0, errors.New("limit reached")
+		}
+		limit = v + 1
+		err = rdb.Set(ctx, "ratelimit:"+ip, limit, redis.KeepTTL).Err()
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return limit, nil

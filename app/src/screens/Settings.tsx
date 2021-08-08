@@ -9,9 +9,13 @@ import { Loading } from "../components/Loading";
 import { Sidebar } from "../components/Sidebar";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import useAuthCheck from "../hooks/useAuthCheck";
+import { saveUser, updateTwoFA, UserData } from "../storage/UserStorage";
 import { API_URL } from "../util/constants";
 
 interface UserInfo {
+  created_on: number;
+  modified_on: number;
+  deleted_at: number | null;
   id: number;
   e_mail: string;
   email_verified: boolean;
@@ -137,47 +141,6 @@ export const Settings: React.FC = () => {
     history.push("/dashboard");
   }
 
-  const updateTwoFactorAuthentication = async () => {
-    const response = await fetch(`${API_URL}/twofactorauthentication`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        status: !toggled,
-        user_token: "none", //TODO
-      }),
-    });
-    const fJson: TwoFactorAuthenticationResponse = await response.json();
-
-    if (fJson.code !== 200) {
-      swal({
-        icon: "error",
-        title: `Error ${
-          toggled ? "disabling" : "enabling"
-        } Two Facotor Authentication`,
-        text: `An error occurred while ${
-          toggled ? "disabling" : "enabling"
-        } Two Factor Authentication!`,
-      });
-      return;
-    }
-
-    swal({
-      icon: "success",
-      title: `Two Factor Authentication ${
-        fJson.data.status === "true" ? "enabled" : "disabled"
-      }!`,
-      text: `You successfully ${
-        fJson.data.status === "true" ? "enabled" : "disabled"
-      } Two Factor Authentication`,
-    });
-    queryClient.invalidateQueries("user");
-    setToggled(fJson.data.status === "true");
-  };
-
   const updateUser = async (e: any) => {
     e.preventDefault();
     setLoading(true);
@@ -229,10 +192,18 @@ export const Settings: React.FC = () => {
 
     addMutation.mutate();
 
-    if (!isLoading && error) {
-      setEmail(data?.data.e_mail);
-      setUsername(data?.data.username);
-      setToggled(data?.data.two_factor_authentication);
+    if (!isLoading && !error) {
+      const userObj: UserData = {
+        email: email!,
+        created_on: data?.data.created_on!,
+        deleted_at: data?.data.deleted_at!,
+        email_verified: data?.data.email_verified!,
+        modified_on: data?.data.modified_on!,
+        rank: data?.data.rank!,
+        twoFactorAuthentication: data?.data.two_factor_authentication!,
+        username: username!,
+      };
+      saveUser(userObj);
       //maybe clear password fields?
     }
     setLoading(false);
@@ -287,7 +258,12 @@ export const Settings: React.FC = () => {
                 <div className="mb-4">
                   <ToggleSwitch
                     id="twoFactorAuthentication"
-                    onClick={updateTwoFactorAuthentication}
+                    onClick={() =>
+                      history.push({
+                        pathname: "/settings/totp",
+                        state: { status: !toggled },
+                      })
+                    }
                     toggled={toggled!}
                     title="Two Factor Authentication"
                   />
@@ -299,6 +275,7 @@ export const Settings: React.FC = () => {
                     text="LOG EVERYONE OUT"
                     showIcon={true}
                     type="button"
+                    danger={false}
                   />
                 </div>
                 <div className="mb-4 md:flex md:justify-between">

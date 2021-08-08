@@ -1,12 +1,13 @@
 package app
 
 import (
+	"log"
+
 	"github.com/astaxie/beego/validation"
-	"github.com/urento/shoppinglist/pkg/logging"
 )
 
 func MarkErrors(errors []*validation.Error) {
 	for _, err := range errors {
-		logging.Info(err.Key, err.Message)
+		log.Print(err.Key, err.Message)
 	}
 }

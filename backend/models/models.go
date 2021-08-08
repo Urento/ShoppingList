@@ -17,7 +17,7 @@ var db *gorm.DB
 type Model struct {
 	CreatedOn  int            `gorm:"autoCreateTime" json:"created_on"`
 	ModifiedOn int            `gorm:"autoUpdateTime:milli" json:"modified_on"`
-	DeletedAt  gorm.DeletedAt `gorm:"index"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
 func Setup() {
@@ -53,21 +53,14 @@ func Setup() {
 	}), &gorm.Config{
 		Logger: newLogger,
 	})
-
 	if err != nil {
 		log.Fatalf("Error while connecting to database: %s", err)
 	}
 
-	db.AutoMigrate(&Shoppinglist{})
-	db.AutoMigrate(&Auth{})
-	db.AutoMigrate(&ResetPassword{})
+	db.AutoMigrate(&Shoppinglist{}, &Auth{}, &ResetPassword{}, &Item{}, &BackupCodes{})
 
-	sqlDB, err := db.DB()
+	_, err = db.DB()
 	if err != nil {
 		log.Fatalf("Error while connecting to database: %s", err)
 	}
-
-	sqlDB.SetMaxIdleConns(1000)
-	sqlDB.SetMaxOpenConns(10000)
-	sqlDB.SetConnMaxLifetime(time.Hour)
 }

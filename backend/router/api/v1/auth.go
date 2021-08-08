@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 
@@ -17,12 +15,9 @@ import (
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
+	"github.com/urento/shoppinglist/pkg/totp"
 	"github.com/urento/shoppinglist/pkg/util"
 	auth "github.com/urento/shoppinglist/services"
-)
-
-var (
-	sessionName = "token"
 )
 
 type Auth struct {
@@ -46,32 +41,23 @@ func Check(c *gin.Context) {
 	}
 
 	if len(token) <= 0 {
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{
-			"success": "false",
-		})
+		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, map[string]string{"success": "false"})
 		return
 	}
 
 	email, err := cache.GetEmailByJWT(token)
 	if err != nil || len(email) <= 0 {
-		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
-			"success": "false",
-		})
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{"success": "false"})
 		return
 	}
 
 	check, err := cache.Check(email, token)
 	if !check || err != nil {
-		appGin.Response(http.StatusBadRequest, e.ERROR_TOKEN_INVALID, map[string]string{
-			"success": "false",
-		})
+		appGin.Response(http.StatusBadRequest, e.ERROR_TOKEN_INVALID, map[string]string{"success": "false"})
 		return
 	}
 
-	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"success": "true",
-		"token":   token,
-	})
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
 }
 
 func GetUser(c *gin.Context) {
@@ -220,13 +206,7 @@ func Login(c *gin.Context) {
 
 	email := user.Email
 	password := user.Password
-	ip, err := GetClientIPHelper(c.Request)
-	if err != nil {
-		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_IP, map[string]string{
-			"success": "false",
-			"error":   "error while resolving ip address",
-		})
-	}
+	ip := c.ClientIP()
 
 	a := Auth{Email: email, Password: password}
 	ok, err := valid.Valid(&a)
@@ -285,6 +265,21 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	has, err := cache.IsTOTPSecretCached(email)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusUnauthorized, e.ERROR_CHECKING_IF_TOTP_IS_ENABLED, nil)
+		return
+	}
+
+	if has {
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success": "true",
+			"otp":     "true",
+		})
+		return
+	}
+
 	token, err := util.GenerateToken(email)
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
@@ -297,6 +292,7 @@ func Login(c *gin.Context) {
 		appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
 			"error":   err.Error(),
 			"success": "false",
+			"otp":     "false",
 		})
 		return
 	}
@@ -304,6 +300,7 @@ func Login(c *gin.Context) {
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"token":   token,
 		"success": "true",
+		"totp":    "false",
 	})
 }
 
@@ -504,14 +501,7 @@ func CreateAccount(c *gin.Context) {
 		return
 	}
 
-	ip, err := GetClientIPHelper(c.Request)
-	if err != nil {
-		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_IP, map[string]string{
-			"success": "false",
-			"error":   "error resolving the ip address",
-		})
-		return
-	}
+	ip := c.ClientIP()
 
 	a := Auth{Email: email, Username: username, Password: password}
 	ok, _ := valid.Valid(a)
@@ -524,7 +514,7 @@ func CreateAccount(c *gin.Context) {
 	}
 
 	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default", IPAddress: ip}
-	err = acc.Create()
+	err := acc.Create()
 	if err != nil {
 		log.Print(err)
 		app.MarkErrors(valid.Errors)
@@ -542,27 +532,28 @@ func CreateAccount(c *gin.Context) {
 	})
 }
 
+type EmailVerification struct {
+	SecretID string `json:"secret_id"`
+	Email    string `json:"email"`
+}
+
 func UpdateEmailVerified(c *gin.Context) {
 	//TODO
 }
 
-func DisplayTwoFactorAuthenticationQRCode(c *gin.Context) {
-
-}
-
 type TwoFactorAuthentictionUpdate struct {
-	Status    bool   `json:"status"`
-	UserToken string `json:"user_token"`
+	OTP    string `json:"otp"`
+	Status bool   `json:"status"`
 }
 
 func UpdateTwoFactorAuthentication(c *gin.Context) {
-	//TODO https://github.com/sec51/twofactor
 	appGin := app.Gin{C: c}
 	token, err := GetCookie(c)
 	if err != nil {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
-			"success": "false",
-			"message": "You have to be logged in to log out!",
+			"success":  "false",
+			"message":  "You have to be logged in to log out!",
+			"verified": "false",
 		})
 		return
 	}
@@ -571,14 +562,14 @@ func UpdateTwoFactorAuthentication(c *gin.Context) {
 
 	if err := c.BindJSON(&data); err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{"success": "false", "verified": "false"})
 		return
 	}
 
 	email, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{"success": "false", "verified": "false"})
 		return
 	}
 
@@ -599,97 +590,111 @@ func UpdateTwoFactorAuthentication(c *gin.Context) {
 		return
 	}*/
 
-	err = models.SetTwoFactorAuthentication(email, data.Status)
+	enabled, err := models.IsTwoFactorEnabled(email)
 	if err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR_CHANING_TWOFACTORAUTHENTICATION_STATUS, nil)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_TWOFACTORAUTHENTICATION_STATUS_FROM_CACHE, map[string]string{"success": "false", "verified": "false"})
 		return
 	}
 
-	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"success": "true",
-		"status":  strconv.FormatBool(data.Status),
-	})
+	if enabled == data.Status {
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success":  "false",
+			"message":  "You can't change your status right now! Try again later!",
+			"verified": "false",
+		})
+		return
+	}
+
+	if !enabled {
+		bytes := totp.Enable(email, &appGin)
+		qrCode := totp.GetQRCodeBase64String(email, bytes)
+
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success":  "true",
+			"verified": "true",
+			"img":      qrCode,
+		})
+		return
+	}
+
+	ok, err := totp.Verify(email, data.OTP, false)
+	if err != nil || !ok {
+		appGin.Response(http.StatusBadRequest, e.ERROR_VERIFYING_OTP, map[string]string{"success": "false", "message": "OTP was wrong"})
+		return
+	}
+
+	totp.Disable(email, &appGin)
 }
 
-// GetClientIPHelper gets the client IP using a mixture of techniques.
-// This is how it is with golang at the moment.
-func GetClientIPHelper(req *http.Request) (ipResult string, errResult error) {
-
-	// Try lots of ways :) Order is important.
-
-	//  Try Request Header ("Origin")
-	url, err := url.Parse(req.Header.Get("Origin"))
-	if err == nil {
-		host := url.Host
-		ip, _, err := net.SplitHostPort(host)
-		if err == nil {
-			log.Printf("debug: Found IP using Header (Origin) sniffing. ip: %v", ip)
-			return ip, nil
-		}
-	}
-
-	// Try by Request
-	ip, err := getClientIPByRequestRemoteAddr(req)
-	if err == nil {
-		log.Printf("debug: Found IP using Request sniffing. ip: %v", ip)
-		return ip, nil
-	}
-
-	// Try Request Headers (X-Forwarder). Client could be behind a Proxy
-	ip, err = getClientIPByHeaders(req)
-	if err == nil {
-		log.Printf("debug: Found IP using Request Headers sniffing. ip: %v", ip)
-		return ip, nil
-	}
-
-	err = errors.New("error: Could not find clients IP address")
-	return "", err
+type VerifyTOTP struct {
+	Email       string `json:"email"`
+	OTP         string `json:"otp"`
+	LoginAfter  bool   `json:"login_after"`
+	EnableAfter bool   `json:"enable_after"`
 }
 
-// getClientIPByRequest tries to get directly from the Request.
-// https://blog.golang.org/context/userip/userip.go
-func getClientIPByRequestRemoteAddr(req *http.Request) (ip string, err error) {
+func VerifyTwoFactorAuthentication(c *gin.Context) {
+	appGin := app.Gin{C: c}
 
-	// Try via request
-	ip, port, err := net.SplitHostPort(req.RemoteAddr)
+	var data VerifyTOTP
+
+	if err := c.BindJSON(&data); err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{"success": "false", "verified": "false"})
+		return
+	}
+
+	email := data.Email
+
+	enabled, err := models.IsTwoFactorEnabled(email)
 	if err != nil {
-		log.Printf("debug: Getting req.RemoteAddr %v", err)
-		return "", err
-	} else {
-		log.Printf("debug: With req.RemoteAddr found IP:%v; Port: %v", ip, port)
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_TWOFACTORAUTHENTICATION_STATUS_FROM_CACHE, map[string]string{"success": "false", "verified": "false"})
+		return
 	}
 
-	userIP := net.ParseIP(ip)
-	if userIP == nil {
-		message := "parsing ip from request.remoteaddr got nothing"
-		log.Print(message)
-		return "", errors.New(message)
-
+	if !enabled && !data.EnableAfter {
+		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_TWOFACTORAUTHENTICATION_STATUS_FROM_CACHE, map[string]string{
+			"success":  "false",
+			"message":  "TOTP not activated!",
+			"verified": "false",
+		})
+		return
 	}
-	log.Printf("debug: Found IP: %v", userIP)
-	return userIP.String(), nil
 
-}
+	ok, err := totp.Verify(email, data.OTP, data.EnableAfter)
+	if err != nil || !ok {
+		log.Print(err)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_VERIFYING_OTP, map[string]string{"success": "false", "verified": "false"})
+		return
+	}
 
-// getClientIPByHeaders tries to get directly from the Request Headers.
-// This is only way when the client is behind a Proxy.
-func getClientIPByHeaders(req *http.Request) (ip string, err error) {
-
-	// Client could be behid a Proxy, so Try Request Headers (X-Forwarder)
-	ipSlice := []string{}
-
-	ipSlice = append(ipSlice, req.Header.Get("X-Forwarded-For"))
-	ipSlice = append(ipSlice, req.Header.Get("x-forwarded-for"))
-	ipSlice = append(ipSlice, req.Header.Get("X-FORWARDED-FOR"))
-
-	for _, v := range ipSlice {
-		log.Printf("debug: client request header check gives ip: %v", v)
-		if v != "" {
-			return v, nil
+	if data.LoginAfter && ok {
+		token, err := util.GenerateToken(email)
+		if err != nil {
+			appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
+			return
 		}
-	}
-	err = errors.New("error: Could not find clients IP address from the Request Headers")
-	return "", err
 
+		err = SetCookie(c, token)
+		if err != nil {
+			log.Print(err)
+			appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
+				"error":    err.Error(),
+				"token":    token,
+				"success":  "false",
+				"verified": "false",
+			})
+			return
+		}
+		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"success":  "true",
+			"verified": "true",
+			"token":    token,
+		})
+		return
+	}
+
+	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true", "verified": "true"})
 }
