@@ -58,3 +58,5 @@ jobs:
           REDIS_PASSWORD: testing
           DATABASE_DSN: host=localhost user=shoppinglist password=postgres dbname=shoppinglistboom sslmode=disable
           TESTING: true
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
