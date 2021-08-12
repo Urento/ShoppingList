@@ -29,7 +29,8 @@ jobs:
           postgresql user: shoppinglist
           # POSTGRES_PASSWORD - superuser password
           postgresql password: postgres
-      - uses: actions/cache@v2
+      - name: Cache
+        uses: actions/cache@v2
         with:
           # In order:
           # * Module download cache
