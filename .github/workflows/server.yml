@@ -31,7 +31,6 @@ jobs:
           postgresql password: postgres
       - uses: actions/cache@v2
         with:
-          working-directory: ./backend
           # In order:
           # * Module download cache
           # * Build cache (Linux)
