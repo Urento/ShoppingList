@@ -2,9 +2,6 @@ on: [push, pull_request]
 name: Server
 jobs:
   test:
-    defaults:
-      run:
-        working-directory: ./backend
     strategy:
       matrix:
         go-version: [1.16.x]
@@ -34,6 +31,7 @@ jobs:
           postgresql password: postgres
       - uses: actions/cache@v2
         with:
+          working-directory: ./backend
           # In order:
           # * Module download cache
           # * Build cache (Linux)
@@ -44,10 +42,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Vet
+        working-directory: ./backend
         run: go vet ./...
       - name: Build
+        working-directory: ./backend
         run: go build ./...
       - name: golangci-lint
         uses: reviewdog/action-golangci-lint@v1
         with:
+          working-directory: ./backend
           golangci_lint_flags: '--enable-all --exclude-use-default=false'
