@@ -132,8 +132,8 @@ func DeleteList(id int) error {
 	return nil
 }
 
-func GetItems(id int, owner string) ([]*Item, error) {
-	var items []*Item
+func GetItems(id int, owner string) ([]Item, error) {
+	var items []Item
 	//err := db.Model(&Shoppinglist{}).Where("id = ? AND owner = ?", id, owner).Association("Items").Find(&items).Error()
 	err := db.Model(&Shoppinglist{}).Where("id = ?", id, owner).Association("Items").Find(&items).Error()
 	return items, errors.New(err)
