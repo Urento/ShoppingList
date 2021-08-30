@@ -161,7 +161,7 @@ func TestCreateAndEdit(t *testing.T) {
 	}
 
 	title2 := "title2111111999" + StringWithCharset(20)
-	/*items := []models.Item{
+	/*items := []*models.Item{
 		{
 			ParentListID: RandomInt(),
 			Title:        StringWithCharset(10),
@@ -230,7 +230,7 @@ func TestAddItem(t *testing.T) {
 	id := RandomInt()
 	title := "title3332999" + StringWithCharset(20)
 	owner := "owner999" + StringWithCharset(30)
-	items := models.Item{
+	items := &models.Item{
 		ParentListID: id,
 		Title:        StringWithCharset(10),
 		Position:     RandomInt(),
@@ -239,7 +239,7 @@ func TestAddItem(t *testing.T) {
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
-		Items:        items,
+		Items:        *items,
 		Owner:        owner,
 		Participants: participants,
 	}

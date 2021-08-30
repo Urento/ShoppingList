@@ -13,7 +13,7 @@ type Shoppinglist struct {
 
 	ID           int            `gorm:"primaryKey" json:"id"`
 	Title        string         `json:"title"`
-	Items        []Item         `json:"items" gorm:"foreignKey:ParentListID;references:ID;"`
+	Items        []*Item        `json:"items" gorm:"foreignKey:ParentListID;"`
 	Owner        string         `json:"owner"`
 	Participants pq.StringArray `gorm:"type:text[]" json:"participants"`
 }
@@ -21,7 +21,8 @@ type Shoppinglist struct {
 type Item struct {
 	Model
 
-	ParentListID int    `gorm:"primaryKey" json:"parentListId"`
+	ID           int    `gorm:"primaryKey" json:"id"`
+	ParentListID int    `json:"parentListId"`
 	ItemID       int    `json:"itemId"`
 	Title        string `json:"title"`
 	Position     int    `json:"position"`
@@ -82,7 +83,7 @@ func EditList(id int, data map[string]interface{}) error {
 	shoppinglist := Shoppinglist{
 		ID:           data["id"].(int),
 		Title:        data["title"].(string),
-		Items:        data["items"].([]Item),
+		Items:        data["items"].([]*Item),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
 	}
@@ -96,7 +97,7 @@ func AddItem(item Item) error {
 		return errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Debug().Model(&Shoppinglist{}).Where("id = ?", item.ParentListID).Association("Items").Append(&item)
+	err = db.Debug().Create(&item).Error
 
 	return err
 }
@@ -131,8 +132,9 @@ func DeleteList(id int) error {
 	return nil
 }
 
-func GetItems(id int, owner string) ([]Item, error) {
-	var items []Item
-	err := db.Model(&Shoppinglist{}).Where("id = ? AND owner = ?", id, owner).Association("Items").Find(&items).Error()
+func GetItems(id int, owner string) ([]*Item, error) {
+	var items []*Item
+	//err := db.Model(&Shoppinglist{}).Where("id = ? AND owner = ?", id, owner).Association("Items").Find(&items).Error()
+	err := db.Model(&Shoppinglist{}).Where("id = ?", id, owner).Association("Items").Find(&items).Error()
 	return items, errors.New(err)
 }

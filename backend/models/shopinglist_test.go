@@ -285,10 +285,10 @@ func TestAddItem(t *testing.T) {
 
 	Equal(t, true, exists)
 	Equal(t, nil, err)
-	Equal(t, items.Title, i[0].Title)
-	Equal(t, items.Bought, i[0].Bought)
-	Equal(t, items.ParentListID, i[0].ParentListID)
-	Equal(t, items.Position, i[0].Position)
+	Equal(t, items.Title, &i[0].Title)
+	Equal(t, items.Bought, &i[0].Bought)
+	Equal(t, items.ParentListID, &i[0].ParentListID)
+	Equal(t, items.Position, &i[0].Position)
 }
 
 func TestAddItemToListThatDoesntExist(t *testing.T) {
