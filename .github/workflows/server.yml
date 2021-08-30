@@ -29,7 +29,8 @@ jobs:
           postgresql user: shoppinglist
           # POSTGRES_PASSWORD - superuser password
           postgresql password: postgres
-      - uses: actions/cache@v2
+      - name: Cache
+        uses: actions/cache@v2
         with:
           # In order:
           # * Module download cache
@@ -49,12 +50,3 @@ jobs:
       - name: Test
         working-directory: ./backend
         run: go test -v ./...
-        env:
-          DB_HOST: localhost
-          DB_USER: shoppinglist
-          DB_DATABASE: shoppinglistboom
-          DB_PASSWORD: postgres
-          REDIS_ADRR: localhost:6379
-          REDIS_PASSWORD: testing
-          DATABASE_DSN: host=localhost user=shoppinglist password=postgres dbname=shoppinglistboom sslmode=disable
-          TESTING: true
