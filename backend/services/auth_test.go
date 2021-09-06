@@ -17,39 +17,87 @@ func TestCreateAccountEmail(t *testing.T) {
 	email := StringWithCharset(10) + "@gmail.com"
 	username := StringWithCharset(20)
 	ip := RandomIPAddress()
-	auth := Auth{
-		EMail:     email,
-		Username:  username,
-		Password:  pwd,
-		IPAddress: ip,
+
+	testCases := []struct {
+		event string
+		withIp bool
+	}{
+		{
+			"without_ip", false,
+		},
+		{
+			"with_ip", true,
+		},
 	}
 
-	err := auth.Create()
-	if err != nil {
-		t.Errorf("Error while creating user %s", err.Error())
-	}
+	for _, tc := range testCases {
+		t.Run(tc.event, func(t *testing.T) {
+			if !tc.withIp {
+				auth = Auth{
+					EMail:     email,
+					Username:  username,
+					Password:  pwd,
+				}
 
-	ip2 := RandomIPAddress()
-	checkAuth := Auth{
-		EMail:     email,
-		Password:  pwd,
-		IPAddress: ip2,
+				err := auth.Create()
+				if err != nil {
+					t.Errorf("Error while creating user %s", err.Error())
+				}
+			
+				checkAuth := Auth{
+					EMail:    email,
+					Username: username,
+					Password: pwd,
+				}
+			
+				check, err := checkAuth.Check()
+				if err != nil {
+					t.Errorf("Error while checking user %s", err.Error())
+				}
+			
+				if !check {
+					t.Errorf("check was false")
+				}
+			
+				Equal(t, true, check)
+				Equal(t, nil, err)
+			} else {
+				auth = Auth{
+					EMail:     email,
+					Username:  username,
+					Password:  pwd,
+					IPAddress: ip,
+				}
+				
+				err := auth.Create()
+				if err != nil {
+					t.Errorf("Error while creating user %s", err.Error())
+				}
+			
+				ip2 := RandomIPAddress()
+				checkAuth := Auth{
+					EMail:     email,
+					Password:  pwd,
+					IPAddress: ip2,
+				}
+			
+				check, err := checkAuth.Check()
+				if err != nil {
+					t.Errorf("Error while checking user %s", err.Error())
+				}
+			
+				if !check {
+					t.Errorf("check was false")
+				}
+			
+				Equal(t, true, check)
+				Equal(t, nil, err)			
+			}
+		})
 	}
-
-	check, err := checkAuth.Check()
-	if err != nil {
-		t.Errorf("Error while checking user %s", err.Error())
-	}
-
-	if !check {
-		t.Errorf("check was false")
-	}
-
-	Equal(t, true, check)
-	Equal(t, nil, err)
 }
 
-func TestCreateAccountWithEmailAndUsername(t *testing.T) {
+/*func TestCreateAccountWithEmailAndUsername(t *testing.T) {
 	Setup()
 
 	pwd := StringWithCharset(20)
@@ -83,7 +131,7 @@ func TestCreateAccountWithEmailAndUsername(t *testing.T) {
 
 	Equal(t, true, check)
 	Equal(t, nil, err)
-}
+}*/
 
 func TestLoginWrongPassword(t *testing.T) {
 	Setup()
