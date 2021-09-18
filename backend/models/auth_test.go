@@ -21,7 +21,6 @@ func TestUpdateUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while creating user: %s", err)
 	}
-	t.Log(email)
 
 	newUsername := StringWithCharset(20)
 	auth := Auth{
@@ -41,6 +40,71 @@ func TestUpdateUser(t *testing.T) {
 
 	Equal(t, email, user.EMail)
 	Equal(t, newUsername, user.Username)
+}
+
+func TestDisableAccount(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(20)
+	ip := RandomIPAddress()
+
+	err := CreateAccount(email, username, pwd, ip)
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	err = DisableAccount(email)
+	if err != nil {
+		t.Errorf("Error while disabling account: %s", err)
+	}
+
+	disabled, err := IsDisabled(email)
+	if err != nil {
+		t.Errorf("Error while checking if account is disabled: %s", err)
+	}
+
+	Equal(t, disabled, true)
+	Equal(t, nil, err)
+}
+
+func TestActivateAccount(t *testing.T) {
+	Setup()
+
+	pwd := StringWithCharset(20)
+	email := StringWithCharset(10) + "@gmail.com"
+	username := StringWithCharset(20)
+	ip := RandomIPAddress()
+
+	err := CreateAccount(email, username, pwd, ip)
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	err = DisableAccount(email)
+	if err != nil {
+		t.Errorf("Error while disabling account: %s", err)
+	}
+
+	disabledBefore, err := IsDisabled(email)
+	if err != nil {
+		t.Errorf("Error while checking if account is disabled: %s", err)
+	}
+
+	err = ActivateAccount(email)
+	if err != nil {
+		t.Errorf("Error while activating account: %s", err)
+	}
+
+	disabledAfter, err := IsDisabled(email)
+	if err != nil {
+		t.Errorf("Error while checking if account is disabled: %s", err)
+	}
+
+	Equal(t, disabledBefore, true)
+	Equal(t, disabledAfter, false)
+	Equal(t, nil, err)
 }
 
 func RandomIPAddress() string {

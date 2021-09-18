@@ -14,8 +14,10 @@ import (
 func InitRouter() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	r := gin.New()
+	// maybe remove because gin attaches them automatically
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
 	r.Use(ratelimiter.Ratelimiter())
 	r.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"OPTIONS", "PUT", "GET", "POST", "DELETE", "PATCH"},

@@ -13,6 +13,7 @@ type Auth struct {
 	JWTToken                string
 	TwoFactorAuthentication bool
 	IPAddress               string
+	Disabled                bool
 }
 
 func (auth *Auth) Check() (bool, error) {
@@ -81,4 +82,16 @@ func (auth *Auth) SetUsername() error {
 
 func (auth *Auth) GetUsername() (string, error) {
 	return models.GetUsername(auth.EMail)
+}
+
+func (auth *Auth) DisableAccount() error {
+	return models.DisableAccount(auth.EMail)
+}
+
+func (auth *Auth) ActivateAccount() error {
+	return models.ActivateAccount(auth.EMail)
+}
+
+func (auth *Auth) IsDisabled() (bool, error) {
+	return models.IsDisabled(auth.EMail)
 }

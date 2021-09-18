@@ -78,6 +78,6 @@ func (s *Shoppinglist) GetItems() ([]models.Item, error) {
 	return models.GetItems(s.ID, s.Owner)
 }
 
-func (s *Shoppinglist) AddItem() error {
+func (s *Shoppinglist) AddItem() (*models.Item, error) {
 	return models.AddItem(s.Items)
 }

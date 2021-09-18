@@ -24,6 +24,7 @@ type Auth struct {
 	Rank                    string `json:"rank"` //admin or default
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
 	IPAddress               string `json:"ip_address"`
+	Disabled                bool   `json:"disabled" gorm:"default:false"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -57,6 +58,17 @@ func CheckAuth(email, password, ip string) (bool, error) {
 
 	if err != nil {
 		return false, err
+	}
+
+	if auth.Disabled {
+		if auth.ID > 0 && match {
+			//Reactive the account
+			err := ActivateAccount(email)
+			if err != nil {
+				return false, err
+			}
+		}
+		return false, nil
 	}
 
 	if auth.ID > 0 && match {
@@ -93,6 +105,25 @@ func CheckPassword(email, pwd string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func DisableAccount(email string) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("disabled", true).Error
+	return err
+}
+
+func ActivateAccount(email string) error {
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Update("disabled", false).Error
+	return err
+}
+
+func IsDisabled(email string) (bool, error) {
+	var disabled bool
+	err := db.Model(&Auth{}).Select("disabled").Where("e_mail = ?", email).Find(&disabled).Error
+	if err != nil {
+		return false, err
+	}
+	return disabled, nil
 }
 
 func CreateAccount(email, username, password, ip string) error {

@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -46,7 +45,7 @@ func ExistByID(id int) (bool, error) {
 
 func GetTotalListsByOwner(ownerID string) (int64, error) {
 	var count int64
-	if err := db.Model(&Shoppinglist{}).Preload("Items").Where("owner = ?", ownerID).Count(&count).Error; err != nil {
+	if err := db.Model(&Shoppinglist{}).Where("owner = ?", ownerID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil
@@ -54,7 +53,7 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 
 func GetLists(owner string) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Preload("Items").Where("owner = ?", owner).Find(&lists).Error
+	err := db.Preload(clause.Associations).Where("owner = ?", owner).Find(&lists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,7 @@ func GetLists(owner string) ([]Shoppinglist, error) {
 
 func GetList(id int, owner string) (*Shoppinglist, error) {
 	var list Shoppinglist
-	err := db.Debug().Preload("Items").Where("id = ? AND owner = ?", id, owner).First(&list).Error
+	err := db.Debug().Preload(clause.Associations).Where("id = ? AND owner = ?", id, owner).First(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +71,7 @@ func GetList(id int, owner string) (*Shoppinglist, error) {
 
 func GetListByEmail(email string) (*[]Shoppinglist, error) {
 	var list []Shoppinglist
-	err := db.Model(&Shoppinglist{}).Preload("Items").Where("owner = ?", email).Find(&list).Error
+	err := db.Model(&Shoppinglist{}).Preload(clause.Associations).Where("owner = ?", email).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -83,23 +82,22 @@ func EditList(id int, data map[string]interface{}) error {
 	shoppinglist := Shoppinglist{
 		ID:           data["id"].(int),
 		Title:        data["title"].(string),
-		Items:        data["items"].([]*Item),
 		Owner:        data["owner"].(string),
 		Participants: data["participants"].([]string),
 	}
-	err := db.Debug().Session(&gorm.Session{FullSaveAssociations: true}).Where("id = ?", id).Updates(&shoppinglist).Error
+	err := db.Debug().Where("id = ?", id).Updates(&shoppinglist).Error
 	return err
 }
 
-func AddItem(item Item) error {
+func AddItem(item Item) (*Item, error) {
 	exists, err := ExistByID(item.ParentListID)
 	if err != nil || !exists {
-		return errors.New("shoppinglist does not exist")
+		return nil, errors.New("shoppinglist does not exist")
 	}
 
 	err = db.Debug().Create(&item).Error
 
-	return err
+	return &item, err
 }
 
 func UpdateItem(itemId int) error {
@@ -109,6 +107,13 @@ func UpdateItem(itemId int) error {
 func GetItem(itemId int) (Item, error) {
 	i := Item{}
 	return i, nil
+}
+
+func GetItems(id int, owner string) ([]Item, error) {
+	var items []Item
+	//err := db.Model(&Shoppinglist{}).Where("id = ?", id, owner).Association("Items").Find(&items).Error()
+	err := db.Debug().Preload("Items").Where("parent_list_id = ?", id).Find(&items).Error
+	return items, err
 }
 
 func CreateList(data map[string]interface{}) error {
@@ -130,11 +135,4 @@ func DeleteList(id int) error {
 		return err
 	}
 	return nil
-}
-
-func GetItems(id int, owner string) ([]Item, error) {
-	var items []Item
-	//err := db.Model(&Shoppinglist{}).Where("id = ? AND owner = ?", id, owner).Association("Items").Find(&items).Error()
-	err := db.Model(&Shoppinglist{}).Where("id = ?", id, owner).Association("Items").Find(&items).Error()
-	return items, errors.New(err)
 }
