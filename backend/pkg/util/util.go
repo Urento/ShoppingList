@@ -4,12 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	util "github.com/urento/shoppinglist/pkg"
 )
+
+const letterAndNumberBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 func Setup() {
 	var err error
@@ -83,4 +87,20 @@ func GetCookie(ctx *gin.Context) (string, error) {
 	}
 
 	return token.Value, nil
+}
+
+func RandomString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterAndNumberBytes[rand.Intn(len(letterAndNumberBytes))]
+	}
+	return string(b)
+}
+
+func StringArrayToArray(before []string, i int) string {
+	replacer := strings.NewReplacer("{", "", "}", "")
+	output := replacer.Replace(before[0])
+
+	s := strings.Split(output, ",")
+	return s[i]
 }

@@ -20,5 +20,5 @@ func (rpwd *ResetPassword) CreateResetPassword() error {
 }
 
 func (rpwd *ResetPassword) VerifyVerificationId() (bool, error) {
-	return models.VerifyVerificationId(rpwd.Email, rpwd.VerificationId)
+	return models.VerifyVerificationID(rpwd.Email, rpwd.VerificationId)
 }

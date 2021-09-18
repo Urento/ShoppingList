@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -17,7 +16,7 @@ func JWT() gin.HandlerFunc {
 		var code int
 
 		code = e.SUCCESS
-		token, err := GetCookie(c)
+		token, err := util.GetCookie(c)
 		if err != nil {
 			code = e.ERROR_GETTING_HTTPONLY_COOKIE
 		}
@@ -74,21 +73,4 @@ func JWT() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-func GetCookie(ctx *gin.Context) (string, error) {
-	token, err := ctx.Request.Cookie("token")
-	if err != nil {
-		return "", err
-	}
-
-	if len(token.Value) <= 0 {
-		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
-	}
-
-	if len(token.Value) <= 50 {
-		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
-	}
-
-	return token.Value, nil
 }

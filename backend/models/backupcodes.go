@@ -1,10 +1,8 @@
 package models
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/lib/pq"
+	"github.com/urento/shoppinglist/pkg/util"
 )
 
 type BackupCodes struct {
@@ -15,11 +13,11 @@ type BackupCodes struct {
 }
 
 func GenerateCodes(email string, regenerate bool) (pq.StringArray, error) {
-	code1 := GenerateCode()
-	code2 := GenerateCode()
-	code3 := GenerateCode()
-	code4 := GenerateCode()
-	code5 := GenerateCode()
+	code1 := util.RandomString(8)
+	code2 := util.RandomString(8)
+	code3 := util.RandomString(8)
+	code4 := util.RandomString(8)
+	code5 := util.RandomString(8)
 	codes := pq.StringArray{
 		code1,
 		code2,
@@ -55,7 +53,6 @@ func GenerateCodes(email string, regenerate bool) (pq.StringArray, error) {
 	return codes, nil
 }
 
-//TODO: ADD TEST
 func GetCodes(email string) (pq.StringArray, error) {
 	var Codes pq.StringArray
 	err := db.Debug().Model(&BackupCodes{}).Where("owner = ?", email).Select("codes").Find(&Codes).Error
@@ -63,6 +60,7 @@ func GetCodes(email string) (pq.StringArray, error) {
 }
 
 func RemoveCodes(email string) error {
+	//maybe even delete these permanently and dont keep them in the database
 	err := db.Debug().Where("owner = ?", email).Delete(&BackupCodes{Owner: email}).Error
 	return err
 }
@@ -73,20 +71,19 @@ func HasCodes(email string) (bool, error) {
 	return Has, err
 }
 
-func VerifyCode(email, code string) (bool, []string, error) {
-	var codes []string
-	err := db.Debug().Model(&BackupCodes{}).Where("owner = ?", email).Select("codes").Scan(&codes).Error
-
-	return false, codes, err
-}
-
-func GenerateCode() string {
-	seededRand := rand.New(
-		rand.NewSource(time.Now().UnixNano()))
-	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, 8)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+func VerifyCode(email, code string) (bool, error) {
+	var Codes []string
+	err := db.Debug().Model(&BackupCodes{}).Select("codes").Where("owner = ?", email).Find(&Codes).Error
+	if err != nil {
+		return false, err
 	}
-	return string(b)
+
+	for idx, _ := range Codes {
+		b := util.StringArrayToArray(Codes, idx)
+		if b == code {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

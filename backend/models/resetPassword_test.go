@@ -107,12 +107,12 @@ func TestVerifyVerificationId(t *testing.T) {
 			t.Errorf("Error while creating reset password: %s", err)
 		}
 
-		verificationId, err := GetVerificationId(email)
+		verificationId, err := GetVerificationID(email)
 		if err != nil {
 			t.Errorf("Error while getting verification id: %s", err)
 		}
 
-		ok, err := VerifyVerificationId(email, verificationId)
+		ok, err := VerifyVerificationID(email, verificationId)
 		if err != nil {
 			t.Errorf("Error while verifying verification id: %s", err)
 		}
@@ -129,7 +129,7 @@ func TestVerifyVerificationId(t *testing.T) {
 			t.Errorf("Error while creating reset password: %s", err)
 		}
 
-		ok, err := VerifyVerificationId(email, "verificationId")
+		ok, err := VerifyVerificationID(email, "verificationId")
 
 		Equal(t, false, ok)
 		Equal(t, nil, err)

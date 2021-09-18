@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/util"
 )
 
 func TestGenerateCodes(t *testing.T) {
@@ -48,8 +49,7 @@ func TestGenerateCodes(t *testing.T) {
 	})
 }
 
-//TODO: ADD TEST
-/*func TestGetCodes(t *testing.T) {
+func TestGetCodes(t *testing.T) {
 	Setup()
 
 	email := StringWithCharset(10) + "@gmail.com"
@@ -58,7 +58,6 @@ func TestGenerateCodes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while generating codes: %s", err)
 	}
-	t.Log(c)
 
 	has, err := HasCodes(email)
 	if err != nil {
@@ -69,12 +68,21 @@ func TestGenerateCodes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while getting codes: %s", err)
 	}
-	t.Log(codes)
 
-	Equal(t, c, codes)
+	s1 := util.StringArrayToArray(codes, 0)
+	s2 := util.StringArrayToArray(codes, 1)
+	s3 := util.StringArrayToArray(codes, 2)
+	s4 := util.StringArrayToArray(codes, 3)
+	s5 := util.StringArrayToArray(codes, 4)
+
+	Equal(t, c[0], s1)
+	Equal(t, c[1], s2)
+	Equal(t, c[2], s3)
+	Equal(t, c[3], s4)
+	Equal(t, c[4], s5)
 	Equal(t, true, has)
 	Equal(t, nil, err)
-}*/
+}
 
 func TestVerifyCode(t *testing.T) {
 	Setup()
@@ -90,13 +98,12 @@ func TestVerifyCode(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while checking if the user already has backup codes: %s", err)
 	}
-	t.Log(c[0])
 
-	ok, codes, err := VerifyCode(email, c[0])
+	s := util.StringArrayToArray(c, 0)
+	ok, err := VerifyCode(email, s)
 	if err != nil {
 		t.Errorf("Error while verifying the backup code: %s", err)
 	}
-	t.Log(codes)
 
 	Equal(t, true, has)
 	Equal(t, true, ok)

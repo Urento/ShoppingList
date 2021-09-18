@@ -43,28 +43,28 @@ func DeleteResetPassword(email string) error {
 	return err
 }
 
-func GetVerificationId(email string) (string, error) {
+func GetVerificationID(email string) (string, error) {
 	valid, err := IsStillValid(email)
 	if err != nil || !valid {
 		return "", err
 	}
 
-	var verificationId string
-	err = db.Model(&ResetPassword{}).Where("email = ?", email).Select("verification_id").First(&verificationId).Error
+	var verificationID string
+	err = db.Model(&ResetPassword{}).Where("email = ?", email).Select("verification_id").First(&verificationID).Error
 	if err != nil {
 		return "", err
 	}
-	return verificationId, nil
+	return verificationID, nil
 }
 
-func VerifyVerificationId(email, verificationId string) (bool, error) {
+func VerifyVerificationID(email, verificationId string) (bool, error) {
 	valid, err := IsStillValid(email)
 	if err != nil || !valid {
 		return false, err
 	}
 
 	var Correct int64
-	err = db.Model(&ResetPassword{}).Where("email = ? AND verification_id = ?", email, verificationId).Count(&Correct).Error
+	err = db.Model(&ResetPassword{}).Where("email = ?", email).Where("verification_id = ?", verificationId).Count(&Correct).Error
 	if err != nil {
 		return false, err
 	}
@@ -74,10 +74,10 @@ func VerifyVerificationId(email, verificationId string) (bool, error) {
 
 func CreateResetPassword(email string) error {
 	guid := xid.New()
-	verificationId := guid.String()
+	verificationID := guid.String()
 
 	resetPwdObj := ResetPassword{
-		VerificationID:  verificationId,
+		VerificationID:  verificationID,
 		Email:           email,
 		AlreadyVerified: false,
 	}

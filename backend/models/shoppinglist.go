@@ -100,18 +100,17 @@ func AddItem(item Item) (*Item, error) {
 	return &item, err
 }
 
-func UpdateItem(itemId int) error {
+func UpdateItem(itemID int) error {
 	return nil
 }
 
-func GetItem(itemId int) (Item, error) {
+func GetItem(itemID int) (Item, error) {
 	i := Item{}
 	return i, nil
 }
 
-func GetItems(id int, owner string) ([]Item, error) {
+func GetItems(id int) ([]Item, error) {
 	var items []Item
-	//err := db.Model(&Shoppinglist{}).Where("id = ?", id, owner).Association("Items").Find(&items).Error()
 	err := db.Debug().Preload("Items").Where("parent_list_id = ?", id).Find(&items).Error
 	return items, err
 }
@@ -124,7 +123,7 @@ func CreateList(data map[string]interface{}) error {
 		Participants: data["participants"].([]string),
 	}
 
-	if err := db.Debug().Omit(clause.Associations).Create(&shoppinglist).Error; err != nil {
+	if err := db.Omit(clause.Associations).Create(&shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil

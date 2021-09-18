@@ -157,12 +157,12 @@ func TestAddItem(t *testing.T) {
 	Setup()
 
 	id := RandomInt()
-	itemId := RandomInt()
+	itemID := RandomInt()
 	title := "title3332999" + StringWithCharset(20)
 	owner := "owner999" + StringWithCharset(30)
 	items := &models.Item{
 		ParentListID: id,
-		ItemID:       itemId,
+		ItemID:       itemID,
 		Title:        StringWithCharset(10),
 		Position:     RandomPosition(),
 	}

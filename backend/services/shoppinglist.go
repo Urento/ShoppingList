@@ -75,7 +75,7 @@ func (s *Shoppinglist) ExistsByID() (bool, error) {
 }
 
 func (s *Shoppinglist) GetItems() ([]models.Item, error) {
-	return models.GetItems(s.ID, s.Owner)
+	return models.GetItems(s.ID)
 }
 
 func (s *Shoppinglist) AddItem() (*models.Item, error) {
