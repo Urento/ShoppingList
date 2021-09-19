@@ -57,7 +57,7 @@ func Setup() {
 		log.Fatalf("Error while connecting to database: %s", err)
 	}
 
-	db.AutoMigrate(&Shoppinglist{}, &Auth{}, &ResetPassword{}, &Item{}, &BackupCodes{})
+	db.AutoMigrate(&Shoppinglist{}, &Auth{}, &ResetPassword{}, &Item{}, &BackupCodes{}, &Participant{})
 
 	_, err = db.DB()
 	if err != nil {

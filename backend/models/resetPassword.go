@@ -16,10 +16,9 @@ type ResetPassword struct {
 	AlreadyVerified bool   `json:"already_verified"`
 }
 
-//Maybe change to redis?
-//TODO: Let them expire after 1 hour (just check createdat and add 1 day)
+//TODO: Let them expire after 1 day (just check createdat and add 1 day)
 
-func ExistsResetPassword(email string) (bool, error) {
+func HasResetPassword(email string) (bool, error) {
 	valid, err := IsStillValid(email)
 	if err != nil || !valid {
 		return false, err
@@ -73,21 +72,40 @@ func VerifyVerificationID(email, verificationId string) (bool, error) {
 }
 
 func CreateResetPassword(email string) error {
-	guid := xid.New()
-	verificationID := guid.String()
-
-	resetPwdObj := ResetPassword{
-		VerificationID:  verificationID,
-		Email:           email,
-		AlreadyVerified: false,
-	}
-
-	err := db.Create(&resetPwdObj).Error
+	var verificationID string
+	/**
+	* Has a pending request already
+	 */
+	has, err := HasResetPassword(email)
 	if err != nil {
 		return err
 	}
 
-	err = sendEmail(email)
+	if has {
+		verificationID, err = GetVerificationID(email)
+		if err != nil {
+			return err
+		}
+	} else {
+		/**
+		* Create new password reset request
+		 */
+		guid := xid.New()
+		verificationID := guid.String()
+
+		resetPwdObj := ResetPassword{
+			VerificationID:  verificationID,
+			Email:           email,
+			AlreadyVerified: false,
+		}
+
+		err = db.Create(&resetPwdObj).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	err = sendEmail(email, verificationID)
 	if err != nil {
 		return err
 	}
@@ -110,7 +128,7 @@ func IsStillValid(email string) (bool, error) {
 	return false, errors.New("resetpassword request already expired")
 }
 
-func sendEmail(email string) error {
+func sendEmail(email, verificationID string) error {
 	//TODO: SEND EMAIL
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lib/pq"
 	. "github.com/stretchr/testify/assert"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/util"
@@ -21,10 +20,19 @@ func TestCreate(t *testing.T) {
 	Setup()
 
 	t.Run("Create and Check", func(t *testing.T) {
-		id := seededRand.Intn(90000)
+		id := RandomInt()
 		title := "title" + StringWithCharset(20)
 		owner := "owner" + StringWithCharset(30)
-		participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+		participants := []*models.Participant{
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+		}
 		shoppinglist := Shoppinglist{
 			ID:           id,
 			Title:        title,
@@ -64,12 +72,10 @@ func TestCreate(t *testing.T) {
 		id := RandomInt()
 		title := "title3332999" + StringWithCharset(20)
 		owner := "owner999" + StringWithCharset(30)
-		participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 		shoppinglist := Shoppinglist{
-			ID:           id,
-			Title:        title,
-			Owner:        owner,
-			Participants: participants,
+			ID:    id,
+			Title: title,
+			Owner: owner,
 		}
 
 		created, err := shoppinglist.Create()
@@ -78,12 +84,10 @@ func TestCreate(t *testing.T) {
 		}
 
 		title2 := "title2111111999" + StringWithCharset(20)
-		participants2 := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 		shoppinglist = Shoppinglist{
-			ID:           id,
-			Title:        title2,
-			Owner:        owner,
-			Participants: participants2,
+			ID:    id,
+			Title: title2,
+			Owner: owner,
 		}
 
 		err = shoppinglist.Edit()
@@ -109,22 +113,29 @@ func TestCreate(t *testing.T) {
 
 		Equal(t, true, created)
 		Equal(t, id, l.ID)
-		Equal(t, participants2, l.Participants)
 		Equal(t, title2, l.Title)
 		Equal(t, owner, l.Owner)
-		NotEqual(t, title, l.Title)
-		NotEqual(t, participants, l.Participants)
 		Equal(t, nil, err)
+		NotEqual(t, title, l.Title)
 	})
 }
 
 func TestExistsByID(t *testing.T) {
 	Setup()
 
-	id := seededRand.Intn(90000)
+	id := RandomInt()
 	title := "titlesdfgdsghdshgfdzhjf" + StringWithCharset(20)
 	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
-	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	participants := []*models.Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
@@ -166,7 +177,62 @@ func TestAddItem(t *testing.T) {
 		Title:        StringWithCharset(10),
 		Position:     RandomPosition(),
 	}
-	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	participants := []*models.Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
+	shoppinglist := Shoppinglist{
+		ID:           id,
+		Title:        title,
+		Items:        *items,
+		Owner:        owner,
+		Participants: participants,
+	}
+
+	created, err := shoppinglist.Create()
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	item, err := shoppinglist.AddItem()
+	if err != nil {
+		t.Errorf("Failed to edit shoppinglist %s", err.Error())
+	}
+
+	Equal(t, true, created)
+	Equal(t, nil, err)
+	NotNil(t, item)
+}
+
+func TestGetItems(t *testing.T) {
+	Setup()
+
+	id := RandomInt()
+	itemID := RandomInt()
+	title := "title3332999" + StringWithCharset(20)
+	owner := "owner999" + StringWithCharset(30)
+	items := &models.Item{
+		ParentListID: id,
+		ItemID:       itemID,
+		Title:        StringWithCharset(10),
+		Position:     RandomPosition(),
+	}
+	participants := []*models.Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
 	shoppinglist := Shoppinglist{
 		ID:           id,
 		Title:        title,
@@ -182,43 +248,92 @@ func TestAddItem(t *testing.T) {
 
 	_, err = shoppinglist.AddItem()
 	if err != nil {
-		t.Errorf("Failed to edit shoppinglist %s", err.Error())
-	}
-
-	Equal(t, false, created)
-	Equal(t, nil, err)
-}
-
-func TestGetItems(t *testing.T) {
-	Setup()
-
-	id := seededRand.Intn(90000)
-	title := "title3332999" + StringWithCharset(20)
-	owner := "owner999" + StringWithCharset(30)
-	participants := pq.StringArray{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
-	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Owner:        owner,
-		Participants: participants,
-	}
-
-	created, err := shoppinglist.Create()
-	if err != nil {
-		t.Errorf("Failed to create shoppinglist %s", err.Error())
+		t.Errorf("Error while adding item: %s", err)
 	}
 
 	if !created {
 		t.Errorf("Error while creating shoppinglist")
 	}
 
-	itemsInList, err := shoppinglist.GetItems()
-	if err != nil {
-		t.Errorf("Error while getting items: %s", err)
-	}
-	t.Log(itemsInList)
+	itemsInList, _ := shoppinglist.GetItems()
 
+	Equal(t, items.Title, itemsInList[0].Title)
+	Equal(t, items.Bought, itemsInList[0].Bought)
+	Equal(t, items.ParentListID, itemsInList[0].ParentListID)
+	Equal(t, items.Position, itemsInList[0].Position)
+	Equal(t, items.ItemID, itemsInList[0].ItemID)
 	Equal(t, nil, err)
+}
+
+func TestGetLastPosition(t *testing.T) {
+	Setup()
+
+	t.Run("TestGetLastPositionWithTwoItems", func(t *testing.T) {
+		id := RandomInt()
+		itemID := RandomInt()
+		title := "title3332999" + StringWithCharset(20)
+		owner := "owner999" + StringWithCharset(30)
+		position := RandomPosition()
+		items := &models.Item{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        StringWithCharset(10),
+			Position:     position,
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Items: *items,
+			Owner: owner,
+		}
+
+		created, err := shoppinglist.Create()
+		if err != nil {
+			t.Errorf("Failed to create shoppinglist %s", err.Error())
+		}
+
+		_, err = shoppinglist.AddItem()
+		if err != nil {
+			t.Errorf("Error while adding item: %s", err)
+		}
+
+		items2 := &models.Item{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        StringWithCharset(10),
+			Position:     position,
+		}
+		shoppinglist2 := Shoppinglist{
+			ID:    id,
+			Items: *items2,
+			Owner: owner,
+		}
+
+		_, err = shoppinglist2.AddItem()
+		if err != nil {
+			t.Errorf("Error while adding item: %s", err)
+		}
+
+		if !created {
+			t.Errorf("Error while creating shoppinglist")
+		}
+
+		lastPosition, err := shoppinglist.GetLastPosition()
+		if err != nil {
+			t.Errorf("Error while getting last position: %s", err)
+		}
+		t.Log(lastPosition)
+
+		Equal(t, position, lastPosition)
+	})
+
+	t.Run("TestGetLastPositionWithMultipleItems", func(t *testing.T) {
+
+	})
+
+	t.Run("TestGetLastPositionWithoutAnyItems", func(t *testing.T) {
+
+	})
 }
 
 func StringWithCharset(length int) string {

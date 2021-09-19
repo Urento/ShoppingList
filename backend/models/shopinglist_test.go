@@ -105,34 +105,11 @@ func TestGetListsByOwner(t *testing.T) {
 
 	id := RandomInt()
 	title := "title" + StringWithCharset(20)
-	items := []Item{
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-	}
 	owner := "Owner123123123123" + StringWithCharset(30)
 	participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	shoppinglist := map[string]interface{}{
 		"id":           id,
 		"title":        title,
-		"items":        items,
 		"owner":        owner,
 		"participants": participants,
 	}
@@ -143,33 +120,10 @@ func TestGetListsByOwner(t *testing.T) {
 
 	id2 := RandomInt()
 	title2 := "title" + StringWithCharset(20)
-	items2 := []Item{
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-		{
-			ParentListID: RandomInt(),
-			Title:        StringWithCharset(10),
-			Position:     RandomInt(),
-		},
-	}
 	participants2 := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
 	shoppinglist2 := map[string]interface{}{
 		"id":           id2,
 		"title":        title2,
-		"items":        items2,
 		"owner":        owner,
 		"participants": participants2,
 	}

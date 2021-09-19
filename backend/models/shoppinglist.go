@@ -3,18 +3,17 @@ package models
 import (
 	"errors"
 
-	"github.com/lib/pq"
 	"gorm.io/gorm/clause"
 )
 
 type Shoppinglist struct {
 	Model
 
-	ID           int            `gorm:"primaryKey" json:"id"`
+	ID           int            `json:"id" gorm:"primaryKey"`
 	Title        string         `json:"title"`
 	Items        []*Item        `json:"items" gorm:"foreignKey:ParentListID;"`
 	Owner        string         `json:"owner"`
-	Participants pq.StringArray `gorm:"type:text[]" json:"participants"`
+	Participants []*Participant `json:"participants" gorm:"foreignKey:ParentListID;"`
 }
 
 type Item struct {
@@ -28,13 +27,13 @@ type Item struct {
 	Bought       bool   `json:"bought" gorm:"default:false"`
 }
 
-//TODO: Implement Participant to Shoppinglist Struct
 type Participant struct {
 	Model
 
-	ID     int    `json:"participantId"`
-	Status string `json:"status"`
-	Email  string `json:"email"`
+	ID           int     `json:"participantId"`
+	ParentListID int     `json:"parentListId"`
+	Status       *string `json:"status" gorm:"default:'pending'"`
+	Email        string  `json:"email"`
 }
 
 func ExistByID(id int) (bool, error) {
@@ -53,7 +52,7 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 
 func GetLists(owner string) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Preload(clause.Associations).Where("owner = ?", owner).Find(&lists).Error
+	err := db.Preload("Participants").Where("owner = ?", owner).Find(&lists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +61,7 @@ func GetLists(owner string) ([]Shoppinglist, error) {
 
 func GetList(id int, owner string) (*Shoppinglist, error) {
 	var list Shoppinglist
-	err := db.Debug().Preload(clause.Associations).Where("id = ? AND owner = ?", id, owner).First(&list).Error
+	err := db.Debug().Preload(clause.Associations).Where("id = ?", id).Where("owner = ?", owner).First(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -80,39 +79,12 @@ func GetListByEmail(email string) (*[]Shoppinglist, error) {
 
 func EditList(id int, data map[string]interface{}) error {
 	shoppinglist := Shoppinglist{
-		ID:           data["id"].(int),
-		Title:        data["title"].(string),
-		Owner:        data["owner"].(string),
-		Participants: data["participants"].([]string),
+		ID:    data["id"].(int),
+		Title: data["title"].(string),
+		Owner: data["owner"].(string),
 	}
-	err := db.Debug().Where("id = ?", id).Updates(&shoppinglist).Error
+	err := db.Debug().Omit(clause.Associations).Where("id = ?", id).Updates(&shoppinglist).Error
 	return err
-}
-
-func AddItem(item Item) (*Item, error) {
-	exists, err := ExistByID(item.ParentListID)
-	if err != nil || !exists {
-		return nil, errors.New("shoppinglist does not exist")
-	}
-
-	err = db.Debug().Create(&item).Error
-
-	return &item, err
-}
-
-func UpdateItem(itemID int) error {
-	return nil
-}
-
-func GetItem(itemID int) (Item, error) {
-	i := Item{}
-	return i, nil
-}
-
-func GetItems(id int) ([]Item, error) {
-	var items []Item
-	err := db.Debug().Preload("Items").Where("parent_list_id = ?", id).Find(&items).Error
-	return items, err
 }
 
 func CreateList(data map[string]interface{}) error {
@@ -120,10 +92,10 @@ func CreateList(data map[string]interface{}) error {
 		ID:           data["id"].(int),
 		Title:        data["title"].(string),
 		Owner:        data["owner"].(string),
-		Participants: data["participants"].([]string),
+		Participants: data["participants"].([]*Participant),
 	}
 
-	if err := db.Omit(clause.Associations).Create(&shoppinglist).Error; err != nil {
+	if err := db.Omit("Items").Create(&shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil
@@ -134,4 +106,37 @@ func DeleteList(id int) error {
 		return err
 	}
 	return nil
+}
+
+func AddItem(item Item) (*Item, error) {
+	exists, err := ExistByID(item.ParentListID)
+	if err != nil || !exists {
+		return nil, errors.New("shoppinglist does not exist")
+	}
+
+	//err = db.Debug().Create(&item).Error
+	err = db.Debug().Model(&Shoppinglist{}).Association("Items").Append(item)
+
+	return &item, err
+}
+
+func UpdateItem(id, itemID int) error {
+	return nil
+}
+
+func GetItem(id, itemID int) (Item, error) {
+	i := Item{}
+	return i, nil
+}
+
+func GetItems(id int) ([]Item, error) {
+	var items []Item
+	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Find(&items).Error
+	return items, err
+}
+
+func GetLastPosition(id int) (int64, error) {
+	var Position int64
+	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Select("position").Order("position desc").First(&Position).Error
+	return Position, err
 }

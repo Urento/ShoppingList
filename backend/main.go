@@ -27,6 +27,7 @@ func init() {
 //TODO: Add Update User Route and allow to only update specific fields
 //TODO: BeforeEach and AfterEach in Tests?
 //TODO: Implement User Cache
+//TODO: Revalidate JWT Token when invalid
 
 func main() {
 	routersInit := routers.InitRouter()

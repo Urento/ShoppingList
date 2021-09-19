@@ -8,7 +8,7 @@ type ResetPassword struct {
 }
 
 func (rpwd *ResetPassword) ExistsResetPassword() (bool, error) {
-	return models.ExistsResetPassword(rpwd.Email)
+	return models.HasResetPassword(rpwd.Email)
 }
 
 func (rpwd *ResetPassword) DeleteResetPassword() error {

@@ -97,6 +97,14 @@ func RandomString(n int) string {
 	return string(b)
 }
 
+func RandomEmail() string {
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = letterAndNumberBytes[rand.Intn(len(letterAndNumberBytes))]
+	}
+	return string(b) + "@gmail.com"
+}
+
 func StringArrayToArray(before []string, i int) string {
 	replacer := strings.NewReplacer("{", "", "}", "")
 	output := replacer.Replace(before[0])

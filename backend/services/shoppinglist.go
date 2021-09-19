@@ -11,7 +11,7 @@ type Shoppinglist struct {
 	Title        string
 	Items        models.Item
 	Owner        string
-	Participants []string
+	Participants []*models.Participant
 	PageNum      int
 	PageSize     int
 }
@@ -33,11 +33,10 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 
 func (s *Shoppinglist) Edit() error {
 	shoppinglist := map[string]interface{}{
-		"id":           s.ID,
-		"title":        s.Title,
-		"items":        s.Items,
-		"owner":        s.Owner,
-		"participants": s.Participants,
+		"id":    s.ID,
+		"title": s.Title,
+		"items": s.Items,
+		"owner": s.Owner,
 	}
 
 	return models.EditList(s.ID, shoppinglist)
@@ -62,8 +61,7 @@ func (s *Shoppinglist) SendInvitationEmails() error {
 }
 
 func (s *Shoppinglist) GetLastPosition() (int64, error) {
-	//TODO
-	return 0, nil
+	return models.GetLastPosition(s.ID)
 }
 
 func (s *Shoppinglist) Delete() error {

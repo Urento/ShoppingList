@@ -102,8 +102,8 @@ func GetShoppinglists(c *gin.Context) {
 }
 
 type CreateShoppinglistForm struct {
-	Title        string   `form:"title"`
-	Participants []string `form:"participants"`
+	Title        string                `form:"title"`
+	Participants []*models.Participant `form:"participants"`
 }
 
 func CreateShoppinglist(c *gin.Context) {
@@ -191,11 +191,11 @@ func CreateShoppinglist(c *gin.Context) {
 }
 
 type EditShoppinglistForm struct {
-	ID           int         `form:"id"`
-	Title        string      `form:"title" valid:"Required"`
-	Items        models.Item `form:"items"`
-	Owner        string      `form:"owner" valid:"Required"`
-	Participants []string    `form:"participants" valid:"Required"`
+	ID           int                   `form:"id"`
+	Title        string                `form:"title" valid:"Required"`
+	Items        models.Item           `form:"items"`
+	Owner        string                `form:"owner" valid:"Required"`
+	Participants []*models.Participant `form:"participants" valid:"Required"`
 }
 
 func EditShoppinglist(c *gin.Context) {
