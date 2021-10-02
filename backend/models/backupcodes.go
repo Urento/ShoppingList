@@ -78,7 +78,7 @@ func VerifyCode(email, code string) (bool, error) {
 		return false, err
 	}
 
-	for idx, _ := range Codes {
+	for idx := range Codes {
 		b := util.StringArrayToArray(Codes, idx)
 		if b == code {
 			return true, nil

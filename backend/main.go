@@ -22,9 +22,7 @@ func init() {
 }
 
 //TODO: Check JWT stuff
-//TODO: Implement Transactions to SQL Queries
 //TODO: Implement 2FA and auto filout form when SMS comes in
-//TODO: Add Update User Route and allow to only update specific fields
 //TODO: BeforeEach and AfterEach in Tests?
 //TODO: Implement User Cache
 //TODO: Revalidate JWT Token when invalid
@@ -44,7 +42,7 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	log.Printf("Listening on Port %s", endPoint)
+	log.Printf("Listening on port: %s", endPoint)
 
 	server.ListenAndServe()
 }

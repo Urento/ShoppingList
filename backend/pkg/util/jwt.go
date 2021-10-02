@@ -15,9 +15,10 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func GenerateToken(email string) (string, error) {
+func GenerateToken(email string, refreshToken bool) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(24 * time.Hour)
+	refreshTokenExpireTime := nowTime.Add(168 * time.Hour) // 1 week in hours
 
 	secretId, err := cache.GenerateSecretId(email)
 	if err != nil {
@@ -31,6 +32,26 @@ func GenerateToken(email string) (string, error) {
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "shoppinglist",
 		},
+	}
+
+	if refreshToken {
+		claims = &Claims{
+			email,
+			secretId,
+			jwt.StandardClaims{
+				ExpiresAt: refreshTokenExpireTime.Unix(),
+				Issuer:    "shoppinglist",
+			},
+		}
+	} else {
+		claims = &Claims{
+			email,
+			secretId,
+			jwt.StandardClaims{
+				ExpiresAt: expireTime.Unix(),
+				Issuer:    "shoppinglist",
+			},
+		}
 	}
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

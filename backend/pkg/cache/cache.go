@@ -43,15 +43,16 @@ func Setup() {
 	}
 
 	redisPassword := os.Getenv("REDIS_PASSWORD")
+	redisAddr := os.Getenv("REDIS_ADDR")
 
 	if redisPassword == "testing" {
 		rdb = redis.NewClient(&redis.Options{
-			Addr: os.Getenv("REDIS_ADDR"),
+			Addr: redisAddr,
 			DB:   0,
 		})
 	} else {
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     os.Getenv("REDIS_ADDR"),
+			Addr:     redisAddr,
 			Password: redisPassword,
 			DB:       0,
 		})
@@ -60,15 +61,15 @@ func Setup() {
 
 func CacheJWT(email, token string) error {
 	ctx := context.Background()
-	//86400 = 24 hours in seconds
+	t := 24 * time.Hour
 
 	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		err := pipe.Set(ctx, tokenPrefix+email, token, 86400*time.Second).Err()
+		err := pipe.Set(ctx, tokenPrefix+email, token, t).Err()
 		if err != nil {
 			return err
 		}
 
-		err = pipe.Set(ctx, emailPrefix+token, email, 86400*time.Second).Err()
+		err = pipe.Set(ctx, emailPrefix+token, email, t).Err()
 		if err != nil {
 			return err
 		}
@@ -131,6 +132,8 @@ func InvalidateAllJWTTokens(email string) error {
 	if err != nil {
 		return err
 	}
+
+	log.Print(keys)
 
 	err = pipe.Del(ctx, redisJwtPrefix+email).Err()
 	if err != nil {

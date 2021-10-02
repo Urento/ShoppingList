@@ -10,9 +10,6 @@ import (
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -39,23 +36,23 @@ func TestCreate(t *testing.T) {
 			Owner:        owner,
 			Participants: participants,
 		}
+
 		created, err := shoppinglist.Create()
 		if err != nil || !created {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
 
-		list := Shoppinglist{ID: id}
-		exists, err := list.ExistsByID()
+		exists, err := shoppinglist.ExistsByID()
 		if err != nil || !exists {
 			t.Errorf("Shoppinglist did not get created %s", err.Error())
 		}
 
-		l, err := list.GetList()
+		l, err := shoppinglist.GetList()
 		if err != nil {
-			t.Errorf("Shoppinglist not found %s", err.Error())
+			t.Errorf("Error while getting the shoppinglist: %s", err.Error())
 		}
 
-		err = list.Delete()
+		err = shoppinglist.Delete()
 		if err != nil {
 			t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 		}
@@ -95,18 +92,17 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Failed to edit shoppinglist %s", err.Error())
 		}
 
-		list := Shoppinglist{ID: id, Owner: owner}
-		exists, err := list.ExistsByID()
+		exists, err := shoppinglist.ExistsByID()
 		if err != nil || !exists {
 			t.Errorf("Shoppinglist did not get created %s", err.Error())
 		}
 
-		l, err := list.GetList()
+		l, err := shoppinglist.GetList()
 		if err != nil {
 			t.Errorf("Shoppinglist not found %s", err.Error())
 		}
 
-		err = list.Delete()
+		err = shoppinglist.Delete()
 		if err != nil {
 			t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 		}
@@ -210,6 +206,47 @@ func TestAddItem(t *testing.T) {
 	NotNil(t, item)
 }
 
+func TestGetList(t *testing.T) {
+	Setup()
+
+	id := RandomInt()
+	title := "titlesdfgdsghdshgfdzhjf" + StringWithCharset(20)
+	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
+	participants := []*models.Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
+	shoppinglist := Shoppinglist{
+		ID:           id,
+		Title:        title,
+		Owner:        owner,
+		Participants: participants,
+	}
+
+	created, err := shoppinglist.Create()
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	list, err := shoppinglist.GetList()
+	if err != nil {
+		t.Errorf("Error while getting list: %s", err)
+	}
+
+	Equal(t, true, created)
+	Equal(t, id, list.ID)
+	Equal(t, title, list.Title)
+	Equal(t, participants[0].ID, list.Participants[0].ID)
+	Equal(t, participants[0].Email, list.Participants[0].Email)
+	Equal(t, participants[0].Status, list.Participants[0].Status)
+}
+
 func TestGetItems(t *testing.T) {
 	Setup()
 
@@ -268,7 +305,7 @@ func TestGetItems(t *testing.T) {
 func TestGetLastPosition(t *testing.T) {
 	Setup()
 
-	t.Run("TestGetLastPositionWithTwoItems", func(t *testing.T) {
+	t.Run("Get last position with two items", func(t *testing.T) {
 		id := RandomInt()
 		itemID := RandomInt()
 		title := "title3332999" + StringWithCharset(20)
@@ -288,6 +325,89 @@ func TestGetLastPosition(t *testing.T) {
 		}
 
 		created, err := shoppinglist.Create()
+		if err != nil || !created {
+			t.Errorf("Failed to create shoppinglist %s", err.Error())
+		}
+
+		_, err = shoppinglist.AddItem()
+		if err != nil {
+			t.Errorf("Error while adding item: %s", err)
+		}
+
+		position2 := RandomPosition()
+		items2 := &models.Item{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        StringWithCharset(10),
+			Position:     position2,
+		}
+		shoppinglist2 := Shoppinglist{Items: *items2}
+
+		_, err = shoppinglist2.AddItem()
+		if err != nil {
+			t.Errorf("Error while adding item: %s", err)
+		}
+
+		lastPosition, err := shoppinglist.GetLastPosition()
+		if err != nil {
+			t.Errorf("Error while getting last position: %s", err)
+		}
+		t.Logf("Position: %d", position)
+		t.Logf("Position 2: %d", position2)
+		t.Logf("Last Position: %d", lastPosition)
+
+		Equal(t, position2, lastPosition)
+		NotEqual(t, position, lastPosition)
+	})
+
+	t.Run("TestGetLastPositionWithoutAnyItems", func(t *testing.T) {
+		id := RandomInt()
+		title := "title3332999" + StringWithCharset(20)
+		owner := "owner999" + StringWithCharset(30)
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+
+		created, err := shoppinglist.Create()
+		if err != nil || !created {
+			t.Errorf("Failed to create shoppinglist %s", err.Error())
+		}
+
+		lastPosition, err := shoppinglist.GetLastPosition()
+		if err != nil {
+			t.Errorf("Error while getting last position: %s", err)
+		}
+
+		Equal(t, nil, lastPosition)
+	})
+}
+
+func TestGetItem(t *testing.T) {
+	Setup()
+
+	t.Run("Get Items", func(t *testing.T) {
+		id := RandomInt()
+		itemID := RandomInt()
+		title := "title3332999" + StringWithCharset(20)
+		owner := "owner999" + StringWithCharset(30)
+		position := RandomPosition()
+		itemTitle := StringWithCharset(10)
+		items := &models.Item{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        itemTitle,
+			Position:     position,
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Items: *items,
+			Owner: owner,
+		}
+
+		created, err := shoppinglist.Create()
 		if err != nil {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -297,46 +417,115 @@ func TestGetLastPosition(t *testing.T) {
 			t.Errorf("Error while adding item: %s", err)
 		}
 
-		items2 := &models.Item{
-			ParentListID: id,
+		item := Item{
 			ItemID:       itemID,
-			Title:        StringWithCharset(10),
-			Position:     position,
-		}
-		shoppinglist2 := Shoppinglist{
-			ID:    id,
-			Items: *items2,
-			Owner: owner,
+			ParentListID: id,
 		}
 
-		_, err = shoppinglist2.AddItem()
+		i, err := item.GetItem()
 		if err != nil {
-			t.Errorf("Error while adding item: %s", err)
+			t.Errorf("Error while getting item: %s", err)
 		}
 
-		if !created {
-			t.Errorf("Error while creating shoppinglist")
-		}
-
-		lastPosition, err := shoppinglist.GetLastPosition()
-		if err != nil {
-			t.Errorf("Error while getting last position: %s", err)
-		}
-		t.Log(lastPosition)
-
-		Equal(t, position, lastPosition)
+		Equal(t, true, created)
+		Equal(t, id, i.ParentListID)
+		Equal(t, itemID, i.ItemID)
+		Equal(t, itemTitle, i.Title)
+		Equal(t, position, i.Position)
 	})
 
-	t.Run("TestGetLastPositionWithMultipleItems", func(t *testing.T) {
+	t.Run("Get Item that doesn't exist", func(t *testing.T) {
+		id := RandomInt()
+		itemID := RandomInt()
 
-	})
+		item := Item{
+			ItemID:       itemID,
+			ParentListID: id,
+		}
 
-	t.Run("TestGetLastPositionWithoutAnyItems", func(t *testing.T) {
+		_, err := item.GetItem()
 
+		NotEqual(t, nil, err)
 	})
 }
 
+func TestUpdateItem(t *testing.T) {
+	Setup()
+
+	id := RandomInt()
+	itemID := RandomInt()
+	title := "title3332999" + StringWithCharset(20)
+	owner := "owner999" + StringWithCharset(30)
+	position := RandomPosition()
+	itemTitle := StringWithCharset(10)
+	items := &models.Item{
+		ParentListID: id,
+		ItemID:       itemID,
+		Title:        itemTitle,
+		Position:     position,
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Items: *items,
+		Owner: owner,
+	}
+
+	created, err := shoppinglist.Create()
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	_, err = shoppinglist.AddItem()
+	if err != nil {
+		t.Errorf("Error while adding item: %s", err)
+	}
+
+	item := Item{
+		ItemID:       itemID,
+		ParentListID: id,
+	}
+
+	i, err := item.GetItem()
+	if err != nil {
+		t.Errorf("Error while getting item: %s", err)
+	}
+
+	newTitle := StringWithCharset(10)
+	newPosition := RandomPosition()
+	newBought := RandomBoolean()
+	updatedItem := Item{
+		ItemID:       itemID,
+		ParentListID: id,
+		Title:        &newTitle,
+		Position:     &newPosition,
+		Bought:       &newBought,
+	}
+
+	err = updatedItem.UpdateItem()
+	if err != nil {
+		t.Errorf("Error while updating item: %s", err)
+	}
+
+	i2, err := item.GetItem()
+	if err != nil {
+		t.Errorf("Error while getting item: %s", err)
+	}
+
+	Equal(t, true, created)
+	Equal(t, id, i.ParentListID)
+	Equal(t, itemID, i.ItemID)
+	Equal(t, itemTitle, i.Title)
+	Equal(t, position, i.Position)
+	Equal(t, newTitle, i2.Title)
+	Equal(t, newPosition, i2.Position)
+	Equal(t, id, i2.ParentListID)
+	Equal(t, itemID, i2.ItemID)
+	Equal(t, newBought, i2.Bought)
+}
+
 func StringWithCharset(length int) string {
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
@@ -350,10 +539,14 @@ func RandomInt() int {
 	return r1.Intn(900000)
 }
 
-func RandomPosition() int {
-	s1 := rand.NewSource(time.Now().Unix())
-	r1 := rand.New(s1)
-	return r1.Intn(10)
+func RandomPosition() int64 {
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return int64(seededRand.Intn(900000))
+}
+
+func RandomBoolean() bool {
+	s := rand.Intn(2)
+	return s > 1
 }
 
 func Setup() {

@@ -280,7 +280,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GenerateToken(email)
+	token, err := util.GenerateToken(email, false)
 	if err != nil {
 		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
 		return
@@ -671,7 +671,7 @@ func VerifyTwoFactorAuthentication(c *gin.Context) {
 	}
 
 	if data.LoginAfter && ok {
-		token, err := util.GenerateToken(email)
+		token, err := util.GenerateToken(email, false)
 		if err != nil {
 			appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
 			return

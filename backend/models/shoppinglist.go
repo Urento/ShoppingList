@@ -23,7 +23,7 @@ type Item struct {
 	ParentListID int    `json:"parentListId"`
 	ItemID       int    `json:"itemId"`
 	Title        string `json:"title"`
-	Position     int    `json:"position"`
+	Position     int64  `json:"position"`
 	Bought       bool   `json:"bought" gorm:"default:false"`
 }
 
@@ -102,6 +102,14 @@ func CreateList(data map[string]interface{}) error {
 }
 
 func DeleteList(id int) error {
+	itemsCount := db.Debug().Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Count()
+
+	if itemsCount >= 1 {
+		if err := db.Debug().Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Delete(&Shoppinglist{ID: id}); err != nil {
+			return err
+		}
+	}
+
 	if err := db.Debug().Where("id = ?", id).Delete(&Shoppinglist{ID: id}).Error; err != nil {
 		return err
 	}
@@ -114,29 +122,38 @@ func AddItem(item Item) (*Item, error) {
 		return nil, errors.New("shoppinglist does not exist")
 	}
 
-	//err = db.Debug().Create(&item).Error
-	err = db.Debug().Model(&Shoppinglist{}).Association("Items").Append(item)
+	err = db.Debug().Create(&item).Error
+	//err = db.Debug().Model(&Shoppinglist{}).Where("id = ?", item.ParentListID).Association("Items").Append(&item)
 
 	return &item, err
 }
 
-func UpdateItem(id, itemID int) error {
-	return nil
+func UpdateItem(item Item) error {
+	exists, err := ExistByID(item.ParentListID)
+	if err != nil || !exists {
+		return errors.New("shoppinglist does not exist")
+	}
+
+	err = db.Debug().Model(&Item{}).Where("parent_list_id = ?", item.ParentListID).Where("item_id = ?", item.ItemID).Updates(&item).Error
+
+	return err
 }
 
 func GetItem(id, itemID int) (Item, error) {
-	i := Item{}
-	return i, nil
+	var item Item
+	err := db.Debug().Model(&Item{}).Where("parent_list_id = ?", id).Where("item_id = ?", id).First(&item).Error
+	return item, err
 }
 
 func GetItems(id int) ([]Item, error) {
-	var items []Item
-	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Find(&items).Error
-	return items, err
+	var Items []Item
+	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Find(&Items).Error
+	return Items, err
 }
 
 func GetLastPosition(id int) (int64, error) {
 	var Position int64
-	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Select("position").Order("position desc").First(&Position).Error
+	//err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Select("position").First(&Position).Error
+	err := db.Debug().Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position desc").Find(&Position).Error
 	return Position, err
 }

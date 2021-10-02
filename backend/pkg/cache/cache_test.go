@@ -577,7 +577,7 @@ func TestInvalidateSecretId(t *testing.T) {
 func TestInvalidateJWTTokens(t *testing.T) {
 	Setup()
 
-	t.Run("TestInvalidateAllJWTTokens", func(t *testing.T) {
+	t.Run("Invalidate all JWT Tokens", func(t *testing.T) {
 		email := StringWithCharset(10) + "@gmail.com"
 		token := StringWithCharset(245)
 
@@ -609,7 +609,7 @@ func TestInvalidateJWTTokens(t *testing.T) {
 		ok2, _ := VerifySecretId(email, secretId)
 
 		if ok2 {
-			t.Errorf("SecretId did not get invalided!")
+			t.Errorf("SecretId did not get invalidated!")
 		}
 
 		exists2, err2 := EmailExists(email)
@@ -620,7 +620,7 @@ func TestInvalidateJWTTokens(t *testing.T) {
 		valid, err := IsTokenValid(token)
 
 		if valid {
-			t.Errorf("JWT Token did not get invalided!")
+			t.Errorf("JWT Token did not get invalidated!")
 		}
 
 		Equal(t, nil, err)
@@ -630,7 +630,7 @@ func TestInvalidateJWTTokens(t *testing.T) {
 		Equal(t, false, ok2)
 	})
 
-	t.Run("TestInvalidateSpecificJWTToken", func(t *testing.T) {
+	t.Run("Invalidate specific JWT Token", func(t *testing.T) {
 		email := StringWithCharset(10) + "@gmail.com"
 		token := StringWithCharset(245)
 

@@ -3,6 +3,7 @@ package jwt
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -24,7 +25,7 @@ func JWT() gin.HandlerFunc {
 		if token == "" {
 			code = e.ERROR_NOT_AUTHORIZED
 		} else {
-			//check if token is valid in redis
+			//TODO: Implement Refresh Token
 			tokenValid, err := cache.IsTokenValid(token)
 			if err != nil || !tokenValid {
 				log.Print(err)
@@ -33,7 +34,6 @@ func JWT() gin.HandlerFunc {
 
 			if tokenValid {
 				data, parseErr := util.ParseToken(token)
-
 				ok, err := cache.VerifySecretId(data.Email, data.SecretId)
 				if err != nil || !ok {
 					log.Print(err)
@@ -73,4 +73,26 @@ func JWT() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func RefreshToken(c *gin.Context, token, secretId string) error {
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		return err
+	}
+
+	refreshToken, err := util.GenerateToken(email, true)
+	if err != nil {
+		return err
+	}
+
+	SetCookie(c, refreshToken)
+
+	return nil
+}
+
+func SetCookie(ctx *gin.Context, token string) error {
+	domain := os.Getenv("DOMAIN")
+	ctx.SetCookie("token", token, 24*60*60, "/", domain, util.IsProd(), true)
+	return nil
 }
