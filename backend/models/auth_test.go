@@ -7,14 +7,15 @@ import (
 	"time"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/util"
 )
 
 func TestUpdateUser(t *testing.T) {
 	Setup()
 
-	pwd := StringWithCharset(20)
-	email := StringWithCharset(10) + "@gmail.com"
-	username := StringWithCharset(20)
+	pwd := util.StringWithCharset(20)
+	email := util.StringWithCharset(10) + "@gmail.com"
+	username := util.StringWithCharset(20)
 	ip := RandomIPAddress()
 
 	err := CreateAccount(email, username, pwd, ip)
@@ -22,7 +23,7 @@ func TestUpdateUser(t *testing.T) {
 		t.Errorf("Error while creating user: %s", err)
 	}
 
-	newUsername := StringWithCharset(20)
+	newUsername := util.StringWithCharset(20)
 	auth := Auth{
 		EMail:    email,
 		Username: newUsername,
@@ -45,9 +46,9 @@ func TestUpdateUser(t *testing.T) {
 func TestDisableAccount(t *testing.T) {
 	Setup()
 
-	pwd := StringWithCharset(20)
-	email := StringWithCharset(10) + "@gmail.com"
-	username := StringWithCharset(20)
+	pwd := util.StringWithCharset(20)
+	email := util.StringWithCharset(10) + "@gmail.com"
+	username := util.StringWithCharset(20)
 	ip := RandomIPAddress()
 
 	err := CreateAccount(email, username, pwd, ip)
@@ -72,9 +73,9 @@ func TestDisableAccount(t *testing.T) {
 func TestActivateAccount(t *testing.T) {
 	Setup()
 
-	pwd := StringWithCharset(20)
-	email := StringWithCharset(10) + "@gmail.com"
-	username := StringWithCharset(20)
+	pwd := util.StringWithCharset(20)
+	email := util.StringWithCharset(10) + "@gmail.com"
+	username := util.StringWithCharset(20)
 	ip := RandomIPAddress()
 
 	err := CreateAccount(email, username, pwd, ip)
@@ -105,6 +106,39 @@ func TestActivateAccount(t *testing.T) {
 	Equal(t, disabledBefore, true)
 	Equal(t, disabledAfter, false)
 	Equal(t, nil, err)
+}
+
+func TestExistsUserId(t *testing.T) {
+	Setup()
+
+	t.Run("Exists User Id", func(t *testing.T) {
+		pwd := util.StringWithCharset(20)
+		email := util.StringWithCharset(10) + "@gmail.com"
+		username := util.StringWithCharset(20)
+		ip := RandomIPAddress()
+
+		err := CreateAccount(email, username, pwd, ip)
+		if err != nil {
+			t.Errorf("Error while creating user: %s", err)
+		}
+
+		user, err := GetUser(email)
+		if err != nil {
+			t.Errorf("Error while getting user: %s", err)
+		}
+
+		exists, err := ExistsUserID(user.ID)
+		if err != nil {
+			t.Errorf("Error while checking if the userid exists: %s", err)
+		}
+
+		Equal(t, true, exists)
+	})
+
+	t.Run("Exists User Id when the user doesn't exist", func(t *testing.T) {
+		exists, _ := ExistsUserID(999999999999999999)
+		Equal(t, false, exists)
+	})
 }
 
 func RandomIPAddress() string {

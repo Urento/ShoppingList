@@ -1,27 +1,19 @@
 package models
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 
 	. "github.com/stretchr/testify/assert"
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 func TestGetTotalListsByOwner(t *testing.T) {
 	SetupTest()
 
 	t.Run("TestGetTotalListsByOwner", func(t *testing.T) {
-		id := RandomInt()
-		title := "title" + StringWithCharset(20)
-		owner := "ParentListID" + StringWithCharset(30)
+		id := util.RandomInt()
+		title := "title" + util.StringWithCharset(20)
+		owner := "ParentListID" + util.StringWithCharset(30)
 		participants := []*Participant{
 			{
 				ParentListID: id,
@@ -54,9 +46,9 @@ func TestGetTotalListsByOwner(t *testing.T) {
 	})
 
 	t.Run("TestGetTotalListsByOwnerWithMultipleLists", func(t *testing.T) {
-		id := RandomInt()
-		title := "title" + StringWithCharset(20)
-		owner := "ParentListID" + StringWithCharset(30)
+		id := util.RandomInt()
+		title := "title" + util.StringWithCharset(20)
+		owner := "ParentListID" + util.StringWithCharset(30)
 		participants := []*Participant{
 			{
 				ParentListID: id,
@@ -79,8 +71,8 @@ func TestGetTotalListsByOwner(t *testing.T) {
 			t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
 		}
 
-		id2 := RandomInt()
-		title2 := "title" + StringWithCharset(20)
+		id2 := util.RandomInt()
+		title2 := "title" + util.StringWithCharset(20)
 		participants2 := []*Participant{
 			{
 				ParentListID: id,
@@ -103,8 +95,8 @@ func TestGetTotalListsByOwner(t *testing.T) {
 			t.Errorf("Error while creating Shoppinglist 2 %s", err.Error())
 		}
 
-		id3 := RandomInt()
-		title3 := "title" + StringWithCharset(20)
+		id3 := util.RandomInt()
+		title3 := "title" + util.StringWithCharset(20)
 		participants3 := []*Participant{
 			{
 				ParentListID: id,
@@ -139,9 +131,9 @@ func TestGetTotalListsByOwner(t *testing.T) {
 func TestGetListsByOwner(t *testing.T) {
 	SetupTest()
 
-	id := RandomInt()
-	title := "title" + StringWithCharset(20)
-	owner := "Owner123123123123" + StringWithCharset(30)
+	id := util.RandomInt()
+	title := "title" + util.StringWithCharset(20)
+	owner := "Owner123123123123" + util.StringWithCharset(30)
 	participants := []*Participant{
 		{
 			ParentListID: id,
@@ -163,8 +155,8 @@ func TestGetListsByOwner(t *testing.T) {
 		t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
 	}
 
-	id2 := RandomInt()
-	title2 := "title" + StringWithCharset(20)
+	id2 := util.RandomInt()
+	title2 := "title" + util.StringWithCharset(20)
 	participants2 := []*Participant{
 		{
 			ParentListID: id,
@@ -201,18 +193,6 @@ func TestGetListsByOwner(t *testing.T) {
 	Equal(t, id, lists[0].ID)
 	Equal(t, title2, lists[1].Title)
 	Equal(t, id2, lists[1].ID)
-}
-
-func StringWithCharset(length int) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func RandomInt() int {
-	return seededRand.Intn(90000)
 }
 
 func SetupTest() {

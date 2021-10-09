@@ -5,10 +5,12 @@ import { FormEventHandler } from "react";
 interface Props {
   text: string;
   onClick: FormEventHandler<HTMLButtonElement>;
-  loading: boolean;
-  showIcon: boolean;
-  type: "button" | "reset" | "submit";
-  danger: boolean;
+  loading?: boolean;
+  showIcon?: boolean;
+  type?: "button" | "reset" | "submit";
+  danger?: boolean;
+  loadingText?: string;
+  disabled?: boolean;
 }
 
 export const Button: React.FC<Props> = ({
@@ -18,9 +20,12 @@ export const Button: React.FC<Props> = ({
   showIcon = false,
   type = "submit",
   danger = false,
+  loadingText = "Loading",
+  disabled = false,
 }) => {
   return (
     <button
+      disabled={disabled}
       type={type}
       className={clsx(
         `group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
@@ -57,6 +62,7 @@ export const Button: React.FC<Props> = ({
         ""
       )}
       {!loading && text}
+      {loading && loadingText}
     </button>
   );
 };

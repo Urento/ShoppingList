@@ -5,27 +5,16 @@ import swal from "sweetalert";
 import { queryClient } from "../..";
 import { Button } from "../../components/Button";
 import { Sidebar } from "../../components/Sidebar";
-import { getUser, removeUser } from "../../storage/UserStorage";
+import { getUser } from "../../storage/UserStorage";
+import { VerifyResponse } from "../../types/TwoFactorAuthentication";
 import { API_URL, TOTP_API_URL } from "../../util/constants";
 import { useLoadQRCode } from "./hooks/useLoadQRCode";
-
-interface VerifyResponseData {
-  success: "true" | "false";
-  message: string;
-  verified: "true" | "false";
-}
-
-interface VerifyResponse {
-  code: number;
-  data: VerifyResponseData;
-  message: string;
-}
 
 interface Props {
   status: boolean;
 }
 
-export const UpdateTwoFactorAuthentication: React.FC = () => {
+const UpdateTwoFactorAuthentication: React.FC = () => {
   const [otp, setOTP] = useState("");
   const [status, setStatus] = useState(true); //enable or disable totp
   const [loading, setLoading] = useState(false);
@@ -198,3 +187,5 @@ export const UpdateTwoFactorAuthentication: React.FC = () => {
     </div>
   );
 };
+
+export default UpdateTwoFactorAuthentication;

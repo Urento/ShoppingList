@@ -1,16 +1,6 @@
 import { useState, useEffect } from "react";
+import { AuthCheckResponse } from "../types/User";
 import { API_URL } from "../util/constants";
-
-interface DataResponse {
-  success: "true" | "false";
-  error: string;
-}
-
-interface AuthCheckResponse {
-  code: string;
-  message: string;
-  data: DataResponse;
-}
 
 const useAuthCheck = () => {
   const [status, setStatus] = useState<"success" | "fail" | "pending">(

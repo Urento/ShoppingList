@@ -157,14 +157,21 @@ func EmailExists(email string) (bool, error) {
 }
 
 func Check(email, token string) (bool, error) {
-	exists, err := EmailExists(email)
-	if err != nil || !exists {
+	ctx := context.Background()
+	ttl, err := rdb.TTL(ctx, tokenPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	err = rdb.Expire(ctx, tokenPrefix+email, ttl+2*time.Hour).Err()
+	if err != nil {
 		return false, err
 	}
 
 	t, err := GetJWTByEmail(email)
 	if err != nil {
-		return false, err
+		//error is probably just that the jwt token is not cached
+		return false, nil
 	}
 
 	if t != token {

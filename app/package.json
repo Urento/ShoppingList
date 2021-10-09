@@ -16,6 +16,7 @@
     "@types/react-redux": "^7.1.7",
     "clsx": "^1.1.1",
     "dotenv": "^10.0.0",
+    "hoist-non-react-statics": "^3.3.2",
     "jwt-decode": "^3.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

@@ -9,52 +9,11 @@ import { Loading } from "../components/Loading";
 import { Sidebar } from "../components/Sidebar";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import useAuthCheck from "../hooks/useAuthCheck";
-import { saveUser, updateTwoFA, UserData } from "../storage/UserStorage";
+import { saveUser, UserData } from "../storage/UserStorage";
+import { UpdateUserResponse, UserInfoResponse } from "../types/User";
 import { API_URL } from "../util/constants";
 
-interface UserInfo {
-  created_on: number;
-  modified_on: number;
-  deleted_at: number | null;
-  id: number;
-  e_mail: string;
-  email_verified: boolean;
-  username: string;
-  rank: string;
-  two_factor_authentication: boolean;
-}
-
-interface UserInfoResponse {
-  data: UserInfo;
-  message: string;
-  code: string;
-}
-
-interface TwoFactorAuthenticationData {
-  success: "true" | "false";
-  message: string;
-  status: "true" | "false";
-}
-
-interface TwoFactorAuthenticationResponse {
-  message: string;
-  data: TwoFactorAuthenticationData;
-  code: number;
-}
-
-interface UpdateUserData {
-  success: "true" | "false";
-  message: string;
-  error: string;
-}
-
-interface UpdateUserResponse {
-  message: string;
-  data: UpdateUserData;
-  code: number;
-}
-
-export const Settings: React.FC = () => {
+const Settings: React.FC = () => {
   const history = useHistory();
   const authStatus = useAuthCheck();
   const [toggled, setToggled] = useState<boolean | undefined>(false);
@@ -225,22 +184,6 @@ export const Settings: React.FC = () => {
                   <div className="mb-4 md:mr-2 md:mb-0">
                     <label
                       className="mb-2 text-sm font-bold text-gray-700"
-                      htmlFor="email"
-                    >
-                      Email
-                    </label>
-                    <input
-                      className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
-                      id="email"
-                      type="email"
-                      placeholder="Email address"
-                      value={email}
-                      onChange={handleEmailChange}
-                    />
-                  </div>
-                  <div className="md:ml-2">
-                    <label
-                      className="mb-2 text-sm font-bold text-gray-700"
                       htmlFor="username"
                     >
                       Username
@@ -252,6 +195,22 @@ export const Settings: React.FC = () => {
                       placeholder="Username"
                       value={username}
                       onChange={handleUsernameChange}
+                    />
+                  </div>
+                  <div className="md:ml-2">
+                    <label
+                      className="mb-2 text-sm font-bold text-gray-700"
+                      htmlFor="email"
+                    >
+                      Email
+                    </label>
+                    <input
+                      className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
+                      id="email"
+                      type="email"
+                      placeholder="Email address"
+                      value={email}
+                      onChange={handleEmailChange}
                     />
                   </div>
                 </div>
@@ -276,6 +235,7 @@ export const Settings: React.FC = () => {
                     showIcon={true}
                     type="button"
                     danger={false}
+                    disabled
                   />
                 </div>
                 <div className="mb-4 md:flex md:justify-between">
@@ -353,3 +313,5 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
+
+export default Settings;

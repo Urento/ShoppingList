@@ -1,26 +1,20 @@
 package services
 
 import (
-	"math"
-	"math/rand"
 	"testing"
-	"time"
 
 	. "github.com/stretchr/testify/assert"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 func TestCreate(t *testing.T) {
 	Setup()
 
 	t.Run("Create and Check", func(t *testing.T) {
-		id := RandomInt()
-		title := "title" + StringWithCharset(20)
-		owner := "owner" + StringWithCharset(30)
+		id := util.RandomIntWithLength(500)
+		title := "title" + util.StringWithCharset(20)
+		owner := "owner" + util.StringWithCharset(30)
 		participants := []*models.Participant{
 			{
 				ParentListID: id,
@@ -67,9 +61,9 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("Create and Edit", func(t *testing.T) {
-		id := RandomInt() + RandomInt()
-		title := "title33232999" + StringWithCharset(20)
-		owner := "999owner999" + StringWithCharset(30)
+		id := util.RandomIntWithLength(500)
+		title := "title33232999" + util.StringWithCharset(20)
+		owner := "999owner999" + util.StringWithCharset(30)
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
@@ -81,7 +75,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
 
-		title2 := StringWithCharset(9) + StringWithCharset(20)
+		title2 := util.StringWithCharset(9) + util.StringWithCharset(20)
 		shoppinglist = Shoppinglist{
 			ID:    id,
 			Title: title2,
@@ -120,9 +114,9 @@ func TestCreate(t *testing.T) {
 func TestExistsByID(t *testing.T) {
 	Setup()
 
-	id := RandomInt()
-	title := "titlesdfgdsghdshgfdzhjf" + StringWithCharset(20)
-	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
+	id := util.RandomIntWithLength(500)
+	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(20)
+	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(30)
 	participants := []*models.Participant{
 		{
 			ParentListID: id,
@@ -164,15 +158,15 @@ func TestExistsByID(t *testing.T) {
 func TestAddItem(t *testing.T) {
 	Setup()
 
-	id := RandomInt()
-	itemID := RandomInt()
-	title := "title3332999" + StringWithCharset(20)
-	owner := "owner999" + StringWithCharset(30)
+	id := util.RandomIntWithLength(500)
+	itemID := util.RandomIntWithLength(500)
+	title := "title3332999" + util.StringWithCharset(20)
+	owner := "owner999" + util.StringWithCharset(30)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
-		Title:        StringWithCharset(10),
-		Position:     RandomPosition(),
+		Title:        util.StringWithCharset(10),
+		Position:     util.RandomPosition(),
 	}
 	participants := []*models.Participant{
 		{
@@ -210,9 +204,9 @@ func TestAddItem(t *testing.T) {
 func TestGetList(t *testing.T) {
 	Setup()
 
-	id := RandomInt()
-	title := "titlesdfgdsghdshgfdzhjf" + StringWithCharset(20)
-	owner := "ownersthfdghdfhfdthfxgdh" + StringWithCharset(30)
+	id := util.RandomIntWithLength(500)
+	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(20)
+	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(30)
 	participants := []*models.Participant{
 		{
 			ParentListID: id,
@@ -251,15 +245,15 @@ func TestGetList(t *testing.T) {
 func TestGetItems(t *testing.T) {
 	Setup()
 
-	id := RandomInt()
-	itemID := RandomInt()
-	title := "title3332999" + StringWithCharset(20)
-	owner := "owner999" + StringWithCharset(30)
+	id := util.RandomIntWithLength(500)
+	itemID := util.RandomIntWithLength(500)
+	title := "title3332999" + util.StringWithCharset(20)
+	owner := "owner999" + util.StringWithCharset(30)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
-		Title:        StringWithCharset(10),
-		Position:     RandomPosition(),
+		Title:        util.StringWithCharset(10),
+		Position:     util.RandomPosition(),
 	}
 	participants := []*models.Participant{
 		{
@@ -307,15 +301,15 @@ func TestGetLastPosition(t *testing.T) {
 	Setup()
 
 	t.Run("Get last position with two items", func(t *testing.T) {
-		id := RandomInt()
-		itemID := RandomInt()
-		title := "title3332999" + StringWithCharset(20)
-		owner := "owner999" + StringWithCharset(30)
-		position := RandomPosition()
+		id := util.RandomIntWithLength(300)
+		itemID := util.RandomIntWithLength(500)
+		title := "title3332999" + util.StringWithCharset(20)
+		owner := "owner999" + util.StringWithCharset(30)
+		position := util.RandomPosition()
 		items := &models.Item{
 			ParentListID: id,
 			ItemID:       itemID,
-			Title:        StringWithCharset(10),
+			Title:        util.StringWithCharset(10),
 			Position:     position,
 		}
 		shoppinglist := Shoppinglist{
@@ -335,11 +329,11 @@ func TestGetLastPosition(t *testing.T) {
 			t.Errorf("Error while adding item: %s", err)
 		}
 
-		position2 := RandomPosition()
+		position2 := util.RandomPosition()
 		items2 := &models.Item{
 			ParentListID: id,
 			ItemID:       itemID,
-			Title:        StringWithCharset(10),
+			Title:        util.StringWithCharset(10),
 			Position:     position2,
 		}
 		shoppinglist2 := Shoppinglist{Items: *items2}
@@ -363,9 +357,9 @@ func TestGetLastPosition(t *testing.T) {
 	})
 
 	t.Run("Get Last Position without any items", func(t *testing.T) {
-		id := 0101010 + RandomInt()
-		title := "title3332999" + StringWithCharset(20)
-		owner := "owner999" + StringWithCharset(30)
+		id := util.RandomIntWithLength(500)
+		title := "title3332999" + util.StringWithCharset(20)
+		owner := "owner999" + util.StringWithCharset(30)
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
@@ -387,12 +381,12 @@ func TestGetItem(t *testing.T) {
 	Setup()
 
 	t.Run("Get Items", func(t *testing.T) {
-		id := RandomInt()
-		itemID := RandomInt()
-		title := "title3332999" + StringWithCharset(20)
-		owner := "owner999" + StringWithCharset(30)
-		position := RandomPosition()
-		itemTitle := StringWithCharset(10)
+		id := util.RandomIntWithLength(500)
+		itemID := util.RandomIntWithLength(200)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
+		position := util.RandomPosition()
+		itemTitle := util.StringWithCharset(100)
 		items := &models.Item{
 			ParentListID: id,
 			ItemID:       itemID,
@@ -425,7 +419,6 @@ func TestGetItem(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error while getting item: %s", err)
 		}
-		t.Log(i)
 
 		Equal(t, true, created)
 		Equal(t, id, i.ParentListID)
@@ -435,8 +428,8 @@ func TestGetItem(t *testing.T) {
 	})
 
 	t.Run("Get Item that doesn't exist", func(t *testing.T) {
-		id := RandomInt() + RandomInt()
-		itemID := RandomInt() + RandomInt()
+		id := util.RandomIntWithLength(500)
+		itemID := util.RandomIntWithLength(200)
 
 		item := Item{
 			ItemID:       itemID,
@@ -453,12 +446,12 @@ func TestGetItem(t *testing.T) {
 func TestUpdateItem(t *testing.T) {
 	Setup()
 
-	id := RandomInt()
-	itemID := RandomInt()
-	title := "title3332999" + StringWithCharset(20)
-	owner := "owner999" + StringWithCharset(30)
-	position := RandomPosition()
-	itemTitle := StringWithCharset(10)
+	id := util.RandomIntWithLength(500)
+	itemID := util.RandomIntWithLength(500)
+	title := "title3332999" + util.StringWithCharset(20)
+	owner := "owner999" + util.StringWithCharset(30)
+	position := util.RandomPosition()
+	itemTitle := util.StringWithCharset(10)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
@@ -492,9 +485,9 @@ func TestUpdateItem(t *testing.T) {
 		t.Errorf("Error while getting item: %s", err)
 	}
 
-	newTitle := StringWithCharset(10)
-	newPosition := RandomPosition()
-	newBought := RandomBoolean()
+	newTitle := util.StringWithCharset(10)
+	newPosition := util.RandomPosition()
+	newBought := util.RandomBoolean()
 	updatedItem := Item{
 		ItemID:       itemID,
 		ParentListID: id,
@@ -525,29 +518,168 @@ func TestUpdateItem(t *testing.T) {
 	Equal(t, newBought, i2.Bought)
 }
 
-func StringWithCharset(length int) string {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+func TestAddParticipant(t *testing.T) {
+	Setup()
+
+	t.Run("Add Participant", func(t *testing.T) {
+		id := util.RandomIntWithLength(500)
+		title := "title3332999" + util.StringWithCharset(20)
+		owner := "owner999" + util.StringWithCharset(30)
+		participantEmail := util.RandomEmail()
+		participantStatus := util.StringWithCharset(200)
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       participantStatus,
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+
+		created, err := shoppinglist.Create()
+		if err != nil {
+			t.Errorf("Failed to create shoppinglist %s", err.Error())
+		}
+
+		_, err = participant.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant: %s", err)
+		}
+
+		Equal(t, true, created)
+	})
+
+	t.Run("Add Participant when Shoppinglist doesn't exist", func(t *testing.T) {
+		id := util.RandomIntWithLength(500)
+		participantEmail := util.RandomEmail()
+		participantStatus := util.StringWithCharset(200)
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       participantStatus,
+		}
+
+		_, err := participant.AddParticipant()
+
+		Equal(t, "shoppinglist does not exist", err.Error())
+	})
+}
+
+func TestGetParticipants(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(500)
+	title := "title3332999" + util.StringWithCharset(20)
+	owner := "owner999" + util.StringWithCharset(30)
+	participantEmail := util.RandomEmail()
+	participantStatus := util.StringWithCharset(200)
+	participant := Participant{
+		ParentListID: id,
+		Email:        participantEmail,
+		Status:       participantStatus,
 	}
-	return string(b)
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	created, err := shoppinglist.Create()
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	_, err = participant.AddParticipant()
+	if err != nil {
+		t.Errorf("Error while adding participant: %s", err)
+	}
+
+	participants, err := participant.GetParticipants()
+	if err != nil {
+		t.Errorf("Error while getting participants: %s", err)
+	}
+
+	Equal(t, true, created)
+	Equal(t, participantEmail, participants[0].Email)
+	Equal(t, participantStatus, participants[0].Status)
+	Equal(t, id, participants[0].ParentListID)
 }
 
-func RandomInt() int {
-	rand.Seed(time.Now().Unix())
-	n := rand.Int()
-	return n
-}
+func TestRemoveParticipant(t *testing.T) {
+	Setup()
 
-func RandomPosition() int64 {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return int64(seededRand.Intn(math.MaxInt64))
-}
+	t.Run("Remove Participant", func(t *testing.T) {
+		id := util.RandomIntWithLength(500)
+		title := "title3332999" + util.StringWithCharset(20)
+		owner := "owner999" + util.StringWithCharset(30)
+		participantEmail := util.RandomEmail()
+		participantStatus := util.StringWithCharset(200)
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       participantStatus,
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
 
-func RandomBoolean() bool {
-	s := rand.Intn(2)
-	return s > 1
+		created, err := shoppinglist.Create()
+		if err != nil {
+			t.Errorf("Failed to create shoppinglist %s", err)
+		}
+
+		_, err = participant.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant: %s", err)
+		}
+
+		participants, err := participant.GetParticipants()
+		if err != nil {
+			t.Errorf("Error while getting participants: %s", err)
+		}
+
+		delParticipant := Participant{
+			ID:           participants[0].ID,
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       participantStatus,
+		}
+
+		delErr := delParticipant.RemoveParticipant()
+		if delErr != nil {
+			t.Errorf("Error while removing participant: %s", err)
+		}
+
+		participantsAfter, err := participant.GetParticipants()
+		if err != nil {
+			t.Errorf("Error while getting participants: %s", err)
+		}
+
+		if len(participantsAfter) > 0 {
+			t.Errorf("Participant did not get deleted")
+		}
+
+		Equal(t, true, created)
+	})
+
+	t.Run("Remove Participant when Shoppinglist doesn't exist", func(t *testing.T) {
+		id := util.RandomIntWithLength(500)
+		participantEmail := util.RandomEmail()
+		participantStatus := util.StringWithCharset(200)
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       participantStatus,
+		}
+
+		err := participant.RemoveParticipant()
+
+		Equal(t, "shoppinglist does not exist", err.Error())
+	})
 }
 
 func Setup() {

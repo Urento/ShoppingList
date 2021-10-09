@@ -16,7 +16,7 @@ interface ParticipantsListProps {
   removeParticipant(key: number): void;
 }
 
-export const ParticipantsList: React.FC<ParticipantsListProps> = ({
+const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
   removeParticipant,
 }) => {
@@ -141,14 +141,12 @@ export const NewShoppinglist: React.FC = ({}) => {
 
   const addParticipant = (email: string) => {
     if (email === "" || participants.indexOf(email) !== -1) return;
-
     if (email === userData?.email)
       return swal({
         icon: "error",
         title: "You cant invite yourself!",
         text: "Please enter a email address from someone else",
       });
-
     if (!regexEmail.test(email)) {
       swal({
         icon: "error",
@@ -198,7 +196,7 @@ export const NewShoppinglist: React.FC = ({}) => {
     });
 
     const fJson: CreateResponse = await response.json();
-    if (fJson.code != 200)
+    if (fJson.code !== 200)
       return swal({
         icon: "error",
         title: "Error creating Shoppnglist",
@@ -213,7 +211,10 @@ export const NewShoppinglist: React.FC = ({}) => {
     });
     setLoading(false);
     //TODO: clear timeout?
-    setTimeout(() => history.push("/dashboard"), 2000);
+    setTimeout(() => {
+      swal.close!();
+      history.push("/dashboard");
+    }, 2000);
   };
 
   const removeParticipant = (key: number) => {
@@ -307,3 +308,5 @@ export const NewShoppinglist: React.FC = ({}) => {
     </div>
   );
 };
+
+export default NewShoppinglist;

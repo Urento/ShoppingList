@@ -5,7 +5,7 @@ import { ShoppinglistCard } from "../components/ShoppinglistCard";
 import { Sidebar } from "../components/Sidebar";
 import useAuthCheck from "../hooks/useAuthCheck";
 
-export const Dashboard: React.FC = () => {
+const Dashboard: React.FC = () => {
   const history = useHistory();
   const authStatus = useAuthCheck();
 
@@ -15,7 +15,7 @@ export const Dashboard: React.FC = () => {
   }
 
   if (authStatus === "pending") {
-    return <Loading />;
+    return <Loading withSidebar />;
   }
 
   return (
@@ -31,3 +31,5 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+export default Dashboard;

@@ -93,7 +93,7 @@ export const fetchUser = async () => {
     credentials: "include",
   });
   const fJson: UserDataResponse = await response.json();
-  if (fJson.code != 200) throw new Error("Error while fetching user data");
+  if (fJson.code !== 200) throw new Error("Error while fetching user data");
 
   const newUserObj: UserData = {
     email: fJson.data.e_mail,

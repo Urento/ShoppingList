@@ -20,11 +20,12 @@ func TestRatelimitMiddleware(t *testing.T) {
 	})
 
 	go r.Run(":9999")
-	ip := GetOutboundIP(t)
+	//ip := GetOutboundIP(t)
+	ip := "localhost"
 
 	c := &http.Client{}
 	for i := 0; i < 302; i++ {
-		resp, err := c.Get("http://" + ip.String() + ":9999")
+		resp, err := c.Get("http://" + ip + ":9999")
 		if err != nil {
 			t.Errorf("An error occurred while making the requests: %s", err)
 		}
@@ -40,7 +41,7 @@ func TestRatelimitMiddleware(t *testing.T) {
 		}
 	}
 
-	err := ResetLimit(ip.String())
+	err := ResetLimit(ip)
 	if err != nil {
 		t.Errorf("Error while resetting limit: %s", err)
 	}

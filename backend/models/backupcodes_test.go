@@ -10,7 +10,7 @@ import (
 func TestGenerateCodes(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(10) + "@gmail.com"
+	email := util.StringWithCharset(10) + "@gmail.com"
 
 	t.Run("normal generate codes", func(t *testing.T) {
 		_, err := GenerateCodes(email, false)
@@ -52,7 +52,7 @@ func TestGenerateCodes(t *testing.T) {
 func TestGetCodes(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(10) + "@gmail.com"
+	email := util.StringWithCharset(10) + "@gmail.com"
 
 	c, err := GenerateCodes(email, false)
 	if err != nil {
@@ -87,7 +87,7 @@ func TestGetCodes(t *testing.T) {
 func TestVerifyCode(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(10) + "@gmail.com"
+	email := util.StringWithCharset(10) + "@gmail.com"
 
 	c, err := GenerateCodes(email, false)
 	if err != nil {
@@ -113,7 +113,7 @@ func TestVerifyCode(t *testing.T) {
 func TestRemoveCodes(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(30) + "@gmail.com"
+	email := util.StringWithCharset(30) + "@gmail.com"
 
 	_, err := GenerateCodes(email, false)
 	if err != nil {

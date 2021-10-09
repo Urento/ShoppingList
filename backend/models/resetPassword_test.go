@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/util"
 )
 
 func TestCreateResetPassword(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(10) + "@gmail.com"
+	email := util.StringWithCharset(10) + "@gmail.com"
 
 	t.Run("TestCreateResetPassword", func(t *testing.T) {
 		err := CreateResetPassword(email)
@@ -63,7 +64,7 @@ func TestExistResetPassword(t *testing.T) {
 	Setup()
 
 	t.Run("Exist Reset Password Where Request doesn't exist", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
+		email := util.StringWithCharset(10) + "@gmail.com"
 
 		exists, err := HasResetPassword(email)
 		if err != nil {
@@ -79,7 +80,7 @@ func TestDeleteResetPassword(t *testing.T) {
 	Setup()
 
 	t.Run("Delete Reset Password", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
+		email := util.StringWithCharset(10) + "@gmail.com"
 
 		err := CreateResetPassword(email)
 		if err != nil {
@@ -107,7 +108,7 @@ func TestDeleteResetPassword(t *testing.T) {
 	})
 
 	t.Run("Delete Reset Password Where Request Doesn't exist", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
+		email := util.StringWithCharset(10) + "@gmail.com"
 
 		existsBefore, err := HasResetPassword(email)
 		if err != nil {
@@ -134,7 +135,7 @@ func TestVerifyVerificationId(t *testing.T) {
 	Setup()
 
 	t.Run("Verify Verification Id", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
+		email := util.StringWithCharset(10) + "@gmail.com"
 
 		err := CreateResetPassword(email)
 		if err != nil {
@@ -156,7 +157,7 @@ func TestVerifyVerificationId(t *testing.T) {
 	})
 
 	t.Run("Test Verify Verification Id With Wrong Id", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
+		email := util.StringWithCharset(10) + "@gmail.com"
 
 		err := CreateResetPassword(email)
 		if err != nil {
@@ -173,7 +174,7 @@ func TestVerifyVerificationId(t *testing.T) {
 func TestIsStillValid(t *testing.T) {
 	Setup()
 
-	email := StringWithCharset(10) + "@gmail.com"
+	email := util.StringWithCharset(10) + "@gmail.com"
 
 	err := CreateResetPassword(email)
 	if err != nil {

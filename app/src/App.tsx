@@ -1,25 +1,14 @@
 import React, { useState } from "react";
 import "./App.css";
 import { AUTH_API_URL } from "./util/constants";
-import { Link, Redirect, useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import clsx from "clsx";
 import jwtDecode from "jwt-decode";
 import { useEffect } from "react";
 import { Button } from "./components/Button";
 import { isLoggedIn } from "./storage/UserStorage";
-
-interface DataResponse {
-  token: string;
-  success: "true" | "false";
-  otp: boolean;
-  error: string;
-}
-interface LoginJSONResponse {
-  code: string;
-  message: "fail" | "ok";
-  data: DataResponse;
-}
+import { LoginJSONResponse } from "./types/User";
 
 interface JWTPayload {
   email: string;

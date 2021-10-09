@@ -1,43 +1,60 @@
 import ReactDOM from "react-dom";
 import "./index.css";
 import { BrowserRouter, Switch, Route, Redirect } from "react-router-dom";
-import Login from "./App";
-import Register from "./Register";
-import { Dashboard } from "./screens/Dashboard";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Settings } from "./screens/Settings";
-import { NotFound } from "./screens/NotFound";
-import { NewShoppinglist } from "./screens/shoppinglist/NewShoppinglist";
-import { ViewShoppinglist } from "./screens/shoppinglist/ViewShoppinglist";
-import { TwoFactorAuthentication } from "./TwoFactorAuthentication";
-import { UpdateTwoFactorAuthentication } from "./screens/settings/UpdateTwoFactorAuthentication";
+import { lazy, Suspense } from "react";
+import { Loading } from "./components/Loading";
+
+const RegisterComponent = lazy(() => import("./Register"));
+const LoginComponent = lazy(() => import("./App"));
+const TwoFactorAuthenticationComponent = lazy(
+  () => import("./TwoFactorAuthentication")
+);
+const UpdateTwoFactorAuthenticationComponent = lazy(
+  () => import("./screens/settings/UpdateTwoFactorAuthentication")
+);
+const DashboardComponent = lazy(() => import("./screens/Dashboard"));
+const SettingsComponent = lazy(() => import("./screens/Settings"));
+const NewShoppinglistComponent = lazy(
+  () => import("./screens/shoppinglist/NewShoppinglist")
+);
+const ViewShoppinglistComponent = lazy(
+  () => import("./screens/shoppinglist/ViewShoppinglist")
+);
+const NotFoundComponent = lazy(() => import("./screens/NotFound"));
 
 export const queryClient = new QueryClient();
 ReactDOM.render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <Switch>
-        <Route exact path="/register" component={Register} />
-        <Route exact path="/" component={Login} />
-        <Route
-          exact
-          path="/twofactorauthentication"
-          component={TwoFactorAuthentication}
-        />
+      <Suspense fallback={<Loading />}>
+        <Switch>
+          <Route exact path="/register" component={RegisterComponent} />
+          <Route exact path="/" component={LoginComponent} />
+          <Route
+            exact
+            path="/twofactorauthentication"
+            component={TwoFactorAuthenticationComponent}
+          />
 
-        <Route exact path="/dashboard" component={Dashboard} />
-        <Route exact path="/settings" component={Settings} />
-        <Route
-          exact
-          path="/settings/totp"
-          component={UpdateTwoFactorAuthentication}
-        />
-        <Route exact path="/lists/create" component={NewShoppinglist} />
-        <Route path="/list/:id" component={ViewShoppinglist} />
+          <Route exact path="/dashboard" component={DashboardComponent} />
+          <Route exact path="/settings" component={SettingsComponent} />
+          <Route
+            exact
+            path="/settings/totp"
+            component={UpdateTwoFactorAuthenticationComponent}
+          />
+          <Route
+            exact
+            path="/lists/create"
+            component={NewShoppinglistComponent}
+          />
+          <Route path="/list/:id" component={ViewShoppinglistComponent} />
 
-        <Route exact path="/404" component={NotFound} />
-        <Redirect to="/404" />
-      </Switch>
+          <Route exact path="/404" component={NotFoundComponent} />
+          <Redirect to="/404" />
+        </Switch>
+      </Suspense>
     </BrowserRouter>
   </QueryClientProvider>,
   document.getElementById("root")

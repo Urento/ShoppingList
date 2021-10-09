@@ -16,15 +16,16 @@ import (
 type Auth struct {
 	Model
 
-	ID                      int    `gorm:"primary_key" json:"id"`
-	EMail                   string `json:"e_mail"`
-	EmailVerified           bool   `json:"email_verified"`
-	Username                string `json:"username"`
-	Password                string `json:"password"`
-	Rank                    string `json:"rank"` //admin or default
-	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
-	IPAddress               string `json:"ip_address"`
-	Disabled                bool   `json:"disabled" gorm:"default:false"`
+	ID                      int             `gorm:"primary_key" json:"id"`
+	EMail                   string          `json:"e_mail"`
+	EmailVerified           bool            `json:"email_verified"`
+	Username                string          `json:"username"`
+	Password                string          `json:"password"`
+	Rank                    string          `json:"rank"` //admin or default
+	TwoFactorAuthentication bool            `json:"two_factor_authentication"`
+	IPAddress               string          `json:"ip_address"`
+	Disabled                bool            `json:"disabled" gorm:"default:false"`
+	Notifications           []*Notification `json:"notifications" gorm:"foreignKey:UserID;"`
 }
 
 func GetPasswordHash(email string) (string, error) {
@@ -232,9 +233,15 @@ func rankExists(rank string) bool {
 	return rank == "default" || rank == "admin"
 }
 
-func Exists(email string) (exists bool, err error) {
+func Exists(email string) (bool, error) {
 	var Found bool
-	err = db.Raw("SELECT EXISTS(SELECT id FROM auths WHERE e_mail = ?) AS found", email).Scan(&Found).Error
+	err := db.Raw("SELECT EXISTS(SELECT id FROM auths WHERE e_mail = ?) AS found", email).Scan(&Found).Error
+	return Found, err
+}
+
+func ExistsUserID(userId int) (bool, error) {
+	var Found bool
+	err := db.Raw("SELECT EXISTS(SELECT id FROM auths WHERE id = ?) AS found", userId).Scan(&Found).Error
 	return Found, err
 }
 

@@ -24,6 +24,13 @@ type Item struct {
 	ParentListID int
 }
 
+type Participant struct {
+	ID           int
+	ParentListID int
+	Status       string
+	Email        string
+}
+
 func (s *Shoppinglist) Create() (created bool, err error) {
 	shoppinglist := map[string]interface{}{
 		"id":           s.ID,
@@ -101,4 +108,21 @@ func (i *Item) UpdateItem() error {
 
 func (s *Shoppinglist) AddItem() (*models.Item, error) {
 	return models.AddItem(s.Items)
+}
+
+func (p *Participant) AddParticipant() (models.Participant, error) {
+	participant := models.Participant{
+		ParentListID: p.ParentListID,
+		Status:       p.Status,
+		Email:        p.Email,
+	}
+	return models.AddParticipant(participant)
+}
+
+func (p *Participant) RemoveParticipant() error {
+	return models.RemoveParticipant(p.ParentListID, p.ID)
+}
+
+func (p *Participant) GetParticipants() ([]models.Participant, error) {
+	return models.GetParticipants(p.ParentListID)
 }

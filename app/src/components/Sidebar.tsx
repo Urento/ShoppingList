@@ -1,5 +1,4 @@
 import React from "react";
-import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { API_URL } from "../util/constants";
@@ -45,8 +44,12 @@ export const Sidebar: React.FC = ({}) => {
         text: "There was an error while logging out! You will be redirected in 5 seconds!",
       });
     }
-    //TODO: Clear Timeout
-    setTimeout(() => history.push("/"), 5000);
+
+    //TODO: Clear Timeout?
+    setTimeout(() => {
+      swal.close!();
+      history.push("/");
+    }, 5000);
   };
 
   return (

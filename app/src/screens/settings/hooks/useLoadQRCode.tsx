@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
+import { EnableTOTPResponse } from "../../../types/TwoFactorAuthentication";
 import { API_URL } from "../../../util/constants";
-
-interface EnableTOTPResponseData {
-  success: "true" | "false";
-  img: string;
-}
-
-interface EnableTOTPResponse {
-  code: number;
-  data: EnableTOTPResponseData;
-  message: string;
-}
 
 export const useLoadQRCode = (status = false) => {
   const [qrCode, setQRCode] = useState("");

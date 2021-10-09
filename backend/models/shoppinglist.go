@@ -16,6 +16,7 @@ type Shoppinglist struct {
 	Participants []*Participant `json:"participants" gorm:"foreignKey:ParentListID;"`
 }
 
+//TODO: Split Item add Participants in different files
 type Item struct {
 	Model
 
@@ -30,10 +31,10 @@ type Item struct {
 type Participant struct {
 	Model
 
-	ID           int     `json:"participantId"`
-	ParentListID int     `json:"parentListId"`
-	Status       *string `json:"status" gorm:"default:'pending'"`
-	Email        string  `json:"email"`
+	ID           int    `gorm:"primaryKey" json:"id"`
+	ParentListID int    `json:"parentListId"`
+	Status       string `json:"status" gorm:"default:'pending'"`
+	Email        string `json:"email"`
 }
 
 func ExistByID(id int) (bool, error) {
@@ -123,8 +124,6 @@ func AddItem(item Item) (*Item, error) {
 	}
 
 	err = db.Debug().Create(&item).Error
-	//err = db.Debug().Model(&Shoppinglist{}).Where("id = ?", item.ParentListID).Association("Items").Append(&item)
-
 	return &item, err
 }
 
@@ -159,4 +158,35 @@ func GetLastPosition(id int) (int64, error) {
 		return 0, err
 	}
 	return Position, nil
+}
+
+func AddParticipant(participant Participant) (Participant, error) {
+	exists, err := ExistByID(participant.ParentListID)
+	if err != nil || !exists {
+		return Participant{}, errors.New("shoppinglist does not exist")
+	}
+
+	err = db.Model(&Participant{}).Create(&participant).Error
+	return participant, err
+}
+
+func RemoveParticipant(parentListID, id int) error {
+	exists, err := ExistByID(parentListID)
+	if err != nil || !exists {
+		return errors.New("shoppinglist does not exist")
+	}
+
+	err = db.Debug().Model(&Participant{}).Where("parent_list_id = ?", parentListID).Where("id = ?", id).Delete(&Participant{}).Error
+	return err
+}
+
+func GetParticipants(parentListID int) ([]Participant, error) {
+	exists, err := ExistByID(parentListID)
+	if err != nil || !exists {
+		return nil, errors.New("shoppinglist does not exist")
+	}
+
+	var Participants []Participant
+	err = db.Debug().Model(&Participant{}).Where("parent_list_id = ?", parentListID).Find(&Participants).Error
+	return Participants, err
 }

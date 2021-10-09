@@ -1,38 +1,18 @@
 import React from "react";
-import { useState } from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router";
 import { useHistory } from "react-router-dom";
 import { ItemsTable } from "../../components/ItemsTable";
 import { Sidebar } from "../../components/Sidebar";
+import { ListResponse, ListResponseData } from "../../types/Shoppinglist";
 import { API_URL } from "../../util/constants";
 
 interface Params {
   id: string;
 }
 
-export interface ListResponseData {
-  error: string;
-  success: "true" | "false";
-  created_on: number;
-  modified_on: number;
-  deleted_at: number | null;
-  id: number;
-  title: string;
-  items: string[];
-  owner: string;
-  participants: string;
-}
-
-export interface ListResponse {
-  message: string;
-  data: ListResponseData;
-  code: number;
-}
-
-export const ViewShoppinglist: React.FC = ({}) => {
+const ViewShoppinglist: React.FC = ({}) => {
   const { id } = useParams<Params>();
-  const history = useHistory();
 
   const { isLoading, data, error } = useQuery<ListResponseData, Error>(
     `shoppinglist_${id}`,
@@ -75,3 +55,5 @@ const fetchData = async (id: string) => {
   const fJson: ListResponse = await response.json();
   return fJson.data;
 };
+
+export default ViewShoppinglist;

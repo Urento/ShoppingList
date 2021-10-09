@@ -1,6 +1,6 @@
 import { Sidebar } from "../components/Sidebar";
 
-export const NotFound: React.FC = ({}) => {
+const NotFound: React.FC = ({}) => {
   return (
     <div className="flex flex-no-wrap h-screen">
       <Sidebar />
@@ -14,3 +14,5 @@ export const NotFound: React.FC = ({}) => {
     </div>
   );
 };
+
+export default NotFound;

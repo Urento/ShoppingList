@@ -19,7 +19,6 @@ export const AddItem: React.FC<AddItemProps> = ({}) => {
 
 export const ItemsTable: React.FC<Props> = ({ data }) => {
   const items: string[] = data.items;
-  console.log(items);
 
   const addItem = async (title: string) => {};
 

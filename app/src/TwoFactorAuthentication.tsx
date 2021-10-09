@@ -8,19 +8,7 @@ import jwtDecode from "jwt-decode";
 import { useEffect } from "react";
 import { Button } from "./components/Button";
 import { isLoggedIn } from "./storage/UserStorage";
-
-interface TOTPDataResponse {
-  token: string;
-  success: "true" | "false";
-  otp: boolean;
-  error: string;
-  verified: "true" | "false";
-}
-interface TOTPJSONResponse {
-  code: string;
-  message: "fail" | "ok";
-  data: TOTPDataResponse;
-}
+import { TOTPJSONResponse } from "./types/TwoFactorAuthentication";
 
 interface JWTPayload {
   email: string;
@@ -31,7 +19,7 @@ interface Props {
   email: string;
 }
 
-export const TwoFactorAuthentication: React.FC = () => {
+const TwoFactorAuthentication: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -169,3 +157,5 @@ export const TwoFactorAuthentication: React.FC = () => {
     </div>
   );
 };
+
+export default TwoFactorAuthentication;

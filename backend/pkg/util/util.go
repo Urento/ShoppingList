@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -98,11 +100,52 @@ func RandomString(n int) string {
 }
 
 func RandomEmail() string {
-	b := make([]byte, 8)
+	return StringWithCharset(32) + "@gmail.com"
+}
+
+func StringWithCharset(length int) string {
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, length)
 	for i := range b {
-		b[i] = letterAndNumberBytes[rand.Intn(len(letterAndNumberBytes))]
+		b[i] = letterAndNumberBytes[seededRand.Intn(len(letterAndNumberBytes))]
 	}
-	return string(b) + "@gmail.com"
+	return string(b)
+}
+
+func RandomInt() int {
+	rand.Seed(time.Now().UnixNano())
+	n := rand.Int()
+	return n
+}
+
+func RandomIntWithLength(length int) int {
+	rand.Seed(time.Now().UnixNano())
+	n := rand.Intn(length)
+	return n
+}
+
+func RandomPosition() int64 {
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return int64(seededRand.Intn(math.MaxInt64))
+}
+
+func RandomBoolean() bool {
+	s := rand.Intn(2)
+	return s > 1
+}
+
+func RandomRank() string {
+	nmb := rand.Intn(2)
+	if nmb <= 1 {
+		return "admin"
+	}
+	return "default"
+}
+
+func RandomIPAddress() string {
+	rand.Seed(time.Now().Unix())
+	ip := fmt.Sprintf("%d.%d.%d.%d", rand.Intn(255), rand.Intn(255), rand.Intn(255), rand.Intn(255))
+	return ip
 }
 
 func StringArrayToArray(before []string, i int) string {
