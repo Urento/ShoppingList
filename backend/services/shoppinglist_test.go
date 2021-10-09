@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -66,9 +67,9 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("Create and Edit", func(t *testing.T) {
-		id := RandomInt()
-		title := "title3332999" + StringWithCharset(20)
-		owner := "owner999" + StringWithCharset(30)
+		id := RandomInt() + RandomInt()
+		title := "title33232999" + StringWithCharset(20)
+		owner := "999owner999" + StringWithCharset(30)
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
@@ -80,7 +81,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
 
-		title2 := "title2111111999" + StringWithCharset(20)
+		title2 := StringWithCharset(9) + StringWithCharset(20)
 		shoppinglist = Shoppinglist{
 			ID:    id,
 			Title: title2,
@@ -356,12 +357,13 @@ func TestGetLastPosition(t *testing.T) {
 		t.Logf("Position 2: %d", position2)
 		t.Logf("Last Position: %d", lastPosition)
 
-		Equal(t, position2, lastPosition)
-		NotEqual(t, position, lastPosition)
+		if lastPosition < position || lastPosition < position2 {
+			t.Errorf("Last Position is not the largest number")
+		}
 	})
 
-	t.Run("TestGetLastPositionWithoutAnyItems", func(t *testing.T) {
-		id := RandomInt()
+	t.Run("Get Last Position without any items", func(t *testing.T) {
+		id := 0101010 + RandomInt()
 		title := "title3332999" + StringWithCharset(20)
 		owner := "owner999" + StringWithCharset(30)
 		shoppinglist := Shoppinglist{
@@ -375,12 +377,9 @@ func TestGetLastPosition(t *testing.T) {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
 
-		lastPosition, err := shoppinglist.GetLastPosition()
-		if err != nil {
-			t.Errorf("Error while getting last position: %s", err)
-		}
+		lastPosition, _ := shoppinglist.GetLastPosition()
 
-		Equal(t, nil, lastPosition)
+		Equal(t, int64(0), lastPosition)
 	})
 }
 
@@ -426,6 +425,7 @@ func TestGetItem(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error while getting item: %s", err)
 		}
+		t.Log(i)
 
 		Equal(t, true, created)
 		Equal(t, id, i.ParentListID)
@@ -435,15 +435,16 @@ func TestGetItem(t *testing.T) {
 	})
 
 	t.Run("Get Item that doesn't exist", func(t *testing.T) {
-		id := RandomInt()
-		itemID := RandomInt()
+		id := RandomInt() + RandomInt()
+		itemID := RandomInt() + RandomInt()
 
 		item := Item{
 			ItemID:       itemID,
 			ParentListID: id,
 		}
 
-		_, err := item.GetItem()
+		i, err := item.GetItem()
+		t.Log(i)
 
 		NotEqual(t, nil, err)
 	})
@@ -534,14 +535,14 @@ func StringWithCharset(length int) string {
 }
 
 func RandomInt() int {
-	s1 := rand.NewSource(time.Now().Unix())
-	r1 := rand.New(s1)
-	return r1.Intn(900000)
+	rand.Seed(time.Now().Unix())
+	n := rand.Int()
+	return n
 }
 
 func RandomPosition() int64 {
 	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return int64(seededRand.Intn(900000))
+	return int64(seededRand.Intn(math.MaxInt64))
 }
 
 func RandomBoolean() bool {

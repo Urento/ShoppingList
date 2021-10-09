@@ -22,7 +22,16 @@ func TestGetTotalListsByOwner(t *testing.T) {
 		id := RandomInt()
 		title := "title" + StringWithCharset(20)
 		owner := "ParentListID" + StringWithCharset(30)
-		participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+		participants := []*Participant{
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+		}
 		shoppinglist := map[string]interface{}{
 			"id":           id,
 			"title":        title,
@@ -48,7 +57,16 @@ func TestGetTotalListsByOwner(t *testing.T) {
 		id := RandomInt()
 		title := "title" + StringWithCharset(20)
 		owner := "ParentListID" + StringWithCharset(30)
-		participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+		participants := []*Participant{
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+		}
 		shoppinglist := map[string]interface{}{
 			"id":           id,
 			"title":        title,
@@ -63,7 +81,16 @@ func TestGetTotalListsByOwner(t *testing.T) {
 
 		id2 := RandomInt()
 		title2 := "title" + StringWithCharset(20)
-		participants2 := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+		participants2 := []*Participant{
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+		}
 		shoppinglist2 := map[string]interface{}{
 			"id":           id2,
 			"title":        title2,
@@ -78,7 +105,16 @@ func TestGetTotalListsByOwner(t *testing.T) {
 
 		id3 := RandomInt()
 		title3 := "title" + StringWithCharset(20)
-		participants3 := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+		participants3 := []*Participant{
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+			{
+				ParentListID: id,
+				Email:        util.RandomEmail(),
+			},
+		}
 		shoppinglist3 := map[string]interface{}{
 			"id":           id3,
 			"title":        title3,
@@ -106,7 +142,16 @@ func TestGetListsByOwner(t *testing.T) {
 	id := RandomInt()
 	title := "title" + StringWithCharset(20)
 	owner := "Owner123123123123" + StringWithCharset(30)
-	participants := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	participants := []*Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
 	shoppinglist := map[string]interface{}{
 		"id":           id,
 		"title":        title,
@@ -120,7 +165,16 @@ func TestGetListsByOwner(t *testing.T) {
 
 	id2 := RandomInt()
 	title2 := "title" + StringWithCharset(20)
-	participants2 := []string{StringWithCharset(45), StringWithCharset(45), StringWithCharset(45), StringWithCharset(45)}
+	participants2 := []*Participant{
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+		{
+			ParentListID: id,
+			Email:        util.RandomEmail(),
+		},
+	}
 	shoppinglist2 := map[string]interface{}{
 		"id":           id2,
 		"title":        title2,

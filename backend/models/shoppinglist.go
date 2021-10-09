@@ -95,7 +95,7 @@ func CreateList(data map[string]interface{}) error {
 		Participants: data["participants"].([]*Participant),
 	}
 
-	if err := db.Omit("Items").Create(&shoppinglist).Error; err != nil {
+	if err := db.Debug().Omit("Items").Create(&shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil
@@ -154,6 +154,9 @@ func GetItems(id int) ([]Item, error) {
 func GetLastPosition(id int) (int64, error) {
 	var Position int64
 	//err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Select("position").First(&Position).Error
-	err := db.Debug().Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position desc").Find(&Position).Error
-	return Position, err
+	err := db.Debug().Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position asc").Find(&Position).Error
+	if err != nil {
+		return 0, err
+	}
+	return Position, nil
 }

@@ -42,8 +42,8 @@ func Setup() {
 		logger.Config{
 			SlowThreshold:             time.Second,   // Slow SQL threshold
 			LogLevel:                  logger.Silent, // Log level
-			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,         // Disable color
+			IgnoreRecordNotFoundError: false,         // Ignore ErrRecordNotFound error for logger
+			Colorful:                  true,          // Disable color
 		},
 	)
 

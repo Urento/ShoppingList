@@ -123,35 +123,6 @@ func DoesTokenBelongToEmail(email, token string) (bool, error) {
 	return true, nil
 }
 
-//TODO: Invalidate email:token keys
-func InvalidateAllJWTTokens(email string) error {
-	ctx := context.Background()
-	pipe := rdb.Pipeline()
-
-	keys, err := rdb.Keys(ctx, tokenPrefix+email).Result()
-	if err != nil {
-		return err
-	}
-
-	log.Print(keys)
-
-	err = pipe.Del(ctx, redisJwtPrefix+email).Err()
-	if err != nil {
-		return err
-	}
-
-	for _, key := range keys {
-		pipe.Del(ctx, key)
-	}
-
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func GetJWTByEmail(email string) (string, error) {
 	val, err := rdb.Get(context.Background(), tokenPrefix+email).Result()
 	if err == redis.Nil {

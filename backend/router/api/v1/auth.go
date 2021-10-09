@@ -338,14 +338,15 @@ func Logout(c *gin.Context) {
 
 	//if you want to invalidate all jwt tokens and log everyone out
 	if logoutSettings.LogoutEveryone {
-		err := cache.InvalidateAllJWTTokens(email)
+		/*err := cache.InvalidateAllJWTTokens(email)
 		if err != nil {
 			log.Print(err)
 			appGin.Response(http.StatusInternalServerError, e.ERROR_INVALIDATING_JWT_TOKENS, map[string]string{
 				"success": "false",
 				"message": "error while invalidating jwt token",
 			})
-		}
+		}*/
+		//TODO
 
 		RemoveCookie(c)
 

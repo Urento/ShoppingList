@@ -245,8 +245,6 @@ func TestGetUser(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error while caching user %s", err)
 		}
-		t.Log(email)
-		t.Log(u.EMail)
 
 		user, err := GetUser(email)
 		if err != nil {
@@ -576,59 +574,6 @@ func TestInvalidateSecretId(t *testing.T) {
 
 func TestInvalidateJWTTokens(t *testing.T) {
 	Setup()
-
-	t.Run("Invalidate all JWT Tokens", func(t *testing.T) {
-		email := StringWithCharset(10) + "@gmail.com"
-		token := StringWithCharset(245)
-
-		err := CacheJWT(email, token)
-		if err != nil {
-			t.Errorf("Error while caching JWT token %s", err)
-		}
-
-		exists, err := EmailExists(email)
-		if err != nil {
-			t.Errorf("Error while checking if the email exists: %s", err)
-		}
-
-		secretId, err := GenerateSecretId(email)
-		if err != nil {
-			t.Errorf("Error while generating secret id: %s", err)
-		}
-
-		ok, err := VerifySecretId(email, secretId)
-		if err != nil {
-			t.Errorf("Error while verifying secert id: %s", err)
-		}
-
-		err = InvalidateAllJWTTokens(email)
-		if err != nil {
-			t.Errorf("Error while invalidating jwt tokens: %s", err)
-		}
-
-		ok2, _ := VerifySecretId(email, secretId)
-
-		if ok2 {
-			t.Errorf("SecretId did not get invalidated!")
-		}
-
-		exists2, err2 := EmailExists(email)
-		if err2 != nil {
-			t.Errorf("Error while checking if the email exists: %s", err)
-		}
-
-		valid, err := IsTokenValid(token)
-
-		if valid {
-			t.Errorf("JWT Token did not get invalidated!")
-		}
-
-		Equal(t, nil, err)
-		Equal(t, true, exists)
-		Equal(t, false, exists2)
-		Equal(t, true, ok)
-		Equal(t, false, ok2)
-	})
 
 	t.Run("Invalidate specific JWT Token", func(t *testing.T) {
 		email := StringWithCharset(10) + "@gmail.com"
