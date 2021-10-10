@@ -158,15 +158,7 @@ func EmailExists(email string) (bool, error) {
 
 func Check(email, token string) (bool, error) {
 	ctx := context.Background()
-	ttl, err := rdb.TTL(ctx, tokenPrefix+email).Result()
-	if err != nil {
-		return false, err
-	}
-
-	err = rdb.Expire(ctx, tokenPrefix+email, ttl+2*time.Hour).Err()
-	if err != nil {
-		return false, err
-	}
+	pipe := rdb.Pipeline()
 
 	t, err := GetJWTByEmail(email)
 	if err != nil {
@@ -176,6 +168,31 @@ func Check(email, token string) (bool, error) {
 
 	if t != token {
 		return false, nil
+	}
+
+	ttl, err := rdb.TTL(ctx, tokenPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	err = pipe.Expire(ctx, tokenPrefix+email, ttl+2*time.Hour).Err()
+	if err != nil {
+		return false, err
+	}
+
+	err = pipe.Expire(ctx, redisJwtPrefix+email, ttl+2*time.Hour).Err()
+	if err != nil {
+		return false, err
+	}
+
+	err = pipe.Expire(ctx, emailPrefix+token, ttl+2*time.Hour).Err()
+	if err != nil {
+		return false, err
+	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return false, err
 	}
 
 	return true, nil
@@ -196,6 +213,7 @@ func IsTokenValid(token string) (bool, error) {
 
 func DeleteTokenByEmail(email, token string) (bool, error) {
 	ctx := context.Background()
+
 	exists, err := EmailExists(email)
 	if err != nil {
 		return false, err
@@ -223,6 +241,7 @@ func GetTTLByEmail(email string) (time.Duration, error) {
 	if err != nil {
 		return -1, err
 	}
+
 	return ttl, nil
 }
 
@@ -234,6 +253,7 @@ type User struct {
 	Rank                    string `json:"rank"`
 	TwoFactorAuthentication bool   `json:"two_factor_authentication"`
 	IPAddress               string `json:"ip_address"`
+	//TODO: Cache Notifications
 }
 
 func (user User) CacheUser() error {
@@ -276,7 +296,6 @@ func GetTwoFactorAuthenticationStatus(email string) (bool, error) {
 	return user.TwoFactorAuthentication, nil
 }
 
-//TODO: also let only specific fields get updated
 func UpdateUser(user User) error {
 	ctx := context.Background()
 	_, err := rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {

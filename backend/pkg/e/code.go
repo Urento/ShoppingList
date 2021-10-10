@@ -55,4 +55,6 @@ const (
 	ERROR_CONVERTING_KEY_TO_IMG                             = 20031
 	ERROR_VERIFYING_OTP                                     = 20032
 	ERROR_CHECKING_IF_TOTP_IS_ENABLED                       = 20033
+
+	ERROR_CHECKING_HAS_UNREAD_NOTIFICATIONS = 20034
 )

@@ -51,3 +51,14 @@ export interface AuthCheckResponse {
   message: string;
   data: AuthDataResponse;
 }
+
+export interface LogoutDataResponse {
+  success: "true" | "false";
+  error: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+  code: string;
+  data: LogoutDataResponse;
+}

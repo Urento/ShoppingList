@@ -303,3 +303,9 @@ func validateEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
+
+func GetUserIDByEmail(email string) (int, error) {
+	var UserId int
+	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("id").Find(&UserId).Error
+	return UserId, err
+}

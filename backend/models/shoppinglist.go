@@ -62,7 +62,7 @@ func GetLists(owner string) ([]Shoppinglist, error) {
 
 func GetList(id int, owner string) (*Shoppinglist, error) {
 	var list Shoppinglist
-	err := db.Debug().Preload(clause.Associations).Where("id = ?", id).Where("owner = ?", owner).First(&list).Error
+	err := db.Preload(clause.Associations).Where("id = ?", id).Where("owner = ?", owner).First(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func EditList(id int, data map[string]interface{}) error {
 		Title: data["title"].(string),
 		Owner: data["owner"].(string),
 	}
-	err := db.Debug().Omit(clause.Associations).Where("id = ?", id).Updates(&shoppinglist).Error
+	err := db.Omit(clause.Associations).Where("id = ?", id).Updates(&shoppinglist).Error
 	return err
 }
 
@@ -96,22 +96,22 @@ func CreateList(data map[string]interface{}) error {
 		Participants: data["participants"].([]*Participant),
 	}
 
-	if err := db.Debug().Omit("Items").Create(&shoppinglist).Error; err != nil {
+	if err := db.Omit("Items").Create(&shoppinglist).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func DeleteList(id int) error {
-	itemsCount := db.Debug().Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Count()
+	itemsCount := db.Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Count()
 
 	if itemsCount >= 1 {
-		if err := db.Debug().Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Delete(&Shoppinglist{ID: id}); err != nil {
+		if err := db.Model(&Shoppinglist{}).Where("id = ?", id).Association("Items").Delete(&Shoppinglist{ID: id}); err != nil {
 			return err
 		}
 	}
 
-	if err := db.Debug().Where("id = ?", id).Delete(&Shoppinglist{ID: id}).Error; err != nil {
+	if err := db.Where("id = ?", id).Delete(&Shoppinglist{ID: id}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -123,7 +123,7 @@ func AddItem(item Item) (*Item, error) {
 		return nil, errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Debug().Create(&item).Error
+	err = db.Create(&item).Error
 	return &item, err
 }
 
@@ -133,27 +133,27 @@ func UpdateItem(item Item) error {
 		return errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Debug().Model(&Item{}).Where("parent_list_id = ?", item.ParentListID).Where("item_id = ?", item.ItemID).Updates(&item).Error
+	err = db.Model(&Item{}).Where("parent_list_id = ?", item.ParentListID).Where("item_id = ?", item.ItemID).Updates(&item).Error
 
 	return err
 }
 
 func GetItem(id, itemID int) (Item, error) {
 	var item Item
-	err := db.Debug().Model(&Item{}).Where("parent_list_id = ?", id).Where("item_id = ?", id).First(&item).Error
+	err := db.Model(&Item{}).Where("parent_list_id = ?", id).Where("item_id = ?", itemID).First(&item).Error
 	return item, err
 }
 
 func GetItems(id int) ([]Item, error) {
 	var Items []Item
-	err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Find(&Items).Error
+	err := db.Where("parent_list_id = ?", id).Preload("Items").Find(&Items).Error
 	return Items, err
 }
 
 func GetLastPosition(id int) (int64, error) {
 	var Position int64
-	//err := db.Debug().Where("parent_list_id = ?", id).Preload("Items").Select("position").First(&Position).Error
-	err := db.Debug().Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position asc").Find(&Position).Error
+	//err := db.Where("parent_list_id = ?", id).Preload("Items").Select("position").First(&Position).Error
+	err := db.Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position asc").Find(&Position).Error
 	if err != nil {
 		return 0, err
 	}
@@ -176,7 +176,7 @@ func RemoveParticipant(parentListID, id int) error {
 		return errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Debug().Model(&Participant{}).Where("parent_list_id = ?", parentListID).Where("id = ?", id).Delete(&Participant{}).Error
+	err = db.Model(&Participant{}).Where("parent_list_id = ?", parentListID).Where("id = ?", id).Delete(&Participant{}).Error
 	return err
 }
 
@@ -187,6 +187,6 @@ func GetParticipants(parentListID int) ([]Participant, error) {
 	}
 
 	var Participants []Participant
-	err = db.Debug().Model(&Participant{}).Where("parent_list_id = ?", parentListID).Find(&Participants).Error
+	err = db.Model(&Participant{}).Where("parent_list_id = ?", parentListID).Find(&Participants).Error
 	return Participants, err
 }

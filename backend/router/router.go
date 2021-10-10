@@ -8,6 +8,7 @@ import (
 	"github.com/urento/shoppinglist/middleware/jwt"
 	"github.com/urento/shoppinglist/middleware/ratelimiter"
 	"github.com/urento/shoppinglist/router/api/v1"
+	notifications_v1 "github.com/urento/shoppinglist/router/api/v1/notifications"
 	v1 "github.com/urento/shoppinglist/router/api/v1/shoppinglist"
 )
 
@@ -21,7 +22,7 @@ func InitRouter() *gin.Engine {
 	r.Use(ratelimiter.Ratelimiter())
 	r.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"OPTIONS", "PUT", "GET", "POST", "DELETE", "PATCH"},
-		AllowOrigins:     []string{"http://localhost:3000"}, //TODO
+		AllowOrigins:     []string{"http://localhost:3000"}, //TODO: allow all origins
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           9 * time.Hour,
@@ -38,7 +39,7 @@ func InitRouter() *gin.Engine {
 	apiv1.GET("/auth/user", api.GetUser)
 	apiv1.POST("/auth/logout", api.Logout)
 	apiv1.POST("/auth/update", api.UpdateUser)
-	apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this and add this to the frontend
+	//apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this and add this to the frontend
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.POST("/list", v1.CreateShoppinglist)
@@ -50,6 +51,9 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
 	apiv1.POST("/resetpassword", api.SendResetPassword)
 	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
+
+	apiv1.GET("/notifications/n/hasunread", notifications_v1.HasUnreadNotifications)
+	apiv1.POST("/notifications/n/markall", notifications_v1.MarkAllNotificationsAsRead)
 
 	apiv1.POST("/twofactorauthentication", api.UpdateTwoFactorAuthentication)
 	r.POST("/twofactorauthentication/verify", api.VerifyTwoFactorAuthentication)

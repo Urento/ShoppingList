@@ -22,6 +22,9 @@ const ViewShoppinglistComponent = lazy(
   () => import("./screens/shoppinglist/ViewShoppinglist")
 );
 const NotFoundComponent = lazy(() => import("./screens/NotFound"));
+const NotificationsComponent = lazy(
+  () => import("./screens/notifications/Notifications")
+);
 
 export const queryClient = new QueryClient();
 ReactDOM.render(
@@ -50,6 +53,8 @@ ReactDOM.render(
             component={NewShoppinglistComponent}
           />
           <Route path="/list/:id" component={ViewShoppinglistComponent} />
+
+          <Route path="/notifications" component={NotificationsComponent} />
 
           <Route exact path="/404" component={NotFoundComponent} />
           <Redirect to="/404" />

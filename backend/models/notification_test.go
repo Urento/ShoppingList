@@ -7,7 +7,7 @@ import (
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
-func CreateUser() (int, error) {
+func CreateUser() (*Auth, error) {
 	username := util.StringWithCharset(500)
 	email := util.RandomEmail()
 	password := util.StringWithCharset(500)
@@ -15,21 +15,21 @@ func CreateUser() (int, error) {
 
 	err := CreateAccount(email, username, password, ip)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	user, err := GetUser(email)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return user.ID, nil
+	return user, nil
 }
 
 func TestCreateNotification(t *testing.T) {
 	Setup()
 
-	userId, err := CreateUser()
+	user, err := CreateUser()
 	if err != nil {
 		t.Errorf("Error while creating user: %s", err)
 	}
@@ -39,7 +39,7 @@ func TestCreateNotification(t *testing.T) {
 	title := util.StringWithCharset(300)
 
 	notification := Notification{
-		UserID:           userId,
+		UserID:           user.ID,
 		Title:            title,
 		NotificationType: notificationType,
 		Text:             text,
@@ -58,7 +58,7 @@ func TestHasUnreadNotifications(t *testing.T) {
 	Setup()
 
 	t.Run("Has unread notifications", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
@@ -68,7 +68,7 @@ func TestHasUnreadNotifications(t *testing.T) {
 		title := util.StringWithCharset(300)
 
 		notification := Notification{
-			UserID:           userId,
+			UserID:           user.ID,
 			Title:            title,
 			NotificationType: notificationType,
 			Text:             text,
@@ -80,7 +80,7 @@ func TestHasUnreadNotifications(t *testing.T) {
 			t.Errorf("Error while creating notification: %s", err)
 		}
 
-		has, err := HasUnreadNotifications(userId)
+		has, err := HasUnreadNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting unread notifications: %s", err)
 		}
@@ -89,12 +89,12 @@ func TestHasUnreadNotifications(t *testing.T) {
 	})
 
 	t.Run("Has unread notification but he has no unread notifications", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
 
-		has, err := HasUnreadNotifications(userId)
+		has, err := HasUnreadNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting unread notifications: %s", err)
 		}
@@ -107,7 +107,7 @@ func TestGetNotifications(t *testing.T) {
 	Setup()
 
 	t.Run("Get Notifications", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
@@ -117,7 +117,7 @@ func TestGetNotifications(t *testing.T) {
 		title := util.StringWithCharset(300)
 
 		notification := Notification{
-			UserID:           userId,
+			UserID:           user.ID,
 			Title:            title,
 			NotificationType: notificationType,
 			Text:             text,
@@ -129,7 +129,7 @@ func TestGetNotifications(t *testing.T) {
 			t.Errorf("Error while creating notification: %s", err)
 		}
 
-		notifications, err := GetNotifications(userId)
+		notifications, err := GetNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting notifications: %s", err)
 		}
@@ -138,16 +138,16 @@ func TestGetNotifications(t *testing.T) {
 		Equal(t, text, notifications[0].Text)
 		Equal(t, notificationType, notifications[0].NotificationType)
 		Equal(t, false, notifications[0].Read)
-		Equal(t, userId, notifications[0].UserID)
+		Equal(t, user.ID, notifications[0].UserID)
 	})
 
 	t.Run("Get Notifications when the user has no notifications", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
 
-		notifications, err := GetNotifications(userId)
+		notifications, err := GetNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting notifications: %s", err)
 		}
@@ -162,7 +162,7 @@ func TestGetNotification(t *testing.T) {
 	Setup()
 
 	t.Run("Get Notification", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
@@ -172,7 +172,7 @@ func TestGetNotification(t *testing.T) {
 		title := util.StringWithCharset(300)
 
 		notification := Notification{
-			UserID:           userId,
+			UserID:           user.ID,
 			Title:            title,
 			NotificationType: notificationType,
 			Text:             text,
@@ -184,30 +184,30 @@ func TestGetNotification(t *testing.T) {
 			t.Errorf("Error while creating notification: %s", err)
 		}
 
-		notifications, err := GetNotifications(userId)
+		notifications, err := GetNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting notifications: %s", err)
 		}
 
-		n, err := GetNotification(userId, notifications[0].ID)
+		n, err := GetNotification(user.ID, notifications[0].ID)
 		if err != nil {
 			t.Errorf("Error while getting notification: %s", err)
 		}
 
 		Equal(t, title, n.Title)
 		Equal(t, text, n.Text)
-		Equal(t, userId, n.UserID)
+		Equal(t, user.ID, n.UserID)
 		Equal(t, false, n.Read)
 		Equal(t, notificationType, n.NotificationType)
 	})
 
 	t.Run("Get Notification that doesn't exist", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
 
-		_, err = GetNotification(userId, 456784896324532)
+		_, err = GetNotification(user.ID, 456784896324532)
 
 		Equal(t, nil, err)
 	})
@@ -217,7 +217,7 @@ func TestDeleteNotification(t *testing.T) {
 	Setup()
 
 	t.Run("Delete Notification", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
@@ -227,7 +227,7 @@ func TestDeleteNotification(t *testing.T) {
 		title := util.StringWithCharset(300)
 
 		notification := Notification{
-			UserID:           userId,
+			UserID:           user.ID,
 			Title:            title,
 			NotificationType: notificationType,
 			Text:             text,
@@ -239,17 +239,17 @@ func TestDeleteNotification(t *testing.T) {
 			t.Errorf("Error while creating notification: %s", err)
 		}
 
-		notifications, err := GetNotifications(userId)
+		notifications, err := GetNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting notifications: %s", err)
 		}
 
-		err = DeleteNotification(userId, notifications[0].ID)
+		err = DeleteNotification(user.ID, notifications[0].ID)
 		if err != nil {
 			t.Errorf("Error while deleting notification: %s", err)
 		}
 
-		notificationsAfter, err := GetNotifications(userId)
+		notificationsAfter, err := GetNotifications(user.ID)
 		if err != nil {
 			t.Errorf("Error while getting notifications: %s", err)
 		}
@@ -260,13 +260,111 @@ func TestDeleteNotification(t *testing.T) {
 	})
 
 	t.Run("Delete Notification that doesn't exist", func(t *testing.T) {
-		userId, err := CreateUser()
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
 
-		err = DeleteNotification(userId, 456784896324532)
+		err = DeleteNotification(user.ID, 456784896324532)
 
 		Equal(t, nil, err)
 	})
+}
+
+func TestMarkNotificationAsRead(t *testing.T) {
+	Setup()
+
+	user, err := CreateUser()
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	notificationType := "invitation"
+	text := util.StringWithCharset(500)
+	title := util.StringWithCharset(300)
+
+	notification := Notification{
+		UserID:           user.ID,
+		Title:            title,
+		NotificationType: notificationType,
+		Text:             text,
+		Read:             false,
+	}
+
+	err = CreateNotification(notification)
+	if err != nil {
+		t.Errorf("Error while creating notification: %s", err)
+	}
+
+	notifications, err := GetNotifications(user.ID)
+	if err != nil {
+		t.Errorf("Error while getting notifications: %s", err)
+	}
+
+	err = MarkNotificationAsRead(user.ID, notifications[0].ID)
+	if err != nil {
+		t.Errorf("Error while marking a notification as read: %s", err)
+	}
+
+	notificationsAfter, err := GetNotifications(user.ID)
+	if err != nil {
+		t.Errorf("Error while getting notifications: %s", err)
+	}
+
+	Equal(t, true, notificationsAfter[0].Read)
+}
+
+func TestMarkAllNotificationsAsRead(t *testing.T) {
+	Setup()
+
+	user, err := CreateUser()
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	notificationType := "invitation"
+	text := util.StringWithCharset(500)
+	title := util.StringWithCharset(300)
+
+	notification := Notification{
+		UserID:           user.ID,
+		Title:            title,
+		NotificationType: notificationType,
+		Text:             text,
+		Read:             false,
+	}
+
+	err = CreateNotification(notification)
+	if err != nil {
+		t.Errorf("Error while creating notification: %s", err)
+	}
+
+	text2 := util.StringWithCharset(500)
+	title2 := util.StringWithCharset(300)
+
+	notification2 := Notification{
+		UserID:           user.ID,
+		Title:            title2,
+		NotificationType: notificationType,
+		Text:             text2,
+		Read:             false,
+	}
+
+	err = CreateNotification(notification2)
+	if err != nil {
+		t.Errorf("Error while creating notification: %s", err)
+	}
+
+	err = MarkAllNotificationsAsRead(user.ID)
+	if err != nil {
+		t.Errorf("Error while marking all notifications as read: %s", err)
+	}
+
+	notifications, err := GetNotifications(user.ID)
+	if err != nil {
+		t.Errorf("Error while getting notifications: %s", err)
+	}
+
+	Equal(t, true, notifications[0].Read)
+	Equal(t, true, notifications[1].Read)
 }

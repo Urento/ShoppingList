@@ -150,6 +150,7 @@ const TwoFactorAuthentication: React.FC = () => {
               text="Verify"
               type="submit"
               danger={false}
+              loadingText="Verifying"
             ></Button>
           </div>
         </form>

@@ -1,7 +1,6 @@
 import React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router";
-import { useHistory } from "react-router-dom";
 import { ItemsTable } from "../../components/ItemsTable";
 import { Sidebar } from "../../components/Sidebar";
 import { ListResponse, ListResponseData } from "../../types/Shoppinglist";

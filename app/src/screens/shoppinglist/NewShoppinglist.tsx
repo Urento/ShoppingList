@@ -5,14 +5,16 @@ import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "../..";
+import { Button } from "../../components/Button";
 import { Sidebar } from "../../components/Sidebar";
 import { useGetUserData } from "../../hooks/useGetUserData";
+import { Participant } from "../../types/Participant";
 import { API_URL } from "../../util/constants";
 
 const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-interface ParticipantsListProps {
-  participants: string[];
+/*interface ParticipantsListProps {
+  participants: Participant[];
   removeParticipant(key: number): void;
 }
 
@@ -109,7 +111,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
   } else {
     return <div></div>;
   }
-};
+};*/
 
 interface CreateResponseData {
   message: string;
@@ -125,48 +127,18 @@ interface CreateResponse {
   code: number;
 }
 
-export const NewShoppinglist: React.FC = ({}) => {
+interface Props {
+  open: boolean;
+}
+
+export const NewShoppinglist: React.FC<Props> = ({ open }) => {
   const [title, setTitle] = useState("");
-  const [participants, setParticipants] = useState<string[]>([]);
-  const [currParticipant, setCurrParticipant] = useState("");
+  //const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
-  const userData = useGetUserData();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setTitle(e.target.value);
-  const handleCurrParticipantChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => setCurrParticipant(e.target.value);
-
-  const addParticipant = (email: string) => {
-    if (email === "" || participants.indexOf(email) !== -1) return;
-    if (email === userData?.email)
-      return swal({
-        icon: "error",
-        title: "You cant invite yourself!",
-        text: "Please enter a email address from someone else",
-      });
-    if (!regexEmail.test(email)) {
-      swal({
-        icon: "error",
-        title: "Error inviting Participant",
-        text: "Email is not valid",
-      });
-      return;
-    }
-
-    console.log(email);
-    if (email.length > 0) {
-      setParticipants([...participants, email]);
-      setCurrParticipant("");
-      swal({
-        icon: "success",
-        title: "Successfully invited",
-        text: "Successfully invited Participant",
-      });
-    }
-  };
 
   const createList = async (e: any) => {
     e.preventDefault();
@@ -180,8 +152,6 @@ export const NewShoppinglist: React.FC = ({}) => {
 
     setLoading(true);
 
-    //TODO: remove potential null and undefined entries in array
-
     const response = await fetch(`${API_URL}/list`, {
       method: "POST",
       headers: {
@@ -191,7 +161,6 @@ export const NewShoppinglist: React.FC = ({}) => {
       credentials: "include",
       body: JSON.stringify({
         title: title,
-        participants: participants,
       }),
     });
 
@@ -210,17 +179,12 @@ export const NewShoppinglist: React.FC = ({}) => {
       text: "Shoppinglist successfully created",
     });
     setLoading(false);
+
     //TODO: clear timeout?
     setTimeout(() => {
       swal.close!();
       history.push("/dashboard");
     }, 2000);
-  };
-
-  const removeParticipant = (key: number) => {
-    delete participants[key];
-    setParticipants([...participants]);
-    console.log(participants);
   };
 
   return (
@@ -229,7 +193,7 @@ export const NewShoppinglist: React.FC = ({}) => {
       <div className="container mx-auto">
         <div className="flex justify-center px-6 my-12">
           <div className="w-full xl:w-3/4 lg:w-11/12 flex">
-            <div className="w-full lg:w-7/12 bg-white p-5 rounded-lg lg:rounded-l-none">
+            <div className="bg-white p-5 rounded-lg lg:rounded-l-none">
               <form
                 className="px-8 pt-6 pb-8 mb-4 bg-white rounded"
                 onSubmit={createList}
@@ -250,57 +214,18 @@ export const NewShoppinglist: React.FC = ({}) => {
                       onChange={handleTitleChange}
                     />
                   </div>
-                  <div className="md:ml-2">
-                    <label
-                      className="mb-2 text-sm font-bold text-gray-700"
-                      htmlFor="email"
-                    >
-                      Participants
-                    </label>
-                    <input
-                      className="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
-                      id="email"
-                      type="email"
-                      placeholder="Email of the Participant"
-                      onChange={handleCurrParticipantChange}
-                    />
-                    <button
-                      className="w-full px-4 py-2 font-bold text-white bg-indigo-500 rounded-full hover:bg-indigo-700 focus:outline-none focus:shadow-outline"
-                      type="button"
-                      onClick={() => addParticipant(currParticipant)}
-                    >
-                      Invite Participant
-                    </button>
-                  </div>
                 </div>
                 <div className="mb-6 text-center">
-                  <button
-                    className="w-full px-4 py-2 font-bold text-white bg-green-500 rounded-full hover:bg-green-700 focus:outline-none focus:shadow-outline"
+                  <Button
+                    text="Create"
+                    loadingText="Creating"
+                    loading={loading}
+                    onClick={createList}
                     type="submit"
-                    onSubmit={createList}
-                  >
-                    {loading ? (
-                      <svg
-                        className="loading-svg justify-center flex"
-                        viewBox="25 25 50 50"
-                      >
-                        <circle
-                          className="loading-circle"
-                          cx="50"
-                          cy="50"
-                          r="20"
-                        ></circle>
-                      </svg>
-                    ) : (
-                      "Create"
-                    )}
-                  </button>
+                    color="green"
+                  />
                 </div>
               </form>
-              <ParticipantsList
-                participants={participants}
-                removeParticipant={removeParticipant}
-              />
             </div>
           </div>
         </div>

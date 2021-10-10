@@ -1,10 +1,7 @@
 package models
 
 import (
-	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
 	. "github.com/stretchr/testify/assert"
 	"github.com/urento/shoppinglist/pkg/util"
@@ -13,55 +10,45 @@ import (
 func TestUpdateUser(t *testing.T) {
 	Setup()
 
-	pwd := util.StringWithCharset(20)
-	email := util.StringWithCharset(10) + "@gmail.com"
-	username := util.StringWithCharset(20)
-	ip := RandomIPAddress()
-
-	err := CreateAccount(email, username, pwd, ip)
+	user, err := CreateUser()
 	if err != nil {
 		t.Errorf("Error while creating user: %s", err)
 	}
 
 	newUsername := util.StringWithCharset(20)
 	auth := Auth{
-		EMail:    email,
+		EMail:    user.EMail,
 		Username: newUsername,
 	}
 
-	err = auth.UpdateUser(email)
+	err = auth.UpdateUser(user.EMail)
 	if err != nil {
 		t.Errorf("Error while updating user: %s", err)
 	}
 
-	user, err := GetUser(email)
+	u, err := GetUser(user.EMail)
 	if err != nil {
 		t.Errorf("Error while getting user: %s", err)
 	}
 
-	Equal(t, email, user.EMail)
-	Equal(t, newUsername, user.Username)
+	Equal(t, user.EMail, u.EMail)
+	Equal(t, newUsername, u.Username)
 }
 
 func TestDisableAccount(t *testing.T) {
 	Setup()
 
-	pwd := util.StringWithCharset(20)
-	email := util.StringWithCharset(10) + "@gmail.com"
-	username := util.StringWithCharset(20)
-	ip := RandomIPAddress()
-
-	err := CreateAccount(email, username, pwd, ip)
+	user, err := CreateUser()
 	if err != nil {
 		t.Errorf("Error while creating user: %s", err)
 	}
 
-	err = DisableAccount(email)
+	err = DisableAccount(user.EMail)
 	if err != nil {
 		t.Errorf("Error while disabling account: %s", err)
 	}
 
-	disabled, err := IsDisabled(email)
+	disabled, err := IsDisabled(user.EMail)
 	if err != nil {
 		t.Errorf("Error while checking if account is disabled: %s", err)
 	}
@@ -73,32 +60,27 @@ func TestDisableAccount(t *testing.T) {
 func TestActivateAccount(t *testing.T) {
 	Setup()
 
-	pwd := util.StringWithCharset(20)
-	email := util.StringWithCharset(10) + "@gmail.com"
-	username := util.StringWithCharset(20)
-	ip := RandomIPAddress()
-
-	err := CreateAccount(email, username, pwd, ip)
+	user, err := CreateUser()
 	if err != nil {
 		t.Errorf("Error while creating user: %s", err)
 	}
 
-	err = DisableAccount(email)
+	err = DisableAccount(user.EMail)
 	if err != nil {
 		t.Errorf("Error while disabling account: %s", err)
 	}
 
-	disabledBefore, err := IsDisabled(email)
+	disabledBefore, err := IsDisabled(user.EMail)
 	if err != nil {
 		t.Errorf("Error while checking if account is disabled: %s", err)
 	}
 
-	err = ActivateAccount(email)
+	err = ActivateAccount(user.EMail)
 	if err != nil {
 		t.Errorf("Error while activating account: %s", err)
 	}
 
-	disabledAfter, err := IsDisabled(email)
+	disabledAfter, err := IsDisabled(user.EMail)
 	if err != nil {
 		t.Errorf("Error while checking if account is disabled: %s", err)
 	}
@@ -112,22 +94,17 @@ func TestExistsUserId(t *testing.T) {
 	Setup()
 
 	t.Run("Exists User Id", func(t *testing.T) {
-		pwd := util.StringWithCharset(20)
-		email := util.StringWithCharset(10) + "@gmail.com"
-		username := util.StringWithCharset(20)
-		ip := RandomIPAddress()
-
-		err := CreateAccount(email, username, pwd, ip)
+		user, err := CreateUser()
 		if err != nil {
 			t.Errorf("Error while creating user: %s", err)
 		}
 
-		user, err := GetUser(email)
+		u, err := GetUser(user.EMail)
 		if err != nil {
 			t.Errorf("Error while getting user: %s", err)
 		}
 
-		exists, err := ExistsUserID(user.ID)
+		exists, err := ExistsUserID(u.ID)
 		if err != nil {
 			t.Errorf("Error while checking if the userid exists: %s", err)
 		}
@@ -141,8 +118,18 @@ func TestExistsUserId(t *testing.T) {
 	})
 }
 
-func RandomIPAddress() string {
-	rand.Seed(time.Now().Unix())
-	ip := fmt.Sprintf("%d.%d.%d.%d", rand.Intn(255), rand.Intn(255), rand.Intn(255), rand.Intn(255))
-	return ip
+func TestGetUserIDByEmail(t *testing.T) {
+	Setup()
+
+	user, err := CreateUser()
+	if err != nil {
+		t.Errorf("Error while creating user: %s", err)
+	}
+
+	userId, err := GetUserIDByEmail(user.EMail)
+	if err != nil {
+		t.Errorf("Error while getting userid by email: %s", err)
+	}
+
+	Equal(t, user.ID, userId)
 }

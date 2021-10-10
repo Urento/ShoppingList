@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useState } from "react";
-import { ListResponseData } from "../screens/shoppinglist/ViewShoppinglist";
+import { ListResponseData } from "../types/Shoppinglist";
 import { API_URL } from "../util/constants";
 
 interface Props {

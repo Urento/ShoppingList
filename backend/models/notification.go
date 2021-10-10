@@ -66,7 +66,7 @@ func GetNotifications(userId int) ([]Notification, error) {
 	}
 
 	var Notifications []Notification
-	err = db.Model(&Notification{}).Where("user_id = ?", userId).Where("read = ?", false).Find(&Notifications).Error
+	err = db.Model(&Notification{}).Where("user_id = ?", userId).Find(&Notifications).Error
 
 	return Notifications, err
 }
@@ -100,4 +100,47 @@ func DeleteNotification(userId, id int) error {
 	err = db.Where("user_id = ?", userId).Where("id = ?", id).Delete(&Notification{ID: id, UserID: userId}).Error
 
 	return err
+}
+
+func MarkNotificationAsRead(userId, id int) error {
+	exists, err := ExistsUserID(userId)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.New("user not found")
+	}
+
+	err = db.Model(&Notification{}).Where("user_id = ?", userId).Where("id = ?", id).Update("read", true).Error
+	return err
+}
+
+func MarkAllNotificationsAsRead(userId int) error {
+	exists, err := ExistsUserID(userId)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.New("user not found")
+	}
+
+	var Notifications []Notification
+	err = db.Model(&Notification{}).Where("user_id = ?", userId).Find(&Notifications).Error
+	if err != nil {
+		return err
+	}
+
+	tx := db.Begin()
+
+	for _, notification := range Notifications {
+		if err := tx.Model(&Notification{}).Where("user_id = ?", notification.UserID).Where("id = ?", notification.ID).Update("read", true).Error; err != nil {
+			return err
+		}
+	}
+
+	tx.Commit()
+
+	return nil
 }

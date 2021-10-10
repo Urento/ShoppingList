@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/urento/shoppinglist/models"
@@ -31,7 +32,7 @@ type Participant struct {
 	Email        string
 }
 
-func (s *Shoppinglist) Create() (created bool, err error) {
+func (s *Shoppinglist) Create(userId int, withNotification bool) (bool, error) {
 	shoppinglist := map[string]interface{}{
 		"id":           s.ID,
 		"title":        s.Title,
@@ -41,6 +42,19 @@ func (s *Shoppinglist) Create() (created bool, err error) {
 
 	if err := models.CreateList(shoppinglist); err != nil {
 		return false, err
+	}
+
+	if withNotification {
+		notification := models.Notification{
+			UserID:           userId,
+			Title:            "New Shoppinglist",
+			Text:             fmt.Sprintf("%s was created", s.Title),
+			NotificationType: "new_shoppinglist",
+		}
+
+		if err := models.CreateNotification(notification); err != nil {
+			return false, err
+		}
 	}
 
 	return true, nil

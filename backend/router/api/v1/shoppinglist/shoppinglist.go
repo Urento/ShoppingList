@@ -3,10 +3,7 @@ package v1
 import (
 	"errors"
 	"log"
-	"math/rand"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
@@ -102,15 +99,13 @@ func GetShoppinglists(c *gin.Context) {
 }
 
 type CreateShoppinglistForm struct {
-	Title        string                `form:"title"`
-	Participants []*models.Participant `form:"participants"`
+	Title string `form:"title"`
+	//Participants []*models.Participant `form:"participants"`
 }
 
 func CreateShoppinglist(c *gin.Context) {
 	var (
-		appG                  = app.Gin{C: c}
-		seededRand *rand.Rand = rand.New(
-			rand.NewSource(time.Now().UnixNano()))
+		appG = app.Gin{C: c}
 	)
 
 	var f CreateShoppinglistForm
@@ -126,13 +121,13 @@ func CreateShoppinglist(c *gin.Context) {
 
 	//TODO: Validate data some other way
 
-	if f.Participants == nil {
+	/*if f.Participants == nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
 			"error":   "error while binding json to struct",
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
 	if f.Title == "" {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -152,7 +147,7 @@ func CreateShoppinglist(c *gin.Context) {
 		return
 	}
 
-	randomId := seededRand.Intn(900000)
+	randomId := util.RandomIntWithLength(900000)
 	owner, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
@@ -160,26 +155,21 @@ func CreateShoppinglist(c *gin.Context) {
 		return
 	}
 
-	//TODO: Check if all the participants have an account before sending the invite
-	lists := services.Shoppinglist{
-		ID:           randomId,
-		Title:        f.Title,
-		Owner:        owner,
-		Participants: f.Participants,
-	}
-
-	//TODO: maybe remove?
-	exists, err := lists.ExistsByID()
-	if err != nil || exists {
+	userId, err := models.GetUserIDByEmail(owner)
+	if err != nil {
 		log.Print(err)
-		appG.Response(http.StatusBadRequest, e.ERROR_LIST_DOES_NOT_EXIST, map[string]string{
-			"id":    strconv.Itoa(randomId),
-			"error": "id already in use - retry",
-		})
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
 		return
 	}
 
-	if _, err := lists.Create(); err != nil {
+	lists := services.Shoppinglist{
+		ID:    randomId,
+		Title: f.Title,
+		Owner: owner,
+		//Participants: f.Participants,
+	}
+
+	if _, err := lists.Create(userId, true); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, map[string]string{
 			"success": "false",
 			"message": "Error while creating Shoppinglist",

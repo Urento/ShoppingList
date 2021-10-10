@@ -13,8 +13,8 @@ func TestCreate(t *testing.T) {
 
 	t.Run("Create and Check", func(t *testing.T) {
 		id := util.RandomIntWithLength(500)
-		title := "title" + util.StringWithCharset(20)
-		owner := "owner" + util.StringWithCharset(30)
+		title := "title" + util.StringWithCharset(200)
+		owner := "owner" + util.StringWithCharset(300)
 		participants := []*models.Participant{
 			{
 				ParentListID: id,
@@ -32,7 +32,7 @@ func TestCreate(t *testing.T) {
 			Participants: participants,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil || !created {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -62,20 +62,20 @@ func TestCreate(t *testing.T) {
 
 	t.Run("Create and Edit", func(t *testing.T) {
 		id := util.RandomIntWithLength(500)
-		title := "title33232999" + util.StringWithCharset(20)
-		owner := "999owner999" + util.StringWithCharset(30)
+		title := "title33232999" + util.StringWithCharset(200)
+		owner := "999owner999" + util.StringWithCharset(300)
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
 
-		title2 := util.StringWithCharset(9) + util.StringWithCharset(20)
+		title2 := util.StringWithCharset(9) + util.StringWithCharset(200)
 		shoppinglist = Shoppinglist{
 			ID:    id,
 			Title: title2,
@@ -115,8 +115,8 @@ func TestExistsByID(t *testing.T) {
 	Setup()
 
 	id := util.RandomIntWithLength(500)
-	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(20)
-	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(30)
+	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(200)
+	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(300)
 	participants := []*models.Participant{
 		{
 			ParentListID: id,
@@ -134,7 +134,7 @@ func TestExistsByID(t *testing.T) {
 		Participants: participants,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -160,12 +160,12 @@ func TestAddItem(t *testing.T) {
 
 	id := util.RandomIntWithLength(500)
 	itemID := util.RandomIntWithLength(500)
-	title := "title3332999" + util.StringWithCharset(20)
-	owner := "owner999" + util.StringWithCharset(30)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
-		Title:        util.StringWithCharset(10),
+		Title:        util.StringWithCharset(100),
 		Position:     util.RandomPosition(),
 	}
 	participants := []*models.Participant{
@@ -186,7 +186,7 @@ func TestAddItem(t *testing.T) {
 		Participants: participants,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -224,7 +224,7 @@ func TestGetList(t *testing.T) {
 		Participants: participants,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -247,12 +247,12 @@ func TestGetItems(t *testing.T) {
 
 	id := util.RandomIntWithLength(500)
 	itemID := util.RandomIntWithLength(500)
-	title := "title3332999" + util.StringWithCharset(20)
-	owner := "owner999" + util.StringWithCharset(30)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
-		Title:        util.StringWithCharset(10),
+		Title:        util.StringWithCharset(100),
 		Position:     util.RandomPosition(),
 	}
 	participants := []*models.Participant{
@@ -273,7 +273,7 @@ func TestGetItems(t *testing.T) {
 		Participants: participants,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -301,15 +301,15 @@ func TestGetLastPosition(t *testing.T) {
 	Setup()
 
 	t.Run("Get last position with two items", func(t *testing.T) {
-		id := util.RandomIntWithLength(300)
+		id := util.RandomIntWithLength(3000)
 		itemID := util.RandomIntWithLength(500)
-		title := "title3332999" + util.StringWithCharset(20)
-		owner := "owner999" + util.StringWithCharset(30)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
 		position := util.RandomPosition()
 		items := &models.Item{
 			ParentListID: id,
 			ItemID:       itemID,
-			Title:        util.StringWithCharset(10),
+			Title:        util.StringWithCharset(100),
 			Position:     position,
 		}
 		shoppinglist := Shoppinglist{
@@ -319,7 +319,7 @@ func TestGetLastPosition(t *testing.T) {
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil || !created {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -333,7 +333,7 @@ func TestGetLastPosition(t *testing.T) {
 		items2 := &models.Item{
 			ParentListID: id,
 			ItemID:       itemID,
-			Title:        util.StringWithCharset(10),
+			Title:        util.StringWithCharset(100),
 			Position:     position2,
 		}
 		shoppinglist2 := Shoppinglist{Items: *items2}
@@ -357,16 +357,16 @@ func TestGetLastPosition(t *testing.T) {
 	})
 
 	t.Run("Get Last Position without any items", func(t *testing.T) {
-		id := util.RandomIntWithLength(500)
-		title := "title3332999" + util.StringWithCharset(20)
-		owner := "owner999" + util.StringWithCharset(30)
+		id := util.RandomIntWithLength(5000)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil || !created {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -381,7 +381,7 @@ func TestGetItem(t *testing.T) {
 	Setup()
 
 	t.Run("Get Items", func(t *testing.T) {
-		id := util.RandomIntWithLength(500)
+		id := util.RandomIntWithLength(50000)
 		itemID := util.RandomIntWithLength(200)
 		title := "title3332999" + util.StringWithCharset(200)
 		owner := "owner999" + util.StringWithCharset(300)
@@ -400,7 +400,7 @@ func TestGetItem(t *testing.T) {
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -465,7 +465,7 @@ func TestUpdateItem(t *testing.T) {
 		Owner: owner,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -538,7 +538,7 @@ func TestAddParticipant(t *testing.T) {
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil {
 			t.Errorf("Failed to create shoppinglist %s", err.Error())
 		}
@@ -571,8 +571,8 @@ func TestGetParticipants(t *testing.T) {
 	Setup()
 
 	id := util.RandomIntWithLength(500)
-	title := "title3332999" + util.StringWithCharset(20)
-	owner := "owner999" + util.StringWithCharset(30)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
 	participantEmail := util.RandomEmail()
 	participantStatus := util.StringWithCharset(200)
 	participant := Participant{
@@ -586,7 +586,7 @@ func TestGetParticipants(t *testing.T) {
 		Owner: owner,
 	}
 
-	created, err := shoppinglist.Create()
+	created, err := shoppinglist.Create(0, false)
 	if err != nil {
 		t.Errorf("Failed to create shoppinglist %s", err.Error())
 	}
@@ -612,8 +612,8 @@ func TestRemoveParticipant(t *testing.T) {
 
 	t.Run("Remove Participant", func(t *testing.T) {
 		id := util.RandomIntWithLength(500)
-		title := "title3332999" + util.StringWithCharset(20)
-		owner := "owner999" + util.StringWithCharset(30)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
 		participantEmail := util.RandomEmail()
 		participantStatus := util.StringWithCharset(200)
 		participant := Participant{
@@ -627,7 +627,7 @@ func TestRemoveParticipant(t *testing.T) {
 			Owner: owner,
 		}
 
-		created, err := shoppinglist.Create()
+		created, err := shoppinglist.Create(0, false)
 		if err != nil {
 			t.Errorf("Failed to create shoppinglist %s", err)
 		}

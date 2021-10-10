@@ -11,6 +11,7 @@ interface Props {
   danger?: boolean;
   loadingText?: string;
   disabled?: boolean;
+  color?: "green" | "red" | "indigo";
 }
 
 export const Button: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const Button: React.FC<Props> = ({
   danger = false,
   loadingText = "Loading",
   disabled = false,
+  color = "indigo",
 }) => {
   return (
     <button
@@ -30,7 +32,7 @@ export const Button: React.FC<Props> = ({
       className={clsx(
         `group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
           !danger
-            ? "bg-indigo-600 hover:bg-indigo-700"
+            ? `bg-${color}-600 hover:bg-${color}-700`
             : "bg-red-600 hover:bg-red-700"
         } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
           !danger ? "focus:ring-indigo-500" : "focus:ring-red-500"
