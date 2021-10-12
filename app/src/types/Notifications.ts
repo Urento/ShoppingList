@@ -1,3 +1,15 @@
+export interface NotificationsResponse {
+  code: string;
+  message: string;
+  data: Notification[];
+}
+
+export interface NotificationResponse {
+  code: string;
+  message: string;
+  data: Notification;
+}
+
 export interface HasUnreadNotificationsResponse {
   code: string;
   message: string;
@@ -10,7 +22,9 @@ interface HasUnreadNotificationDataResponse {
 }
 
 export interface Notification {
-  id?: string;
+  created_on?: number;
+  date?: string;
+  id?: number;
   userId?: string;
   notification_type: string;
   title: string;

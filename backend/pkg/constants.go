@@ -1,7 +1,7 @@
 package util
 
 const (
-	PROD           = true
-	GITHUB_TESTING = false
+	PROD           = false
+	GITHUB_TESTING = true
 	LOCAL_TESTING  = false
 )

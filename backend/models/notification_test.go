@@ -7,6 +7,8 @@ import (
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
+//TODO: Add Test where I check if the notification was created after the shoppinglist was edited, deleted and created
+
 func CreateUser() (*Auth, error) {
 	username := util.StringWithCharset(500)
 	email := util.RandomEmail()
@@ -154,6 +156,41 @@ func TestGetNotifications(t *testing.T) {
 
 		if len(notifications) > 0 {
 			t.Errorf("Notifications are not an empty array")
+		}
+	})
+
+	t.Run("Get Notifications with more then 50 notifications", func(t *testing.T) {
+		user, err := CreateUser()
+		if err != nil {
+			t.Errorf("Error while creating user: %s", err)
+		}
+
+		for i := 0; i < 60; i++ {
+			notificationType := "invitation"
+			text := util.StringWithCharset(5000)
+			title := util.StringWithCharset(3000)
+
+			notification := Notification{
+				UserID:           user.ID,
+				Title:            title,
+				NotificationType: notificationType,
+				Text:             text,
+				Read:             false,
+			}
+
+			err = CreateNotification(notification)
+			if err != nil {
+				t.Errorf("Error while creating notification: %s", err)
+			}
+		}
+
+		notifications, err := GetNotifications(user.ID)
+		if err != nil {
+			t.Errorf("Error while getting notifications: %s", err)
+		}
+
+		if len(notifications) > 50 {
+			t.Errorf("More then 50 notifications were loaded")
 		}
 	})
 }

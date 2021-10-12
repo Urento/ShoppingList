@@ -12,6 +12,7 @@ interface Props {
   loadingText?: string;
   disabled?: boolean;
   color?: "green" | "red" | "indigo";
+  className?: string | null;
 }
 
 export const Button: React.FC<Props> = ({
@@ -24,21 +25,26 @@ export const Button: React.FC<Props> = ({
   loadingText = "Loading",
   disabled = false,
   color = "indigo",
+  className = null,
 }) => {
   return (
     <button
       disabled={disabled}
       type={type}
       className={clsx(
-        `group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-          !danger
-            ? `bg-${color}-600 hover:bg-${color}-700`
-            : "bg-red-600 hover:bg-red-700"
-        } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-          !danger ? "focus:ring-indigo-500" : "focus:ring-red-500"
+        `${
+          className === null
+            ? `group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
+                !danger
+                  ? `bg-${color}-600 hover:bg-${color}-700`
+                  : "bg-red-600 hover:bg-red-700"
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                !danger ? "focus:ring-indigo-500" : "focus:ring-red-500"
+              }`
+            : className
         }`
       )}
-      //onSubmit={onClick}
+      onClick={onClick}
     >
       {loading && (
         <svg className="loading-svg" viewBox="25 25 50 50">

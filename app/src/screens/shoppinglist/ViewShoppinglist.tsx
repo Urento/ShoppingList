@@ -15,7 +15,7 @@ const ViewShoppinglist: React.FC = ({}) => {
 
   const { isLoading, data, error } = useQuery<ListResponseData, Error>(
     `shoppinglist_${id}`,
-    () => fetchData(id),
+    async () => await fetchData(id),
     { refetchOnWindowFocus: false }
   );
 

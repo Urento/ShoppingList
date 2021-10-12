@@ -47,7 +47,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Error while getting the shoppinglist: %s", err.Error())
 		}
 
-		err = shoppinglist.Delete()
+		err = shoppinglist.Delete(0, false)
 		if err != nil {
 			t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 		}
@@ -82,7 +82,7 @@ func TestCreate(t *testing.T) {
 			Owner: owner,
 		}
 
-		err = shoppinglist.Edit()
+		err = shoppinglist.Edit(0, false)
 		if err != nil {
 			t.Errorf("Failed to edit shoppinglist %s", err.Error())
 		}
@@ -97,7 +97,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Shoppinglist not found %s", err.Error())
 		}
 
-		err = shoppinglist.Delete()
+		err = shoppinglist.Delete(0, false)
 		if err != nil {
 			t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 		}
@@ -145,7 +145,7 @@ func TestExistsByID(t *testing.T) {
 		t.Errorf("Shoppinglist did not get created %s", err.Error())
 	}
 
-	err = list.Delete()
+	err = list.Delete(0, false)
 	if err != nil {
 		t.Errorf("Shoppinglist couldn't be deleted %s", err.Error())
 	}

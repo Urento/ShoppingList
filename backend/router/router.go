@@ -53,7 +53,10 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/resetpassword/changepassword", api.ChangePassword)
 
 	apiv1.GET("/notifications/n/hasunread", notifications_v1.HasUnreadNotifications)
+	apiv1.GET("/notifications", notifications_v1.GetNotifications)
+	apiv1.GET("/notification/:notification_id", notifications_v1.GetNotification)
 	apiv1.POST("/notifications/n/markall", notifications_v1.MarkAllNotificationsAsRead)
+	apiv1.DELETE("/notifications", notifications_v1.DeleteNotification)
 
 	apiv1.POST("/twofactorauthentication", api.UpdateTwoFactorAuthentication)
 	r.POST("/twofactorauthentication/verify", api.VerifyTwoFactorAuthentication)

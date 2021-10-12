@@ -13,6 +13,7 @@ type Notification struct {
 	Title            string `json:"title"`
 	Text             string `json:"text"`
 	Read             bool   `json:"read" gorm:"default:false"`
+	Date             string `json:"date"`
 }
 
 func CreateNotification(notification Notification) error {
@@ -66,7 +67,7 @@ func GetNotifications(userId int) ([]Notification, error) {
 	}
 
 	var Notifications []Notification
-	err = db.Model(&Notification{}).Where("user_id = ?", userId).Find(&Notifications).Error
+	err = db.Model(&Notification{}).Where("user_id = ?", userId).Order("created_on desc").Limit(50).Find(&Notifications).Error
 
 	return Notifications, err
 }
@@ -127,20 +128,17 @@ func MarkAllNotificationsAsRead(userId int) error {
 	}
 
 	var Notifications []Notification
-	err = db.Model(&Notification{}).Where("user_id = ?", userId).Find(&Notifications).Error
+	err = db.Model(&Notification{}).Where("user_id = ?", userId).Where("read = ?", false).Find(&Notifications).Error
 	if err != nil {
 		return err
 	}
 
 	tx := db.Begin()
-
 	for _, notification := range Notifications {
 		if err := tx.Model(&Notification{}).Where("user_id = ?", notification.UserID).Where("id = ?", notification.ID).Update("read", true).Error; err != nil {
 			return err
 		}
 	}
-
 	tx.Commit()
-
 	return nil
 }

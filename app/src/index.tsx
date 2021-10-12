@@ -26,6 +26,8 @@ const NotificationsComponent = lazy(
   () => import("./screens/notifications/Notifications")
 );
 
+//TODO: Cache
+
 export const queryClient = new QueryClient();
 ReactDOM.render(
   <QueryClientProvider client={queryClient}>

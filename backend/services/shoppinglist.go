@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/urento/shoppinglist/models"
 )
@@ -50,6 +51,7 @@ func (s *Shoppinglist) Create(userId int, withNotification bool) (bool, error) {
 			Title:            "New Shoppinglist",
 			Text:             fmt.Sprintf("%s was created", s.Title),
 			NotificationType: "new_shoppinglist",
+			Date:             time.Now().Format("02.01.2006"),
 		}
 
 		if err := models.CreateNotification(notification); err != nil {
@@ -60,12 +62,26 @@ func (s *Shoppinglist) Create(userId int, withNotification bool) (bool, error) {
 	return true, nil
 }
 
-func (s *Shoppinglist) Edit() error {
+func (s *Shoppinglist) Edit(userId int, withNotification bool) error {
 	shoppinglist := map[string]interface{}{
 		"id":    s.ID,
 		"title": s.Title,
 		"items": s.Items,
 		"owner": s.Owner,
+	}
+
+	if withNotification {
+		notification := models.Notification{
+			UserID:           userId,
+			Title:            "New Shoppinglist",
+			Text:             fmt.Sprintf("%s was created", s.Title),
+			NotificationType: "new_shoppinglist",
+			Date:             time.Now().Format("02.01.2006"),
+		}
+
+		if err := models.CreateNotification(notification); err != nil {
+			return err
+		}
 	}
 
 	return models.EditList(s.ID, shoppinglist)
@@ -93,7 +109,21 @@ func (s *Shoppinglist) GetLastPosition() (int64, error) {
 	return models.GetLastPosition(s.ID)
 }
 
-func (s *Shoppinglist) Delete() error {
+func (s *Shoppinglist) Delete(userId int, withNotification bool) error {
+	if withNotification {
+		notification := models.Notification{
+			UserID:           userId,
+			Title:            "Deleted Shoppinglist",
+			Text:             "Shoppinglist was deleted", //add name
+			NotificationType: "deleted_shoppinglist",
+			Date:             time.Now().Format("02.01.2006"),
+		}
+
+		if err := models.CreateNotification(notification); err != nil {
+			return err
+		}
+	}
+
 	return models.DeleteList(s.ID)
 }
 
