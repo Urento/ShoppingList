@@ -25,7 +25,12 @@ const useLoadNotifications = () => {
     loadNotifications();
   }, []);
 
-  return [loadingNotification, notifications];
+  return [
+    loadingNotification,
+    notifications,
+    setNotifications,
+    setLoadingNotifications,
+  ];
 };
 
 export default useLoadNotifications;

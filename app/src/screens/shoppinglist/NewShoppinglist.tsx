@@ -1,14 +1,10 @@
-import clsx from "clsx";
 import React from "react";
-import { useEffect } from "react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "../..";
 import { Button } from "../../components/Button";
 import { Sidebar } from "../../components/Sidebar";
-import { useGetUserData } from "../../hooks/useGetUserData";
-import { Participant } from "../../types/Participant";
 import { API_URL } from "../../util/constants";
 
 const regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;

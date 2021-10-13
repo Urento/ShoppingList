@@ -13,7 +13,7 @@ func TestGenerateCodes(t *testing.T) {
 	email := util.StringWithCharset(10) + "@gmail.com"
 
 	t.Run("normal generate codes", func(t *testing.T) {
-		_, err := GenerateCodes(email, false)
+		_, err := GenerateCodes(email, 0, false, false)
 		if err != nil {
 			t.Errorf("Error while generating codes: %s", err)
 		}
@@ -33,7 +33,7 @@ func TestGenerateCodes(t *testing.T) {
 			t.Errorf("Error while checking if the user already has backup codes: %s", err)
 		}
 
-		_, err = GenerateCodes(email, true)
+		_, err = GenerateCodes(email, 0, true, false)
 		if err != nil {
 			t.Errorf("Error while generating codes: %s", err)
 		}
@@ -54,7 +54,7 @@ func TestGetCodes(t *testing.T) {
 
 	email := util.StringWithCharset(10) + "@gmail.com"
 
-	c, err := GenerateCodes(email, false)
+	c, err := GenerateCodes(email, 0, false, false)
 	if err != nil {
 		t.Errorf("Error while generating codes: %s", err)
 	}
@@ -74,12 +74,14 @@ func TestGetCodes(t *testing.T) {
 	s3 := util.StringArrayToArray(codes, 2)
 	s4 := util.StringArrayToArray(codes, 3)
 	s5 := util.StringArrayToArray(codes, 4)
+	s6 := util.StringArrayToArray(codes, 5)
 
 	Equal(t, c[0], s1)
 	Equal(t, c[1], s2)
 	Equal(t, c[2], s3)
 	Equal(t, c[3], s4)
 	Equal(t, c[4], s5)
+	Equal(t, c[5], s6)
 	Equal(t, true, has)
 	Equal(t, nil, err)
 }
@@ -89,7 +91,7 @@ func TestVerifyCode(t *testing.T) {
 
 	email := util.StringWithCharset(10) + "@gmail.com"
 
-	c, err := GenerateCodes(email, false)
+	c, err := GenerateCodes(email, 0, false, false)
 	if err != nil {
 		t.Errorf("Error while generating codes: %s", err)
 	}
@@ -115,7 +117,7 @@ func TestRemoveCodes(t *testing.T) {
 
 	email := util.StringWithCharset(30) + "@gmail.com"
 
-	_, err := GenerateCodes(email, false)
+	_, err := GenerateCodes(email, 0, false, false)
 	if err != nil {
 		t.Errorf("Error while generating codes: %s", err)
 	}

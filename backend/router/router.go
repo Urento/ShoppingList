@@ -58,6 +58,11 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("/notifications/n/markall", notifications_v1.MarkAllNotificationsAsRead)
 	apiv1.DELETE("/notifications", notifications_v1.DeleteNotification)
 
+	apiv1.GET("/backupcodes", api.GetBackupCodes)
+	apiv1.POST("/backupcodes", api.VerifyBackupCode)
+	apiv1.POST("/backupcodes/regenerate", api.RegenerateCodes)
+	apiv1.POST("/backupcodes/generate", api.GenerateCodes)
+
 	apiv1.POST("/twofactorauthentication", api.UpdateTwoFactorAuthentication)
 	r.POST("/twofactorauthentication/verify", api.VerifyTwoFactorAuthentication)
 

@@ -5,19 +5,33 @@ import { Loading } from "../../components/Loading";
 import { Sidebar } from "../../components/Sidebar";
 import useAuthCheck from "../../hooks/useAuthCheck";
 import useLoadNotifications from "./hooks/useLoadNotifications";
-import { Notification, NotificationResponse } from "../../types/Notifications";
+import {
+  Notification,
+  NotificationResponse,
+  NotificationsResponse,
+} from "../../types/Notifications";
 import { API_URL } from "../../util/constants";
 import swal from "sweetalert";
 
 const Notifications: React.FC = ({}) => {
   const history = useHistory();
   const authStatus = useAuthCheck();
-  const [deleting, setDeleting] = useState<boolean>(false);
-  const [loadingNotification, setLoadingNotification] =
-    useState<boolean>(false);
+  const [deleting, setDeleting] = useState({
+    loading: false,
+    id: 0,
+  });
+  const [loadingNotification, setLoadingNotification] = useState({
+    loading: false,
+    id: 0,
+  });
   const [markingAllNotificationsAsRead, setMarkingAllNotificationsAsRead] =
     useState<boolean>(false);
-  const [loadingNotifications, notifications] = useLoadNotifications();
+  const [
+    loadingNotifications,
+    notifications,
+    setNotifications,
+    setLoadingNotifications,
+  ] = useLoadNotifications();
 
   if (authStatus === "fail") {
     localStorage.removeItem("authenticated");
@@ -27,8 +41,27 @@ const Notifications: React.FC = ({}) => {
   if (authStatus === "pending") return <Loading withSidebar />;
   if (loadingNotifications) return <Loading withSidebar />;
 
+  const loadNotifications = async () => {
+    setLoadingNotifications(true);
+    setNotifications([]);
+    const response = await fetch(`${API_URL}/notifications`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      credentials: "include",
+    });
+    const fJson: NotificationsResponse = await response.json();
+    setNotifications(fJson.data);
+    setLoadingNotifications(false);
+  };
+
   const deleteNotification = async (id: number) => {
-    setDeleting(true);
+    setDeleting({
+      loading: true,
+      id: id,
+    });
 
     const alert = await swal({
       icon: "warning",
@@ -47,10 +80,13 @@ const Notifications: React.FC = ({}) => {
         body: JSON.stringify({ notification_id: id }),
         credentials: "include",
       });
-      window.location.reload();
+      await loadNotifications();
     }
 
-    setDeleting(false);
+    setDeleting({
+      loading: false,
+      id: id,
+    });
   };
 
   const loadNotification = async (id: number): Promise<Notification> => {
@@ -63,19 +99,25 @@ const Notifications: React.FC = ({}) => {
       credentials: "include",
     });
     const fJson: NotificationResponse = await response.json();
-    setLoadingNotification(false);
+    setLoadingNotification({
+      loading: false,
+      id: id,
+    });
     return fJson.data;
   };
 
   const viewNotification = async (id: number) => {
-    setLoadingNotification(true);
+    setLoadingNotification({
+      loading: true,
+      id: id,
+    });
     swal({
       title: "Loading Notification...",
     });
 
     const notification = await loadNotification(id);
 
-    if (!loadingNotification) {
+    if (!loadingNotification.loading) {
       swal.close!();
       swal({
         title: notification.title,
@@ -160,22 +202,43 @@ const Notifications: React.FC = ({}) => {
                       <p className="font-medium">{e.date}</p>
                     </td>
                     <td className="pl-16">
-                      <Button
-                        color="indigo"
-                        text="View"
-                        loadingText="Opening"
-                        onClick={() => viewNotification(e.id!)}
-                        loading={loadingNotification}
-                      />
+                      {loadingNotification.id === e.id &&
+                      loadingNotification.loading ? (
+                        <Button
+                          color="indigo"
+                          text="View"
+                          loadingText="Opening"
+                          onClick={() => viewNotification(e.id!)}
+                          loading={true}
+                        />
+                      ) : (
+                        <Button
+                          color="indigo"
+                          text="View"
+                          loadingText="Opening"
+                          onClick={() => viewNotification(e.id!)}
+                          loading={false}
+                        />
+                      )}
                     </td>
                     <td className="pl-1">
-                      <Button
-                        color="red"
-                        text="Delete"
-                        loadingText="Deleting"
-                        onClick={() => deleteNotification(e.id!)}
-                        loading={deleting}
-                      />
+                      {deleting.id === e.id && deleting.loading ? (
+                        <Button
+                          color="red"
+                          text="Delete"
+                          loadingText="Deleting"
+                          onClick={() => deleteNotification(e.id!)}
+                          loading={true}
+                        />
+                      ) : (
+                        <Button
+                          color="red"
+                          text="Delete"
+                          loadingText="Deleting"
+                          onClick={() => deleteNotification(e.id!)}
+                          loading={false}
+                        />
+                      )}
                     </td>
                   </tr>
                 );

@@ -152,7 +152,6 @@ func GetItems(id int) ([]Item, error) {
 
 func GetLastPosition(id int) (int64, error) {
 	var Position int64
-	//err := db.Where("parent_list_id = ?", id).Preload("Items").Select("position").First(&Position).Error
 	err := db.Model(&Item{}).Select("position").Where("parent_list_id = ?", id).Order("position asc").Find(&Position).Error
 	if err != nil {
 		return 0, err

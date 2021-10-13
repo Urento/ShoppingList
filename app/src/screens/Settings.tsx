@@ -25,7 +25,6 @@ const Settings: React.FC = () => {
   );
   const [username, setUsername] = useState<string | undefined>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [loadingLogout, setLoadingLogout] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEmail(e.target.value);
@@ -229,13 +228,10 @@ const Settings: React.FC = () => {
                 </div>
                 <div className="mb-4">
                   <Button
-                    loading={loadingLogout}
-                    onClick={() => setLoadingLogout(!loadingLogout)}
-                    text="LOG EVERYONE OUT"
+                    onClick={() => history.push("/backupcodes")}
+                    text="BACKUP CODES"
                     showIcon={true}
                     type="button"
-                    danger={false}
-                    disabled
                   />
                 </div>
                 <div className="mb-4 md:flex md:justify-between">

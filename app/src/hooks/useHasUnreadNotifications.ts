@@ -24,7 +24,6 @@ const useHasUnreadNotifications = () => {
     checkNotifications();
   }, []);
 
-  console.log(hasUnreadNotifications);
   return hasUnreadNotifications;
 };
 

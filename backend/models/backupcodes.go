@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/lib/pq"
 	"github.com/urento/shoppinglist/pkg/util"
 )
@@ -12,18 +14,20 @@ type BackupCodes struct {
 	Codes pq.StringArray `gorm:"type:text[]" json:"codes"`
 }
 
-func GenerateCodes(email string, regenerate bool) (pq.StringArray, error) {
+func GenerateCodes(email string, userId int, regenerate bool, withNotification bool) (pq.StringArray, error) {
 	code1 := util.RandomString(8)
 	code2 := util.RandomString(8)
 	code3 := util.RandomString(8)
 	code4 := util.RandomString(8)
 	code5 := util.RandomString(8)
+	code6 := util.RandomString(8)
 	codes := pq.StringArray{
 		code1,
 		code2,
 		code3,
 		code4,
 		code5,
+		code6,
 	}
 
 	backupCodes := &BackupCodes{
@@ -45,6 +49,20 @@ func GenerateCodes(email string, regenerate bool) (pq.StringArray, error) {
 		}
 	}
 
+	if withNotification {
+		notification := Notification{
+			UserID:           userId,
+			Title:            "New Backup Codes",
+			Text:             "New Backup Codes were generated",
+			NotificationType: "new_backupcodes",
+			Date:             time.Now().Format("02.01.2006"),
+		}
+
+		if err := CreateNotification(notification); err != nil {
+			return pq.StringArray{}, err
+		}
+	}
+
 	err := db.Create(&backupCodes).Error
 	if err != nil {
 		return pq.StringArray{}, err
@@ -55,13 +73,12 @@ func GenerateCodes(email string, regenerate bool) (pq.StringArray, error) {
 
 func GetCodes(email string) (pq.StringArray, error) {
 	var Codes pq.StringArray
-	err := db.Debug().Model(&BackupCodes{}).Where("owner = ?", email).Select("codes").Find(&Codes).Error
+	err := db.Model(&BackupCodes{}).Where("owner = ?", email).Select("codes").Find(&Codes).Error
 	return Codes, err
 }
 
 func RemoveCodes(email string) error {
-	//maybe even delete these permanently and dont keep them in the database
-	err := db.Debug().Where("owner = ?", email).Delete(&BackupCodes{Owner: email}).Error
+	err := db.Where("owner = ?", email).Delete(&BackupCodes{Owner: email}).Error
 	return err
 }
 
@@ -73,7 +90,7 @@ func HasCodes(email string) (bool, error) {
 
 func VerifyCode(email, code string) (bool, error) {
 	var Codes []string
-	err := db.Debug().Model(&BackupCodes{}).Select("codes").Where("owner = ?", email).Find(&Codes).Error
+	err := db.Model(&BackupCodes{}).Select("codes").Where("owner = ?", email).Find(&Codes).Error
 	if err != nil {
 		return false, err
 	}

@@ -25,6 +25,9 @@ const NotFoundComponent = lazy(() => import("./screens/NotFound"));
 const NotificationsComponent = lazy(
   () => import("./screens/notifications/Notifications")
 );
+const BackupCodesComponent = lazy(
+  () => import("./screens/backupcodes/BackupCodes")
+);
 
 //TODO: Cache
 
@@ -57,6 +60,8 @@ ReactDOM.render(
           <Route path="/list/:id" component={ViewShoppinglistComponent} />
 
           <Route path="/notifications" component={NotificationsComponent} />
+
+          <Route path="/backupcodes" component={BackupCodesComponent} />
 
           <Route exact path="/404" component={NotFoundComponent} />
           <Redirect to="/404" />

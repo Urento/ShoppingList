@@ -28,9 +28,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     //redirect for checking if the user is actually already authenticated
-    if (loggedIn) {
-      history.push("/dashboard");
-    }
+    if (loggedIn) history.push("/dashboard");
   }, []);
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,8 +91,7 @@ const Login: React.FC = () => {
   };
 
   const getSecretIdByJwtToken = (token: string) => {
-    const decoded = jwtDecode<JWTPayload>(token);
-    return decoded.secretId;
+    return jwtDecode<JWTPayload>(token).secretId;
   };
 
   return (
