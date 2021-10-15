@@ -30,6 +30,7 @@ type Auth struct {
 
 func Check(c *gin.Context) {
 	appGin := app.Gin{C: c}
+
 	token, err := GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -62,6 +63,7 @@ func Check(c *gin.Context) {
 
 func GetUser(c *gin.Context) {
 	appGin := app.Gin{C: c}
+
 	token, err := GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -104,6 +106,7 @@ type UpdateUserStruct struct {
 
 func UpdateUser(c *gin.Context) {
 	appGin := app.Gin{C: c}
+
 	token, err := GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -310,6 +313,7 @@ type LogoutSettings struct {
 
 func Logout(c *gin.Context) {
 	appGin := app.Gin{C: c}
+
 	token, err := GetCookie(c)
 	if err != nil {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
@@ -386,6 +390,7 @@ type InvalidateSpecificJWTTokenStruct struct {
 
 func InvalidateSpecificJWTToken(c *gin.Context) {
 	appGin := app.Gin{C: c}
+
 	token, err := GetCookie(c)
 	if err != nil {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_NOT_AUTHORIZED, map[string]string{
@@ -442,29 +447,6 @@ func InvalidateSpecificJWTToken(c *gin.Context) {
 	appGin.Response(http.StatusBadRequest, e.ERROR_JWT_TOKEN_DOES_NOT_BELONG_TO_EMAIL, map[string]string{
 		"success": "true",
 	})
-}
-
-func SetCookie(ctx *gin.Context, token string) error {
-	domain := os.Getenv("DOMAIN")
-	ctx.SetCookie("token", token, 24*60*60, "/", domain, util.IsProd(), true)
-	return nil
-}
-
-func GetCookie(ctx *gin.Context) (string, error) {
-	token, err := ctx.Request.Cookie("token")
-	if err != nil {
-		return "", err
-	}
-
-	if len(token.Value) <= 0 {
-		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
-	}
-
-	if len(token.Value) <= 50 {
-		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
-	}
-
-	return token.Value, nil
 }
 
 func RemoveCookie(ctx *gin.Context) {
@@ -698,4 +680,27 @@ func VerifyTwoFactorAuthentication(c *gin.Context) {
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true", "verified": "true"})
+}
+
+func SetCookie(ctx *gin.Context, token string) error {
+	domain := os.Getenv("DOMAIN")
+	ctx.SetCookie("token", token, 24*60*60, "/", domain, util.IsProd(), true)
+	return nil
+}
+
+func GetCookie(ctx *gin.Context) (string, error) {
+	token, err := ctx.Request.Cookie("token")
+	if err != nil {
+		return "", err
+	}
+
+	if len(token.Value) <= 0 {
+		return "", errors.New("cookie 'token' has to be longer than 0 charcters")
+	}
+
+	if len(token.Value) <= 50 {
+		return "", errors.New("cookie 'token' has to be longer than 50 charcters")
+	}
+
+	return token.Value, nil
 }

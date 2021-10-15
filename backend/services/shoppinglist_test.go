@@ -15,21 +15,10 @@ func TestCreate(t *testing.T) {
 		id := util.RandomIntWithLength(500)
 		title := "title" + util.StringWithCharset(200)
 		owner := "owner" + util.StringWithCharset(300)
-		participants := []*models.Participant{
-			{
-				ParentListID: id,
-				Email:        util.RandomEmail(),
-			},
-			{
-				ParentListID: id,
-				Email:        util.RandomEmail(),
-			},
-		}
 		shoppinglist := Shoppinglist{
-			ID:           id,
-			Title:        title,
-			Owner:        owner,
-			Participants: participants,
+			ID:    id,
+			Title: title,
+			Owner: owner,
 		}
 
 		created, err := shoppinglist.Create(0, false)
@@ -53,7 +42,6 @@ func TestCreate(t *testing.T) {
 		}
 
 		Equal(t, id, l.ID)
-		Equal(t, participants, l.Participants)
 		Equal(t, title, l.Title)
 		Equal(t, owner, l.Owner)
 		Equal(t, nil, err)
@@ -117,21 +105,10 @@ func TestExistsByID(t *testing.T) {
 	id := util.RandomIntWithLength(500)
 	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(200)
 	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(300)
-	participants := []*models.Participant{
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-	}
 	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Owner:        owner,
-		Participants: participants,
+		ID:    id,
+		Title: title,
+		Owner: owner,
 	}
 
 	created, err := shoppinglist.Create(0, false)
@@ -168,22 +145,11 @@ func TestAddItem(t *testing.T) {
 		Title:        util.StringWithCharset(100),
 		Position:     util.RandomPosition(),
 	}
-	participants := []*models.Participant{
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-	}
 	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Items:        *items,
-		Owner:        owner,
-		Participants: participants,
+		ID:    id,
+		Title: title,
+		Items: *items,
+		Owner: owner,
 	}
 
 	created, err := shoppinglist.Create(0, false)
@@ -207,21 +173,10 @@ func TestGetList(t *testing.T) {
 	id := util.RandomIntWithLength(500)
 	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(20)
 	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(30)
-	participants := []*models.Participant{
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-	}
 	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Owner:        owner,
-		Participants: participants,
+		ID:    id,
+		Title: title,
+		Owner: owner,
 	}
 
 	created, err := shoppinglist.Create(0, false)
@@ -237,9 +192,6 @@ func TestGetList(t *testing.T) {
 	Equal(t, true, created)
 	Equal(t, id, list.ID)
 	Equal(t, title, list.Title)
-	Equal(t, participants[0].ID, list.Participants[0].ID)
-	Equal(t, participants[0].Email, list.Participants[0].Email)
-	Equal(t, participants[0].Status, list.Participants[0].Status)
 }
 
 func TestGetItems(t *testing.T) {
@@ -255,22 +207,11 @@ func TestGetItems(t *testing.T) {
 		Title:        util.StringWithCharset(100),
 		Position:     util.RandomPosition(),
 	}
-	participants := []*models.Participant{
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-		{
-			ParentListID: id,
-			Email:        util.RandomEmail(),
-		},
-	}
 	shoppinglist := Shoppinglist{
-		ID:           id,
-		Title:        title,
-		Items:        *items,
-		Owner:        owner,
-		Participants: participants,
+		ID:    id,
+		Title: title,
+		Items: *items,
+		Owner: owner,
 	}
 
 	created, err := shoppinglist.Create(0, false)
@@ -680,6 +621,60 @@ func TestRemoveParticipant(t *testing.T) {
 
 		Equal(t, "shoppinglist does not exist", err.Error())
 	})
+}
+
+func TestDeleteItem(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(50000)
+	itemID := util.RandomIntWithLength(50000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	items := &models.Item{
+		ParentListID: id,
+		ItemID:       itemID,
+		Title:        util.StringWithCharset(100),
+		Position:     util.RandomPosition(),
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Items: *items,
+		Owner: owner,
+	}
+
+	created, err := shoppinglist.Create(0, false)
+	if err != nil {
+		t.Errorf("Failed to create shoppinglist %s", err.Error())
+	}
+
+	item, err := shoppinglist.AddItem()
+	if err != nil {
+		t.Errorf("Failed to edit shoppinglist %s", err.Error())
+	}
+
+	i := Item{
+		ItemID:       itemID,
+		ParentListID: id,
+	}
+
+	err = i.DeleteItem()
+	if err != nil {
+		t.Errorf("Error while deleting item: %s", err)
+	}
+
+	it, err := shoppinglist.GetItems()
+	if err != nil {
+		t.Errorf("Error while getting items: %s", err)
+	}
+
+	if len(it) > 0 {
+		t.Errorf("Item didn't get deleted")
+	}
+
+	Equal(t, true, created)
+	Equal(t, nil, err)
+	NotNil(t, item)
 }
 
 func Setup() {

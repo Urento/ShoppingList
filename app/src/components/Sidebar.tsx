@@ -46,7 +46,7 @@ export const Sidebar: React.FC = ({}) => {
 
   return (
     <div>
-      <div className="w-64 absolute sm:relative bg-gray-800 shadow md:h-full flex-col justify-between flex">
+      <div className="w-64 absolute sm:relative bg-gray-800 md:h-full flex-col justify-between flex">
         <div className="px-8">
           <div className="h-16 w-full flex items-center">
             <h1 className="text-white text-3xl font-bold">Shoppinglist</h1>

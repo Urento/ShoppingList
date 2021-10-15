@@ -46,6 +46,7 @@ func InitRouter() *gin.Engine {
 	apiv1.PUT("/list", v1.EditShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
 	apiv1.GET("/list/items/:id", v1.GetListItems) //TODO: Start using this when displaying items on the frontend
+	apiv1.POST("/list/items", v1.AddItem)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)

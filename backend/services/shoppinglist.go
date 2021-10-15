@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/urento/shoppinglist/models"
@@ -14,8 +13,6 @@ type Shoppinglist struct {
 	Items        models.Item
 	Owner        string
 	Participants []*models.Participant
-	PageNum      int
-	PageSize     int
 }
 
 type Item struct {
@@ -34,11 +31,10 @@ type Participant struct {
 }
 
 func (s *Shoppinglist) Create(userId int, withNotification bool) (bool, error) {
-	shoppinglist := map[string]interface{}{
-		"id":           s.ID,
-		"title":        s.Title,
-		"owner":        s.Owner,
-		"participants": s.Participants,
+	shoppinglist := models.Shoppinglist{
+		ID:    s.ID,
+		Title: s.Title,
+		Owner: s.Owner,
 	}
 
 	if err := models.CreateList(shoppinglist); err != nil {
@@ -95,16 +91,6 @@ func (s *Shoppinglist) GetListsByOwner() (*[]models.Shoppinglist, error) {
 	return models.GetListByEmail(s.Owner)
 }
 
-func (s *Shoppinglist) SendInvitationEmails() error {
-	for idx, val := range s.Participants {
-		email := s.Participants[idx]
-		log.Print(val)
-		log.Print(email)
-		//TODO: Send Emails
-	}
-	return nil
-}
-
 func (s *Shoppinglist) GetLastPosition() (int64, error) {
 	return models.GetLastPosition(s.ID)
 }
@@ -152,6 +138,10 @@ func (i *Item) UpdateItem() error {
 
 func (s *Shoppinglist) AddItem() (*models.Item, error) {
 	return models.AddItem(s.Items)
+}
+
+func (s *Item) DeleteItem() error {
+	return models.DeleteItem(s.ParentListID, s.ItemID)
 }
 
 func (p *Participant) AddParticipant() (models.Participant, error) {

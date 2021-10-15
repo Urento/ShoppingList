@@ -3,13 +3,13 @@ package api
 import (
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
+	"github.com/urento/shoppinglist/pkg/util"
 	"github.com/urento/shoppinglist/services"
 )
 
@@ -25,8 +25,16 @@ type VerifyId struct {
 func SendResetPassword(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	var resetPassword ResetPassword
 
@@ -47,17 +55,13 @@ func SendResetPassword(c *gin.Context) {
 
 	if emailByJwt != email {
 		appGin.Response(http.StatusBadRequest, e.ERROR_NOT_AUTHORIZED, map[string]string{
-			"message": "Wrong Email",
+			"message": "wrong email",
 			"success": "false",
 		})
 		return
 	}
 
-	resetPwdObj := ResetPassword{
-		Email: email,
-	}
-
-	ok, err := valid.Valid(&resetPwdObj)
+	ok, err := valid.Valid(&ResetPassword{Email: email})
 	if !ok {
 		log.Print(err)
 		app.MarkErrors(valid.Errors)
@@ -77,7 +81,7 @@ func SendResetPassword(c *gin.Context) {
 	}
 
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"message": "Successfully sent the Reset Password Email",
+		"message": "successfully sent the reset password email",
 		"success": "true",
 	})
 }
@@ -85,8 +89,16 @@ func SendResetPassword(c *gin.Context) {
 func VerifyVerificationId(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	var resetPassword VerifyId
 
@@ -149,8 +161,16 @@ func VerifyVerificationId(c *gin.Context) {
 func ChangePassword(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
-	tok := c.Request.Header.Get("Authorization")
-	token := strings.Replace(tok, "Bearer ", "", -1)
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
 
 	var resetPassword VerifyId
 

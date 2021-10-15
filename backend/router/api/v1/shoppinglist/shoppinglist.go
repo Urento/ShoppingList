@@ -333,6 +333,121 @@ func DeleteShoppinglist(c *gin.Context) {
 	})
 }
 
+type ItemRequest struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Position int    `json:"position"`
+}
+
+func AddItem(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	var form ItemRequest
+
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	if form.Title == "" {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "title can't be empty",
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	itemId := util.RandomIntWithLength(900000)
+	id := form.ID
+	log.Print(id)
+	item := &models.Item{
+		ParentListID: id,
+		ItemID:       itemId,
+		Title:        form.Title,
+		Position:     int64(form.Position),
+		Bought:       false,
+	}
+	shoppinglist := &services.Shoppinglist{
+		ID:    id,
+		Items: *item,
+		Owner: owner,
+	}
+
+	item, err = shoppinglist.AddItem()
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while adding item",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, item)
+}
+
+type UpdateItemRequest struct {
+}
+
+func UpdateItem(c *gin.Context) {
+
+}
+
+type DeleteItemRequest struct {
+	ID           int `json:"id"`
+	ParentListId int `json:"parent_list_id"`
+}
+
+func DeleteItem(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var form DeleteItemRequest
+
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	err := models.DeleteItem(form.ParentListId, form.ID)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while deleting item",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
+
+}
+
 func GetListItems(c *gin.Context) {
 	appG := app.Gin{C: c}
 	valid := validation.Validation{}

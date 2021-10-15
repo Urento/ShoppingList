@@ -25,7 +25,6 @@ func JWT() gin.HandlerFunc {
 		if token == "" {
 			code = e.ERROR_NOT_AUTHORIZED
 		} else {
-			//TODO: Implement Refresh Token
 			tokenValid, err := cache.IsTokenValid(token)
 			if err != nil || !tokenValid {
 				log.Print(err)
@@ -65,7 +64,7 @@ func JWT() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    code,
 				"message": e.GetMsg(code),
-				"data":    map[string]string{"token": token},
+				"data":    map[string]string{"token": token, "success": "false"},
 			})
 			c.Abort()
 			return
@@ -73,22 +72,6 @@ func JWT() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-func RefreshToken(c *gin.Context, token, secretId string) error {
-	email, err := cache.GetEmailByJWT(token)
-	if err != nil {
-		return err
-	}
-
-	refreshToken, err := util.GenerateToken(email, true)
-	if err != nil {
-		return err
-	}
-
-	SetCookie(c, refreshToken)
-
-	return nil
 }
 
 func SetCookie(ctx *gin.Context, token string) error {
