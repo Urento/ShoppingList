@@ -619,7 +619,7 @@ func TestRemoveParticipant(t *testing.T) {
 
 		err := participant.RemoveParticipant()
 
-		Equal(t, "shoppinglist does not exist", err.Error())
+		NotNil(t, err)
 	})
 }
 
@@ -630,7 +630,7 @@ func TestDeleteItem(t *testing.T) {
 	itemID := util.RandomIntWithLength(50000)
 	title := "title3332999" + util.StringWithCharset(200)
 	owner := "owner999" + util.StringWithCharset(300)
-	items := &models.Item{
+	items := models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
 		Title:        util.StringWithCharset(100),
@@ -639,7 +639,7 @@ func TestDeleteItem(t *testing.T) {
 	shoppinglist := Shoppinglist{
 		ID:    id,
 		Title: title,
-		Items: *items,
+		Items: items,
 		Owner: owner,
 	}
 
@@ -667,6 +667,7 @@ func TestDeleteItem(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error while getting items: %s", err)
 	}
+	t.Log(it)
 
 	if len(it) > 0 {
 		t.Errorf("Item didn't get deleted")
@@ -675,6 +676,82 @@ func TestDeleteItem(t *testing.T) {
 	Equal(t, true, created)
 	Equal(t, nil, err)
 	NotNil(t, item)
+}
+
+func TestUpdateItems(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(50000)
+	itemID := util.RandomIntWithLength(50000)
+	itemID2 := util.RandomIntWithLength(50000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	items := []models.Item{
+		{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        util.StringWithCharset(100),
+			Position:     util.RandomPosition(),
+		},
+		{
+			ParentListID: id,
+			ItemID:       itemID2,
+			Title:        util.StringWithCharset(100),
+			Position:     util.RandomPosition(),
+		},
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	created, err := shoppinglist.Create(0, false)
+	if err != nil {
+		t.Errorf("Error while creating shoppinglist: %s", err)
+	}
+
+	for _, item := range items {
+		_, err = models.AddItem(item)
+		if err != nil {
+			t.Errorf("Error while adding item: %s", err)
+		}
+	}
+
+	title3 := util.StringWithCharset(100)
+	position3 := util.RandomPosition()
+	title4 := util.StringWithCharset(100)
+	position4 := util.RandomPosition()
+	updateItems := []models.Item{
+		{
+			ParentListID: id,
+			ItemID:       itemID,
+			Title:        title3,
+			Position:     position3,
+		},
+		{
+			ParentListID: id,
+			ItemID:       itemID2,
+			Title:        title4,
+			Position:     position4,
+		},
+	}
+
+	err = UpdateItems(id, updateItems)
+	if err != nil {
+		t.Errorf("Error while updating items: %s", err)
+	}
+
+	i, err := shoppinglist.GetItems()
+	if err != nil {
+		t.Errorf("Error while getting items: %s", err)
+	}
+
+	Equal(t, true, created)
+	Equal(t, title3, i[0].Title)
+	Equal(t, position3, i[0].Position)
+	Equal(t, title4, i[1].Title)
+	Equal(t, position4, i[1].Position)
 }
 
 func Setup() {

@@ -382,7 +382,6 @@ func AddItem(c *gin.Context) {
 
 	itemId := util.RandomIntWithLength(900000)
 	id := form.ID
-	log.Print(id)
 	item := &models.Item{
 		ParentListID: id,
 		ItemID:       itemId,
@@ -410,10 +409,76 @@ func AddItem(c *gin.Context) {
 }
 
 type UpdateItemRequest struct {
+	ParentListID int    `json:"parentListId"`
+	Title        string `json:"title"`
+	Position     int64  `json:"position"`
+	Bought       bool   `json:"bought"`
 }
 
 func UpdateItem(c *gin.Context) {
+	appG := app.Gin{C: c}
+	itemId := com.StrTo(c.Param("id")).MustInt()
+	var form UpdateItemRequest
 
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	item := models.Item{
+		ParentListID: form.ParentListID,
+		ItemID:       itemId,
+		Title:        form.Title,
+		Position:     form.Position,
+		Bought:       form.Bought,
+	}
+
+	err := models.UpdateItem(item)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while updating item",
+			"success": "false",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, item)
+}
+
+type UpdateItemsRequest struct {
+	ParentListID int           `json:"parent_list_id"`
+	Items        []models.Item `json:"items"`
+}
+
+func UpdateItems(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var form UpdateItemsRequest
+
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	err := models.UpdateItems(form.ParentListID, form.Items)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while updating items",
+			"success": "false",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
 }
 
 type DeleteItemRequest struct {

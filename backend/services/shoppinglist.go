@@ -125,6 +125,10 @@ func (i *Item) GetItem() (models.Item, error) {
 	return models.GetItem(i.ParentListID, i.ItemID)
 }
 
+func UpdateItems(parentListId int, items []models.Item) error {
+	return models.UpdateItems(parentListId, items)
+}
+
 func (i *Item) UpdateItem() error {
 	item := models.Item{
 		ItemID:       i.ItemID,
@@ -140,8 +144,8 @@ func (s *Shoppinglist) AddItem() (*models.Item, error) {
 	return models.AddItem(s.Items)
 }
 
-func (s *Item) DeleteItem() error {
-	return models.DeleteItem(s.ParentListID, s.ItemID)
+func (i *Item) DeleteItem() error {
+	return models.DeleteItem(i.ParentListID, i.ItemID)
 }
 
 func (p *Participant) AddParticipant() (models.Participant, error) {

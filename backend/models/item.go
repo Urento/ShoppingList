@@ -29,7 +29,7 @@ func DeleteItem(parentListId, id int) error {
 		return errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Model(&Item{}).Where("item_id = ?", id).Where("parent_list_id = ?", parentListId).Delete(&Item{}).Error
+	err = db.Model(&Item{}).Where("item_id = ?", id).Where("parent_list_id = ?", parentListId).Delete(&Item{ItemID: id, ParentListID: parentListId}).Error
 	return err
 }
 
@@ -43,6 +43,31 @@ func UpdateItem(item Item) error {
 	return err
 }
 
+func UpdateItems(parentListId int, items []Item) error {
+	exists, err := ExistByID(parentListId)
+	if err != nil || !exists {
+		return errors.New("shoppinglist does not exist")
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, item := range items {
+		err = tx.Model(&Item{}).Where("parent_list_id = ?", parentListId).Where("item_id = ?", item.ItemID).Updates(&item).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	tx.Commit()
+
+	return err
+}
+
 func GetItem(id, itemID int) (Item, error) {
 	var item Item
 	err := db.Model(&Item{}).Where("parent_list_id = ?", id).Where("item_id = ?", itemID).First(&item).Error
@@ -51,7 +76,6 @@ func GetItem(id, itemID int) (Item, error) {
 
 func GetItems(id int) ([]Item, error) {
 	var Items []Item
-	//err := db.Where("parent_list_id = ?", id).Preload("Items").Find(&Items).Error
 	err := db.Model(&Item{}).Where("parent_list_id = ?", id).Find(&Items).Error
 	return Items, err
 }

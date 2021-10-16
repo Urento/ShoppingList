@@ -72,7 +72,7 @@ func CreateList(data Shoppinglist) error {
 		Owner: data.Owner,
 	}
 
-	err := db.Debug().Model(&Shoppinglist{}).Omit(clause.Associations).Create(&shoppinglist).Error
+	err := db.Model(&Shoppinglist{}).Omit(clause.Associations).Create(&shoppinglist).Error
 	return err
 }
 

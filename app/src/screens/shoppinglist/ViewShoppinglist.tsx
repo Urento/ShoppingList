@@ -1,14 +1,19 @@
 import React from "react";
 import { useQuery } from "react-query";
 import { useParams } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../components/Button";
 import { Sidebar } from "../../components/Sidebar";
-import { Item, ListResponse, ListResponseData } from "../../types/Shoppinglist";
 import { API_URL } from "../../util/constants";
 import { Loading } from "../../components/Loading";
-import { ReactSortable } from "react-sortablejs";
+import { ReactSortable, Sortable } from "react-sortablejs";
 import swal from "sweetalert";
+import {
+  Item,
+  ItemType,
+  ListResponse,
+  ListResponseData,
+} from "../../types/Shoppinglist";
 
 interface Params {
   id: string;
@@ -19,7 +24,7 @@ interface DeletingItemState {
   loading: boolean;
 }
 
-const ViewShoppinglist: React.FC = ({}) => {
+const Viewdata: React.FC = ({}) => {
   const { id } = useParams<Params>();
   const [creatingItem, setCreatingItem] = useState(false);
   const [deletingList, setDeletingList] = useState(false);
@@ -29,26 +34,36 @@ const ViewShoppinglist: React.FC = ({}) => {
   });
   const [items, setItems] = useState<Item[]>([]);
 
-  const { isLoading, data, error, refetch } = useQuery<ListResponseData, Error>(
-    `shoppinglist_${id}`,
-    async () => await fetchData(id),
-    { refetchOnWindowFocus: false }
-  );
+  const { isLoading, data, error, refetch, isFetching } = useQuery<
+    ListResponseData,
+    Error
+  >(`data_${id}`, async () => await fetchData(parseInt(id)), {
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    //TODO: Fix sorting
+    const sortedArray: Item[] | undefined = data?.items.sort((item1, item2) => {
+      if (item1.position > item2.position) return 1;
+      if (item1.position < item2.position) return -1;
+      return 0;
+    });
+
+    if (!isLoading) setItems(sortedArray!);
+    if (!isFetching) setItems(sortedArray!);
+  }, [isLoading, isFetching]);
 
   if (error) return <Loading withSidebar />;
   if (isLoading) return <Loading withSidebar />;
   if (!data) return <Loading withSidebar />;
-  //if (!isLoading) setItems(data?.items);
 
   const createItem = async () => {
     setCreatingItem(true);
     let pos: number;
     let position: number;
 
-    console.log(data?.items[data.items.length - 1].position);
-
     try {
-      pos = data?.items[data?.items.length].position;
+      pos = data.items[data.items.length - 1].position;
       position = pos + 1;
     } catch {
       position = 1;
@@ -77,11 +92,62 @@ const ViewShoppinglist: React.FC = ({}) => {
         credentials: "include",
       });
       refetch();
+      setCreatingItem(false);
     });
   };
 
   const deleteList = async () => {
     setDeletingList(true);
+  };
+
+  const deleteItem = async (itemId: number) => {
+    setDeletingItem({ id: itemId, loading: true });
+
+    await fetch(`${API_URL}/item`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ id: itemId, parent_list_id: parseInt(id) }),
+      credentials: "include",
+    });
+    refetch();
+    setDeletingItem({ id: 0, loading: false });
+  };
+
+  const updateItems = async (evt: Sortable.SortableEvent) => {
+    console.log(evt.oldIndex);
+    console.log(evt.newIndex);
+    const item1 = items[evt.oldIndex!];
+    const item2 = items[evt.newIndex!];
+    const i: ItemType[] = [
+      {
+        title: item1.title,
+        bought: item1.bought,
+        id: item1.id,
+        itemId: item1.itemId,
+        parentListId: item1.parentListId,
+        position: evt.oldIndex!,
+      },
+      {
+        title: item2.title,
+        bought: item2.bought,
+        id: item2.id,
+        itemId: item2.itemId,
+        parentListId: item2.parentListId,
+        position: evt.newIndex!,
+      },
+    ];
+    await fetch(`${API_URL}/items`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ parent_list_id: parseInt(id), items: i }),
+      credentials: "include",
+    });
   };
 
   return (
@@ -102,7 +168,7 @@ const ViewShoppinglist: React.FC = ({}) => {
           <br />
           <Button
             text="Delete Shoppinglist"
-            loadingText="Creating new Item..."
+            loadingText="Deleting Shoppinglist..."
             onClick={deleteList}
             className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-red-600 hover:bg-red-500 text-white focus:outline-none rounded"
             loading={deletingList}
@@ -120,11 +186,17 @@ const ViewShoppinglist: React.FC = ({}) => {
               <tr className="h-16 w-full text-sm leading-none ">
                 <th className="font-normal text-left pl-12"></th>
                 <th className="font-normal text-left pl-12"></th>
+                <th className="font-normal text-left pl-12"></th>
+                <th className="font-normal text-left pl-12"></th>
               </tr>
             </thead>
             <tbody className="w-full">
-              <ReactSortable list={data?.items} setList={setItems}>
-                {data?.items.map((e: Item, idx: number) => {
+              <ReactSortable
+                list={items}
+                setList={setItems}
+                onChange={updateItems}
+              >
+                {items.map((e: Item, idx: number) => {
                   return (
                     <tr
                       className="h-20 text-lg leading-none text-gray-800 bg-white hover:bg-gray-100 border-b border-t border-gray-100"
@@ -136,14 +208,32 @@ const ViewShoppinglist: React.FC = ({}) => {
                       <td className="pl-16">
                         <p className="font-medium">
                           {e.bought ? (
-                            <span className="text-green-500"></span>
+                            <span className="text-green-500">Bought</span>
                           ) : (
                             <span className="text-red-500">Not Bought</span>
                           )}
                         </p>
                       </td>
-                      <td className="pl-16"></td>
-                      <td className="pl-1"></td>
+                      <td className="pl-16">
+                        <Button
+                          text="Delete"
+                          loadingText="Deleting..."
+                          loading={
+                            deletingItem.id === e.itemId && deletingItem.loading
+                          }
+                          color="red"
+                          onClick={() => deleteItem(e.itemId)}
+                        />
+                      </td>
+                      <td className="pl-16">
+                        <Button
+                          text="Bought"
+                          loadingText="Marking as bought..."
+                          loading={false}
+                          color="green"
+                          onClick={() => console.log("")}
+                        />
+                      </td>
                     </tr>
                   );
                 })}
@@ -156,14 +246,17 @@ const ViewShoppinglist: React.FC = ({}) => {
   );
 };
 
-const fetchData = async (id: string) => {
+const fetchData = async (id: number) => {
   const response = await fetch(`${API_URL}/list/${id}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
     credentials: "include",
   });
   const fJson: ListResponse = await response.json();
   return fJson.data;
 };
 
-export default ViewShoppinglist;
+export default Viewdata;

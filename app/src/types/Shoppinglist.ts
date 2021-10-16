@@ -34,6 +34,18 @@ export interface Item {
   bought: boolean;
 }
 
+export type ItemType = {
+  created_on?: number;
+  modified_on?: number;
+  deleted_at?: number;
+  id: number;
+  parentListId: number;
+  itemId: number;
+  title: string;
+  position: number;
+  bought: boolean;
+};
+
 export interface Shoppinglist {
   id: number;
   title: string;
