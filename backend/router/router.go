@@ -22,7 +22,7 @@ func InitRouter() *gin.Engine {
 	r.Use(ratelimiter.Ratelimiter())
 	r.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"OPTIONS", "PUT", "GET", "POST", "DELETE", "PATCH"},
-		AllowOrigins:     []string{"http://localhost:3000"}, //TODO: allow all origins
+		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           9 * time.Hour,

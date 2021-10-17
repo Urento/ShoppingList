@@ -3,7 +3,7 @@ import "./App.css";
 import { AUTH_REGISTER_API_URL } from "./util/constants";
 import swal from "sweetalert";
 import clsx from "clsx";
-import { Redirect, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { Button } from "./components/Button";
 
 interface DataResponse {

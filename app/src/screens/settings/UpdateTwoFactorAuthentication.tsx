@@ -4,7 +4,9 @@ import { useHistory, useLocation } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "../..";
 import { Button } from "../../components/Button";
+import { Loading } from "../../components/Loading";
 import { Sidebar } from "../../components/Sidebar";
+import useAuthCheck from "../../hooks/useAuthCheck";
 import { getUser } from "../../storage/UserStorage";
 import { VerifyResponse } from "../../types/TwoFactorAuthentication";
 import { API_URL, TOTP_API_URL } from "../../util/constants";
@@ -15,12 +17,13 @@ interface Props {
 }
 
 const UpdateTwoFactorAuthentication: React.FC = () => {
+  const location = useLocation<Props>();
+  const qrCode = useLoadQRCode(location.state.status);
+  const history = useHistory();
+  const authStatus = useAuthCheck();
   const [otp, setOTP] = useState("");
   const [status, setStatus] = useState(true); //enable or disable totp
   const [loading, setLoading] = useState(false);
-  const location = useLocation<Props>();
-  const history = useHistory();
-  const qrCode = useLoadQRCode(location.state.status);
 
   useEffect(() => {
     if (location.state.status === null || location.state.status === undefined)
@@ -28,6 +31,13 @@ const UpdateTwoFactorAuthentication: React.FC = () => {
     setStatus(location.state.status);
     console.log(location.state.status);
   }, [location]);
+
+  if (authStatus === "fail") {
+    localStorage.removeItem("authenticated");
+    history.push("/");
+  }
+
+  if (authStatus === "pending") return <Loading withSidebar />;
 
   const enableTOTP = async (e: any) => {
     e.preventDefault();
@@ -52,7 +62,7 @@ const UpdateTwoFactorAuthentication: React.FC = () => {
     });
     const fJson: VerifyResponse = await response.json();
     if (
-      fJson.code != 200 ||
+      fJson.code !== 200 ||
       fJson.data.success !== "true" ||
       fJson.data.verified !== "true"
     ) {
@@ -137,7 +147,9 @@ const UpdateTwoFactorAuthentication: React.FC = () => {
             <h1 className="text-2xl">
               {status ? "Enable" : "Disable"} Two Factor Authentication
             </h1>
-            {status && <img src={`data:image/png;base64,${qrCode}`} />}
+            {status && (
+              <img alt="QR Code" src={`data:image/png;base64,${qrCode}`} />
+            )}
             <form
               className="px-8 pt-6 pb-8 mb-4 bg-white rounded"
               onSubmit={location.state.status ? enableTOTP : verifyTOTP}

@@ -4,13 +4,14 @@ import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "..";
 import { Participant } from "../types/Participant";
+import { Item } from "../types/Shoppinglist";
 import { API_URL } from "../util/constants";
 import { Loading } from "./Loading";
 
 interface ListData {
   id: number;
   title: string;
-  items: string[];
+  items: Item[];
   owner: string;
   participants: Participant[];
   position: number;

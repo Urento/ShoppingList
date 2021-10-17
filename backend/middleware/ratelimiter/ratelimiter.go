@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -54,7 +53,7 @@ func GetAndUpdateLimit(c *gin.Context) (int64, error) {
 	var limit int64
 	ip := c.ClientIP()
 
-	val, err := rdb.Get(ctx, "ratelimit:"+ip).Result()
+	val, err := rdb.Get(ctx, "ratelimit:"+ip).Int64()
 	if err != nil || err == redis.Nil {
 		//first time sending a request so create a new entry
 		err = rdb.Set(ctx, "ratelimit:"+ip, 1, 180*time.Second).Err()
@@ -63,15 +62,10 @@ func GetAndUpdateLimit(c *gin.Context) (int64, error) {
 		}
 	} else {
 		//is already in the database; just incr the old number
-		v, err := strconv.ParseInt(val, 10, 64)
-		if err != nil {
-			return 0, errors.New("unable to parse the remaining requests from string to int64")
-		}
-
-		if v >= 300 {
+		if val >= 300 {
 			return 0, errors.New("limit reached")
 		}
-		limit = v + 1
+		limit = val + 1
 		err = rdb.Set(ctx, "ratelimit:"+ip, limit, redis.KeepTTL).Err()
 		if err != nil {
 			return 0, err

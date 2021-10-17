@@ -80,14 +80,10 @@ const Settings: React.FC = () => {
     history.push("/");
   }
 
-  if (authStatus === "pending") {
-    return <Loading />;
-  }
-
-  //fetch user
+  if (authStatus === "pending") return <Loading />;
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading withSidebar />;
   }
 
   if (error) {

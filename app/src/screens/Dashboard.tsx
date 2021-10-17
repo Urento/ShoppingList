@@ -14,9 +14,7 @@ const Dashboard: React.FC = () => {
     history.push("/");
   }
 
-  if (authStatus === "pending") {
-    return <Loading withSidebar />;
-  }
+  if (authStatus === "pending") return <Loading withSidebar />;
 
   return (
     <div className="flex flex-no-wrap h-screen">

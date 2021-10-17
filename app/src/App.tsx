@@ -55,7 +55,14 @@ const Login: React.FC = () => {
     });
     const fJson: LoginJSONResponse = await f.json();
 
-    if (fJson.message === "fail") {
+    //TODO: test
+    if (fJson.data.error === "too many failed login attempts") {
+      swal({
+        icon: "error",
+        title: "Login failed",
+        text: "You have too many failed login attempts! Please wait 10 Minutes",
+      });
+    } else if (fJson.message === "fail") {
       setError({ email: true, password: true });
     } else if (fJson.message === "ok" && fJson.data.otp) {
       history.push({

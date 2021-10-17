@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"log"
 	"os"
 
 	"github.com/go-redis/redis/v8"
@@ -34,7 +33,7 @@ func Setup() {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	redisPassword := os.Getenv("REDIS_PASSWORD")
@@ -52,18 +51,4 @@ func Setup() {
 			DB:       0,
 		})
 	}
-}
-
-func LoadEnv() error {
-	var err error
-	if util.PROD {
-		err = godotenv.Load()
-	} else if util.GITHUB_TESTING {
-		err = nil
-	} else if util.LOCAL_TESTING {
-		err = godotenv.Load("../.env")
-	} else {
-		err = godotenv.Load()
-	}
-	return err
 }

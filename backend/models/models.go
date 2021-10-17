@@ -34,7 +34,8 @@ func Setup() {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		//log.Fatal(err)
+		panic(err)
 	}
 
 	newLogger := logger.New(
@@ -54,7 +55,8 @@ func Setup() {
 		Logger: newLogger,
 	})
 	if err != nil {
-		log.Fatalf("Error while connecting to database: %s", err)
+		//log.Fatalf("Error while connecting to database: %s", err)
+		panic(err)
 	}
 
 	db.AutoMigrate(
@@ -69,6 +71,7 @@ func Setup() {
 
 	_, err = db.DB()
 	if err != nil {
-		log.Fatalf("Error while connecting to database: %s", err)
+		//log.Fatalf("Error while connecting to database: %s", err)
+		panic(err)
 	}
 }

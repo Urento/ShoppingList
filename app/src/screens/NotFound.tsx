@@ -1,6 +1,18 @@
+import { useHistory } from "react-router";
+import { Loading } from "../components/Loading";
 import { Sidebar } from "../components/Sidebar";
+import useAuthCheck from "../hooks/useAuthCheck";
 
 const NotFound: React.FC = ({}) => {
+  const authStatus = useAuthCheck();
+  const history = useHistory();
+  if (authStatus === "fail") {
+    localStorage.removeItem("authenticated");
+    history.push("/");
+  }
+
+  if (authStatus === "pending") return <Loading withSidebar />;
+
   return (
     <div className="flex flex-no-wrap h-screen">
       <Sidebar />

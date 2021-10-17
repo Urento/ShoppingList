@@ -94,10 +94,5 @@ func IsUserCached(email string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	if exists == 1 {
-		return true, nil
-	} else {
-		return false, nil
-	}
+	return exists == 1, nil
 }

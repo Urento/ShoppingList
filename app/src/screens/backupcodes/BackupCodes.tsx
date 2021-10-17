@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useHistory } from "react-router";
 import swal from "sweetalert";
 import { Button } from "../../components/Button";
 import { Loading } from "../../components/Loading";
 import { Sidebar } from "../../components/Sidebar";
+import useAuthCheck from "../../hooks/useAuthCheck";
 import { GenerateBackupCodesResponse } from "../../types/BackupCodes";
 import { API_URL } from "../../util/constants";
 import useLoadBackupCodes from "./hooks/useLoadBackupCodes";
 
 const BackupCodes: React.FC = () => {
+  const authStatus = useAuthCheck();
+  const history = useHistory();
   const [refreshCodes, setRefreshCodes] = useState<boolean>(false);
   const {
     loadingBackupCodes,
@@ -18,6 +22,12 @@ const BackupCodes: React.FC = () => {
   } = useLoadBackupCodes(refreshCodes);
 
   if (loadingBackupCodes) return <Loading withSidebar />;
+  if (authStatus === "fail") {
+    localStorage.removeItem("authenticated");
+    history.push("/");
+  }
+
+  if (authStatus === "pending") return <Loading withSidebar />;
 
   const generateBackupCodes = async (regenerate = false) => {
     setLoadingBackupCodes(true);
@@ -72,6 +82,7 @@ const BackupCodes: React.FC = () => {
       <Sidebar />
       <div className="container mx-auto py-10 md:w-4/5 w-11/12">
         <div className="bg-white px-4 md:px-10 pt-5 md:pt-7 pb-5 overflow-y-auto">
+          <h1 className="text-4xl text-center">Backup Codes</h1>
           {backupCodes.codes.length <= 0 && !loadingBackupCodes && (
             <Button
               text="Generate Backup Codes"

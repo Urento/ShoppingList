@@ -11,6 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	failedLoginAttemptsPrefix = "login_attempts:"
+)
+
 func CacheJWT(email, token string) error {
 	ctx := context.Background()
 	t := 24 * time.Hour
@@ -101,11 +105,7 @@ func EmailExists(email string) (bool, error) {
 		return false, err
 	}
 
-	if exists == 1 {
-		return true, nil
-	} else {
-		return false, nil
-	}
+	return exists == 1, nil
 }
 
 func Check(email, token string) (bool, error) {
@@ -155,12 +155,7 @@ func IsTokenValid(token string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	if exists == 1 {
-		return true, nil
-	} else {
-		return false, nil
-	}
+	return exists == 1, nil
 }
 
 func DeleteTokenByEmail(email, token string) (bool, error) {
@@ -184,7 +179,6 @@ func DeleteTokenByEmail(email, token string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
 	return true, nil
 }
 
@@ -193,7 +187,6 @@ func GetTTLByEmail(email string) (time.Duration, error) {
 	if err != nil {
 		return -1, err
 	}
-
 	return ttl, nil
 }
 
@@ -249,11 +242,7 @@ func VerifySecretId(email, secretId string) (bool, error) {
 		return false, err
 	}
 
-	if kds.SecretId == secretId {
-		return true, nil
-	}
-
-	return false, nil
+	return kds.SecretId == secretId, nil
 }
 
 func HasSecretId(email string) (string, bool, error) {
@@ -275,5 +264,57 @@ func HasSecretId(email string) (string, bool, error) {
 
 func InvalidateSecretId(email string) error {
 	err := rdb.Del(context.Background(), redisJwtPrefix+email).Err()
+	return err
+}
+
+func GetFailedLoginAttempts(ctx context.Context, email string) (int, error) {
+	failedAttempts, err := rdb.Get(ctx, failedLoginAttemptsPrefix+email).Int()
+	if err == redis.Nil {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	return failedAttempts, nil
+}
+
+func HasFailedLoginAttempts(ctx context.Context, email string) (bool, error) {
+	exists, err := rdb.Exists(ctx, failedLoginAttemptsPrefix+email).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return exists == 1, nil
+}
+
+func UpdateFailedLoginAttempts(ctx context.Context, email string) error {
+	has, err := HasFailedLoginAttempts(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	if has {
+		err = rdb.Incr(ctx, failedLoginAttemptsPrefix+email).Err()
+		if err != nil {
+			return err
+		}
+
+		//reset ttl
+		err = rdb.Expire(ctx, failedLoginAttemptsPrefix, 600*time.Second).Err()
+		if err != nil {
+			return err
+		}
+	} else {
+		err := rdb.Set(ctx, failedLoginAttemptsPrefix+email, 1, 600*time.Second).Err()
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func ClearFailedLoginAttempts(ctx context.Context, email string) error {
+	err := rdb.Del(ctx, failedLoginAttemptsPrefix+email).Err()
 	return err
 }

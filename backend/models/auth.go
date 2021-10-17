@@ -1,7 +1,9 @@
 package models
 
 import (
+	"context"
 	"errors"
+	"log"
 	"net/mail"
 
 	"github.com/alexedwards/argon2id"
@@ -40,6 +42,13 @@ func CheckAuth(email, password, ip string) (bool, error) {
 		return false, nil
 	}
 
+	attempts, err := cache.GetFailedLoginAttempts(context.Background(), email)
+	log.Print(attempts)
+	if err != nil || attempts >= 10 {
+		log.Print(err)
+		return false, errors.New("too many failed login attempts")
+	}
+
 	pwdHash, err1 := GetPasswordHash(email)
 	if err1 != nil {
 		return false, nil
@@ -73,7 +82,17 @@ func CheckAuth(email, password, ip string) (bool, error) {
 	}
 
 	if auth.ID > 0 && match {
+		err = cache.ClearFailedLoginAttempts(context.Background(), email)
+		if err != nil {
+			return true, err
+		}
 		return true, nil
+	}
+
+	err = cache.UpdateFailedLoginAttempts(context.Background(), email)
+	if err != nil {
+		log.Print(err)
+		return false, errors.New("error while updating failed login attempts")
 	}
 
 	return false, nil

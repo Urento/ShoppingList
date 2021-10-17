@@ -1,12 +1,12 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	. "github.com/stretchr/testify/assert"
 )
 
@@ -29,8 +29,8 @@ func TestCacheJWTToken(t *testing.T) {
 
 	exists, err := EmailExists(email)
 
-	Equal(t, nil, err)
-	Equal(t, true, exists)
+	Nil(t, err)
+	True(t, exists)
 }
 
 func TestGetTokenByEmail(t *testing.T) {
@@ -49,7 +49,7 @@ func TestGetTokenByEmail(t *testing.T) {
 		t.Errorf("Error while getting Token by Email %s", err)
 	}
 
-	Equal(t, nil, err)
+	Nil(t, err)
 	Equal(t, token, val)
 }
 
@@ -73,7 +73,7 @@ func TestDoesTokenExpireAfter1Day(t *testing.T) {
 		t.Errorf("ttl is too low")
 	}
 
-	Equal(t, nil, err)
+	Nil(t, err)
 }
 
 func TestGetEmailByJWT(t *testing.T) {
@@ -122,7 +122,7 @@ func TestDeleteToken(t *testing.T) {
 			t.Error("Token is still cached")
 		}
 
-		Equal(t, true, ok)
+		True(t, ok)
 		Equal(t, "jwt token not cached", err.Error())
 	})
 
@@ -145,7 +145,7 @@ func TestDeleteToken(t *testing.T) {
 			t.Errorf("No Error thrown 2 ")
 		}
 
-		Equal(t, false, ok)
+		False(t, ok)
 		Equal(t, "jwt token not cached", err.Error())
 	})
 }
@@ -167,8 +167,8 @@ func TestIsTokenValid(t *testing.T) {
 			t.Errorf("Error while checking if token is valid %s", err)
 		}
 
-		Equal(t, true, valid)
-		Equal(t, nil, err)
+		True(t, valid)
+		Nil(t, err)
 	})
 
 	t.Run("TestIsTokenValidWithInvalidToken", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestIsTokenValid(t *testing.T) {
 
 		valid, _ := IsTokenValid(token)
 
-		Equal(t, false, valid)
+		False(t, valid)
 	})
 }
 
@@ -196,8 +196,8 @@ func TestGenerateSecretIdAndVerify(t *testing.T) {
 			t.Errorf("Error while verifying secert id: %s", err)
 		}
 
-		Equal(t, true, ok)
-		Equal(t, nil, err)
+		True(t, ok)
+		Nil(t, err)
 	})
 
 	t.Run("TestVerifySecretIdWithWrongIdWithExistingAccount", func(t *testing.T) {
@@ -213,8 +213,8 @@ func TestGenerateSecretIdAndVerify(t *testing.T) {
 			t.Errorf("Error while verifying secert id: %s", err)
 		}
 
-		Equal(t, false, ok)
-		Equal(t, nil, err)
+		False(t, ok)
+		Nil(t, err)
 	})
 
 	t.Run("TestVerifySecretIdWithWrongIdWithoutAccount", func(t *testing.T) {
@@ -225,49 +225,9 @@ func TestGenerateSecretIdAndVerify(t *testing.T) {
 			t.Errorf("No error thrown even though the secretId is wrong and doesn't exist")
 		}
 
-		Equal(t, false, ok)
+		False(t, ok)
 		Equal(t, "secretid is not valid", err.Error())
 	})
-}
-
-func TestGetTwoFactorAuthenticationStatus(t *testing.T) {
-	Setup()
-
-	email := StringWithCharset(100) + "@gmail.com"
-	username := StringWithCharset(100)
-	password := StringWithCharset(300)
-	emailVerified := RandomBoolean()
-	rank := RandomRank()
-	twoFactorAuthentication := RandomBoolean()
-	ip := RandomIPAddress()
-
-	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
-	if err != nil {
-		t.Errorf("Error while creating password hash: %s", err)
-	}
-
-	u := User{
-		EMail:                   email,
-		Username:                username,
-		Password:                pwdHash,
-		EmailVerified:           emailVerified,
-		Rank:                    rank,
-		TwoFactorAuthentication: twoFactorAuthentication,
-		IPAddress:               ip,
-	}
-
-	err = u.CacheUser()
-	if err != nil {
-		t.Errorf("Error while caching user: %s", err)
-	}
-
-	status, err := GetTwoFactorAuthenticationStatus(email)
-	if err != nil {
-		t.Errorf("Error while getting two factor authentication status: %s", err)
-	}
-
-	Equal(t, twoFactorAuthentication, status)
-	Equal(t, nil, err)
 }
 
 func TestHasSecretId(t *testing.T) {
@@ -299,8 +259,8 @@ func TestHasSecretId(t *testing.T) {
 			t.Errorf("SecretId is not the same as the previously generated one")
 		}
 
-		Equal(t, true, ok)
-		Equal(t, nil, err)
+		True(t, ok)
+		Nil(t, err)
 		Equal(t, secretId, key)
 	})
 
@@ -313,7 +273,7 @@ func TestHasSecretId(t *testing.T) {
 			t.Errorf("User doesnt have a SecretId but it says it has")
 		}
 
-		Equal(t, false, has)
+		False(t, has)
 	})
 }
 
@@ -359,8 +319,8 @@ func TestInvalidateSecretId(t *testing.T) {
 		t.Errorf("SecretId did not get invalidated!")
 	}
 
-	Equal(t, true, ok)
-	Equal(t, nil, err)
+	True(t, ok)
+	Nil(t, err)
 	Equal(t, secretId, key)
 }
 
@@ -393,9 +353,9 @@ func TestInvalidateJWTTokens(t *testing.T) {
 
 		ok2, _ := DoesTokenBelongToEmail(email, token)
 
-		Equal(t, true, exists)
-		Equal(t, true, ok)
-		Equal(t, false, ok2)
+		True(t, exists)
+		True(t, ok)
+		False(t, ok2)
 	})
 }
 
@@ -420,8 +380,113 @@ func TestDoesTokenBelongToEmail(t *testing.T) {
 		t.Errorf("Error while checking if the token belongs to the email: %s", err)
 	}
 
-	Equal(t, true, exists)
-	Equal(t, true, ok)
+	True(t, exists)
+	True(t, ok)
+}
+
+func TestGetFailedLoginAttemts(t *testing.T) {
+	Setup()
+
+	t.Run("Get Failed Login Attempts", func(t *testing.T) {
+		email := StringWithCharset(500)
+		ctx := context.Background()
+
+		err := UpdateFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while updating failed login attempts: %s", err)
+		}
+
+		failedAttemts, err := GetFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while getting failed login attempts: %s", err)
+		}
+
+		Equal(t, 1, failedAttemts)
+		Nil(t, err)
+	})
+
+	t.Run("Get Failed Login Attempts with multiple attempts", func(t *testing.T) {
+		email := StringWithCharset(500)
+		ctx := context.Background()
+
+		for i := 1; i < 10; i++ {
+			err := UpdateFailedLoginAttempts(ctx, email)
+			if err != nil {
+				t.Errorf("Error while updating failed login attempts: %s", err)
+			}
+		}
+
+		failedAttemts, err := GetFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while getting failed login attempts: %s", err)
+		}
+
+		Equal(t, 9, failedAttemts)
+		Nil(t, err)
+	})
+}
+
+func TestHasFailedLoginAttempts(t *testing.T) {
+	Setup()
+
+	t.Run("Has Failed Login Attempts", func(t *testing.T) {
+		email := StringWithCharset(100) + "@gmail.com"
+		ctx := context.Background()
+
+		hasBefore, err := HasFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while checking if the user has failed login attempts: %s", err)
+		}
+
+		err = UpdateFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while updating failed login attempts: %s", err)
+		}
+
+		has, err := HasFailedLoginAttempts(ctx, email)
+		if err != nil {
+			t.Errorf("Error while checking if the user has failed login attempts: %s", err)
+		}
+
+		True(t, has)
+		False(t, hasBefore)
+	})
+
+	t.Run("Has Failed Login Attempts when the user doesn't exist", func(t *testing.T) {
+		has, _ := HasFailedLoginAttempts(context.Background(), "dfkgnj")
+
+		False(t, has)
+	})
+}
+
+func TestClearFailedLoginAttempts(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(100) + "@gmail.com"
+	ctx := context.Background()
+
+	err := UpdateFailedLoginAttempts(ctx, email)
+	if err != nil {
+		t.Errorf("Error while updating failed login attempts: %s", err)
+	}
+
+	has, err := HasFailedLoginAttempts(ctx, email)
+	if err != nil {
+		t.Errorf("Error while checking if the user has failed login attempts: %s", err)
+	}
+
+	err = ClearFailedLoginAttempts(ctx, email)
+	if err != nil {
+		t.Errorf("Error while clearing failed login attempts: %s", err)
+	}
+
+	attempts, err := GetFailedLoginAttempts(ctx, email)
+	if err != nil {
+		t.Errorf("Error while getting failed login attempts: %s", err)
+	}
+
+	True(t, has)
+	Equal(t, 0, attempts)
 }
 
 func StringWithCharset(length int) string {

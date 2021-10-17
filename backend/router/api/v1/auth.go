@@ -258,20 +258,36 @@ func Login(c *gin.Context) {
 	// if the user doesnt have a valid token in cache = generate new one
 	authService := auth.Auth{EMail: email, Password: password, IPAddress: ip}
 	exists, err := authService.Check()
+	if err != nil && err.Error() == "too many failed login attempts" {
+		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, map[string]string{
+			"success": "false",
+			"error":   "too many failed login attempts",
+		})
+		return
+	}
 	if err != nil {
-		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, map[string]string{
+			"success": "false",
+			"error":   "wrong email or password",
+		})
 		return
 	}
 
 	if !exists {
-		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH, nil)
+		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH, map[string]string{
+			"success": "false",
+			"error":   "wrong email or password",
+		})
 		return
 	}
 
 	has, err := cache.IsTOTPSecretCached(email)
 	if err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusUnauthorized, e.ERROR_CHECKING_IF_TOTP_IS_ENABLED, nil)
+		appGin.Response(http.StatusUnauthorized, e.ERROR_CHECKING_IF_TOTP_IS_ENABLED, map[string]string{
+			"success": "false",
+			"error":   "error while getting totp",
+		})
 		return
 	}
 
@@ -285,7 +301,10 @@ func Login(c *gin.Context) {
 
 	token, err := util.GenerateToken(email, false)
 	if err != nil {
-		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
+		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, map[string]string{
+			"success": "false",
+			"error":   "error while generating jwt",
+		})
 		return
 	}
 

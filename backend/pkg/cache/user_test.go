@@ -41,6 +41,54 @@ func TestCacheUser(t *testing.T) {
 	Equal(t, nil, err)
 }
 
+func TestIsUserCached(t *testing.T) {
+	Setup()
+
+	t.Run("Is User Cached", func(t *testing.T) {
+		email := StringWithCharset(100) + "@gmail.com"
+		username := StringWithCharset(100)
+		password := StringWithCharset(100)
+		emailVerified := RandomBoolean()
+		rank := RandomRank()
+		twoFactorAuthentication := RandomBoolean()
+		ip := RandomIPAddress()
+
+		pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+		if err != nil {
+			t.Errorf("Error while creating password hash: %s", err)
+		}
+
+		u := User{
+			EMail:                   email,
+			Username:                username,
+			Password:                pwdHash,
+			EmailVerified:           emailVerified,
+			Rank:                    rank,
+			TwoFactorAuthentication: twoFactorAuthentication,
+			IPAddress:               ip,
+		}
+
+		err = u.CacheUser()
+		if err != nil {
+			t.Errorf("Error while caching user %s", err)
+		}
+
+		cached, err := IsUserCached(email)
+		if err != nil {
+			t.Errorf("Error while checking if the user is cached: %s", err)
+		}
+
+		Equal(t, true, cached)
+		Nil(t, err)
+	})
+
+	t.Run("Is User Cached when the user isn't cached", func(t *testing.T) {
+		cached, _ := IsUserCached("dfbgkdfgjdfg")
+
+		Equal(t, false, cached)
+	})
+}
+
 func TestGetUser(t *testing.T) {
 	Setup()
 
@@ -213,4 +261,44 @@ func TestDeleteUser(t *testing.T) {
 
 	Equal(t, nil, err)
 	NotEqual(t, nil, shouldErr)
+}
+
+func TestGetTwoFactorAuthenticationStatus(t *testing.T) {
+	Setup()
+
+	email := StringWithCharset(100) + "@gmail.com"
+	username := StringWithCharset(100)
+	password := StringWithCharset(300)
+	emailVerified := RandomBoolean()
+	rank := RandomRank()
+	twoFactorAuthentication := RandomBoolean()
+	ip := RandomIPAddress()
+
+	pwdHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		t.Errorf("Error while creating password hash: %s", err)
+	}
+
+	u := User{
+		EMail:                   email,
+		Username:                username,
+		Password:                pwdHash,
+		EmailVerified:           emailVerified,
+		Rank:                    rank,
+		TwoFactorAuthentication: twoFactorAuthentication,
+		IPAddress:               ip,
+	}
+
+	err = u.CacheUser()
+	if err != nil {
+		t.Errorf("Error while caching user: %s", err)
+	}
+
+	status, err := GetTwoFactorAuthenticationStatus(email)
+	if err != nil {
+		t.Errorf("Error while getting two factor authentication status: %s", err)
+	}
+
+	Equal(t, twoFactorAuthentication, status)
+	Equal(t, nil, err)
 }

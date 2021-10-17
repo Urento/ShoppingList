@@ -30,7 +30,7 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 
 func GetLists(owner string) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Preload("Participants").Where("owner = ?", owner).Find(&lists).Error
+	err := db.Preload("Participants").Omit("Items").Where("owner = ?", owner).Find(&lists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func GetList(id int, owner string) (*Shoppinglist, error) {
 
 func GetListByEmail(email string) (*[]Shoppinglist, error) {
 	var list []Shoppinglist
-	err := db.Model(&Shoppinglist{}).Preload(clause.Associations).Where("owner = ?", email).Find(&list).Error
+	err := db.Model(&Shoppinglist{}).Preload("Participants").Where("owner = ?", email).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}

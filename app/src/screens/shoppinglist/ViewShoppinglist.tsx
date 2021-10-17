@@ -56,6 +56,7 @@ const Viewdata: React.FC = ({}) => {
   if (error) return <Loading withSidebar />;
   if (isLoading) return <Loading withSidebar />;
   if (!data) return <Loading withSidebar />;
+  if (isFetching) return <Loading withSidebar />;
 
   const createItem = async () => {
     setCreatingItem(true);
@@ -117,8 +118,8 @@ const Viewdata: React.FC = ({}) => {
   };
 
   const updateItems = async (evt: Sortable.SortableEvent) => {
-    console.log(evt.oldIndex);
-    console.log(evt.newIndex);
+    console.log(evt.oldIndex! + 1);
+    console.log(evt.newIndex! + 1);
     const item1 = items[evt.oldIndex!];
     const item2 = items[evt.newIndex!];
     const i: ItemType[] = [
@@ -128,7 +129,7 @@ const Viewdata: React.FC = ({}) => {
         id: item1.id,
         itemId: item1.itemId,
         parentListId: item1.parentListId,
-        position: evt.oldIndex!,
+        position: evt.newIndex! + 1,
       },
       {
         title: item2.title,
@@ -136,7 +137,7 @@ const Viewdata: React.FC = ({}) => {
         id: item2.id,
         itemId: item2.itemId,
         parentListId: item2.parentListId,
-        position: evt.newIndex!,
+        position: evt.oldIndex! + 1,
       },
     ];
     await fetch(`${API_URL}/items`, {
@@ -148,6 +149,7 @@ const Viewdata: React.FC = ({}) => {
       body: JSON.stringify({ parent_list_id: parseInt(id), items: i }),
       credentials: "include",
     });
+    refetch();
   };
 
   return (
@@ -181,6 +183,13 @@ const Viewdata: React.FC = ({}) => {
             className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
             loading={creatingItem}
           />
+          <Button
+            text="Participants"
+            loadingText="Creating new Item..."
+            onClick={createItem}
+            className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
+            loading={creatingItem}
+          />
           <table className="w-full whitespace-nowrap">
             <thead>
               <tr className="h-16 w-full text-sm leading-none ">
@@ -194,7 +203,7 @@ const Viewdata: React.FC = ({}) => {
               <ReactSortable
                 list={items}
                 setList={setItems}
-                onChange={updateItems}
+                onUpdate={updateItems}
               >
                 {items.map((e: Item, idx: number) => {
                   return (
