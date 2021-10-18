@@ -9,7 +9,7 @@ import (
 )
 
 func TestGenerateTokenAndParse(t *testing.T) {
-	cache.Setup()
+	cache.Setup(false)
 
 	t.Run("Generate Token and Parse", func(t *testing.T) {
 		email := RandomString(10) + "@gmail.com"

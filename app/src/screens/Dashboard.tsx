@@ -1,6 +1,7 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { Loading } from "../components/Loading";
+import { ParticipatingShoppinglistCard } from "../components/ParticipatingShoppinglistCard";
 import { ShoppinglistCard } from "../components/ShoppinglistCard";
 import { Sidebar } from "../components/Sidebar";
 import useAuthCheck from "../hooks/useAuthCheck";
@@ -23,6 +24,12 @@ const Dashboard: React.FC = () => {
         <div className="w-full h-full rounded">
           <div className="flex items-center justify-between">
             <ShoppinglistCard />
+          </div>
+          <br />
+          <hr />
+          <br />
+          <div className="flex items-center justify-between">
+            <ParticipatingShoppinglistCard />
           </div>
         </div>
       </div>

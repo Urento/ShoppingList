@@ -88,10 +88,40 @@ func GetShoppinglists(c *gin.Context) {
 		return
 	}
 
-	listService := services.Shoppinglist{Owner: email}
-	lists, err := listService.GetListsByOwner()
+	list := services.Shoppinglist{Owner: email}
+	lists, err := list.GetListsByOwner()
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, lists)
+}
+
+func GetShoppinglistsByParticipation(c *gin.Context) {
+	appG := app.Gin{C: c}
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
+		return
+	}
+
+	lists, err := services.GetListsByParticipant(email)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, map[string]string{
+			"success": "false",
+			"error":   "error while getting lists by participation",
+		})
 		return
 	}
 
@@ -103,10 +133,7 @@ type CreateShoppinglistForm struct {
 }
 
 func CreateShoppinglist(c *gin.Context) {
-	var (
-		appG = app.Gin{C: c}
-	)
-
+	appG := app.Gin{C: c}
 	var f CreateShoppinglistForm
 
 	if err := c.BindJSON(&f); err != nil {

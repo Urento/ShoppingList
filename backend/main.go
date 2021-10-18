@@ -18,7 +18,7 @@ func init() {
 	models.Setup()
 	util.Setup()
 	ratelimiter.Setup()
-	cache.Setup()
+	cache.Setup(false)
 }
 
 //TODO: Check JWT stuff

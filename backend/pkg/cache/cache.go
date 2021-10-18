@@ -20,13 +20,15 @@ var rdb *redis.Client
 
 //TODO: Add Cache for Shoppinglists
 
-func Setup() {
+func Setup(auth_test bool) {
 	var err error
 	if util.PROD {
 		err = godotenv.Load()
+	} else if auth_test {
+		err = godotenv.Load("../.env")
 	} else if util.GITHUB_TESTING {
 		err = nil
-	} else if util.LOCAL_TESTING {
+	} else if util.LOCAL_TESTING && !auth_test {
 		err = godotenv.Load("../../.env")
 	} else {
 		err = godotenv.Load()

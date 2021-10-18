@@ -59,14 +59,13 @@ func VerifyBackupCode(c *gin.Context) {
 	}
 
 	if !ok {
-		appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
-			"success": "false",
-		})
+		appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "false"})
 		return
 	}
 
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
+		"ok":      "true",
 	})
 }
 

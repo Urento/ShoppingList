@@ -7,7 +7,7 @@ import (
 )
 
 func TestCacheAndGetTOTPSecret(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestCacheAndGetTOTPSecret", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -37,7 +37,7 @@ func TestCacheAndGetTOTPSecret(t *testing.T) {
 }
 
 func TestDeleteTOTPSecret(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	secret := StringWithCharset(100)
@@ -65,7 +65,7 @@ func TestDeleteTOTPSecret(t *testing.T) {
 }
 
 func TestIsTOTPCached(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestIsTOTPCached", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"

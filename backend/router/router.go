@@ -42,6 +42,7 @@ func InitRouter() *gin.Engine {
 	//apiv1.POST("/auth/invalidate", api.InvalidateSpecificJWTToken) //TODO: Test this and add this to the frontend
 
 	apiv1.GET("/lists", v1.GetShoppinglists)
+	apiv1.GET("/listsByParticipation", v1.GetShoppinglistsByParticipation)
 	apiv1.POST("/list", v1.CreateShoppinglist)
 	apiv1.PUT("/list", v1.EditShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
@@ -51,6 +52,10 @@ func InitRouter() *gin.Engine {
 	apiv1.PUT("/item", v1.UpdateItem)
 	apiv1.DELETE("/item", v1.DeleteItem)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
+	apiv1.POST("/participant", v1.AddParticipant)
+	apiv1.GET("/participant/requests/:email", v1.GetPendingRequests)
+	apiv1.POST("/participant/requests", v1.AcceptRequest)
+	apiv1.DELETE("/participant/requests", v1.DeleteRequest)
 
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
 	apiv1.POST("/resetpassword", api.SendResetPassword)

@@ -164,3 +164,7 @@ func (p *Participant) RemoveParticipant() error {
 func (p *Participant) GetParticipants() ([]models.Participant, error) {
 	return models.GetParticipants(p.ParentListID)
 }
+
+func GetListsByParticipant(owner string) ([]models.Shoppinglist, error) {
+	return models.GetListsByParticipant(owner)
+}

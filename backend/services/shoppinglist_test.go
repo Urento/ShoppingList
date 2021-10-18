@@ -5,14 +5,21 @@ import (
 
 	. "github.com/stretchr/testify/assert"
 	"github.com/urento/shoppinglist/models"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/util"
 )
+
+func Setup() {
+	models.Setup()
+	util.Setup()
+	cache.Setup(true)
+}
 
 func TestCreate(t *testing.T) {
 	Setup()
 
 	t.Run("Create and Check", func(t *testing.T) {
-		id := util.RandomIntWithLength(500)
+		id := util.RandomIntWithLength(5000)
 		title := "title" + util.StringWithCharset(200)
 		owner := "owner" + util.StringWithCharset(300)
 		shoppinglist := Shoppinglist{
@@ -49,7 +56,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("Create and Edit", func(t *testing.T) {
-		id := util.RandomIntWithLength(500)
+		id := util.RandomIntWithLength(5000)
 		title := "title33232999" + util.StringWithCharset(200)
 		owner := "999owner999" + util.StringWithCharset(300)
 		shoppinglist := Shoppinglist{
@@ -171,8 +178,8 @@ func TestGetList(t *testing.T) {
 	Setup()
 
 	id := util.RandomIntWithLength(500)
-	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(20)
-	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(30)
+	title := "titlesdfgdsghdshgfdzhjf" + util.StringWithCharset(200)
+	owner := "ownersthfdghdfhfdthfxgdh" + util.StringWithCharset(300)
 	shoppinglist := Shoppinglist{
 		ID:    id,
 		Title: title,
@@ -754,7 +761,112 @@ func TestUpdateItems(t *testing.T) {
 	Equal(t, position4, i[1].Position)
 }
 
-func Setup() {
-	models.Setup()
-	util.Setup()
+func TestGetListsByParticipant(t *testing.T) {
+	Setup()
+
+	t.Run("Get Lists By Participant with 1 list", func(t *testing.T) {
+		id := util.RandomIntWithLength(50000)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
+		participantEmail := util.StringWithCharset(500) + "@gmail.com"
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       "accepted",
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+		t.Logf("id: %d", id)
+
+		created, err := shoppinglist.Create(0, false)
+		if err != nil {
+			t.Errorf("Error while creating shoppinglist: %s", err)
+		}
+
+		_, err = participant.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		lists, err := GetListsByParticipant(participantEmail)
+		if err != nil {
+			t.Errorf("Error while getting lists by participant: %s", err)
+		}
+		t.Log(lists[0].ID)
+
+		True(t, created)
+		Equal(t, owner, lists[0].Owner)
+		Equal(t, title, lists[0].Title)
+		Equal(t, id, lists[0].ID)
+	})
+
+	t.Run("Get Lists By Participant with 3 lists", func(t *testing.T) {
+		id := util.RandomIntWithLength(50000)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
+		participantEmail := util.StringWithCharset(500) + "@gmail.com"
+		participantEmail2 := util.StringWithCharset(500) + "@gmail.com"
+		participantEmail3 := util.StringWithCharset(500) + "@gmail.com"
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       "accepted",
+		}
+		participant2 := Participant{
+			ParentListID: id,
+			Email:        participantEmail2,
+			Status:       "accepted",
+		}
+		participant3 := Participant{
+			ParentListID: id,
+			Email:        participantEmail3,
+			Status:       "accepted",
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+		t.Logf("id: %d", id)
+
+		created, err := shoppinglist.Create(0, false)
+		if err != nil {
+			t.Errorf("Error while creating shoppinglist: %s", err)
+		}
+
+		_, err = participant.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		_, err = participant2.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		_, err = participant3.AddParticipant()
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		lists, err := GetListsByParticipant(participantEmail)
+		if err != nil {
+			t.Errorf("Error while getting lists by participant: %s", err)
+		}
+		t.Log(lists[0].ID)
+
+		True(t, created)
+		Equal(t, owner, lists[0].Owner)
+		Equal(t, title, lists[0].Title)
+		Equal(t, id, lists[0].ID)
+		Equal(t, owner, lists[1].Owner)
+		Equal(t, title, lists[1].Title)
+		Equal(t, id, lists[1].ID)
+		Equal(t, owner, lists[2].Owner)
+		Equal(t, title, lists[2].Title)
+		Equal(t, id, lists[2].ID)
+	})
 }

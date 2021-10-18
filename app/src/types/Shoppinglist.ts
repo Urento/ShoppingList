@@ -47,6 +47,8 @@ export type ItemType = {
 };
 
 export interface Shoppinglist {
+  created_on?: number;
+  modified_on?: number;
   id: number;
   title: string;
   items: Item[];

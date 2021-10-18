@@ -1,6 +1,8 @@
 package models
 
-import "errors"
+import (
+	"errors"
+)
 
 type Participant struct {
 	Model
@@ -17,7 +19,7 @@ func AddParticipant(participant Participant) (Participant, error) {
 		return Participant{}, errors.New("shoppinglist does not exist")
 	}
 
-	err = db.Model(&Participant{}).Create(&participant).Error
+	err = db.Create(&participant).Error
 	return participant, err
 }
 
@@ -40,4 +42,55 @@ func GetParticipants(parentListID int) ([]Participant, error) {
 	var Participants []Participant
 	err = db.Model(&Participant{}).Where("parent_list_id = ?", parentListID).Find(&Participants).Error
 	return Participants, err
+}
+
+func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
+	var listsByParticipants []Participant
+	lists := []Shoppinglist{}
+	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Find(&listsByParticipants).Error
+	if err != nil {
+		return []Shoppinglist{}, nil
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, val := range listsByParticipants {
+		var l Shoppinglist
+		err = tx.Model(&Shoppinglist{}).Where("id = ?", val.ParentListID).First(&l).Error
+		if err != nil {
+			return lists, err
+		}
+		lists = append(lists, l)
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		return []Shoppinglist{}, err
+	}
+
+	return lists, nil
+}
+
+func GetPendingRequests(email string) ([]Participant, error) {
+	var requests []Participant
+	err := db.Debug().Model(&Participant{}).Where("status = ?", "pending").Where("email = ?", email).Find(&requests).Error
+	if err != nil {
+		return []Participant{}, err
+	}
+	return requests, nil
+}
+
+func AcceptRequest(id int, email string) error {
+	err := db.Debug().Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("status", "accepted").Error
+	return err
+}
+
+func DeleteRequest(id int, email string) error {
+	err := db.Debug().Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Delete(&Participant{ID: id, Email: email}).Error
+	return err
 }

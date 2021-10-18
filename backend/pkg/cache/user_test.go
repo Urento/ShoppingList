@@ -8,7 +8,7 @@ import (
 )
 
 func TestCacheUser(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	username := StringWithCharset(100)
@@ -42,7 +42,7 @@ func TestCacheUser(t *testing.T) {
 }
 
 func TestIsUserCached(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("Is User Cached", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -90,7 +90,7 @@ func TestIsUserCached(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestGetUser", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -143,7 +143,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	username := StringWithCharset(100)
@@ -219,7 +219,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	username := StringWithCharset(100)
@@ -264,7 +264,7 @@ func TestDeleteUser(t *testing.T) {
 }
 
 func TestGetTwoFactorAuthenticationStatus(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	username := StringWithCharset(100)

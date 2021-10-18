@@ -1,43 +1,22 @@
-import React, { useState } from "react";
-import { useMutation, useQuery } from "react-query";
-import { useHistory } from "react-router-dom";
+import { useState } from "react";
+import { useQuery } from "react-query";
+import { useHistory } from "react-router";
 import swal from "sweetalert";
-import { queryClient } from "..";
-import { Participant } from "../types/Participant";
-import { Item } from "../types/Shoppinglist";
+import { Shoppinglist } from "../types/Shoppinglist";
 import { API_URL } from "../util/constants";
 import { Loading } from "./Loading";
+import { DeleteResponse, NoItemsToDisplay } from "./ShoppinglistCard";
 
-export interface ListData {
-  id: number;
-  title: string;
-  items: Item[];
-  owner: string;
-  participants: Participant[];
-  position: number;
-  created_on: string;
-  modified_on: number;
-}
-
-export interface DeleteResponseData {
-  success: "true" | "false";
-  message: string;
-}
-
-export interface DeleteResponse {
-  data: DeleteResponseData;
-  code: number;
-  message: string;
-}
-
-export const ShoppinglistCard: React.FC = ({}) => {
-  const [shoppinglists, setShoppinglists] = useState<any>();
+export const ParticipatingShoppinglistCard: React.FC = () => {
+  const [participatingShoppinglists, setParticipatingShoppinglists] = useState<
+    Shoppinglist[]
+  >([]);
   const history = useHistory();
 
   const { isLoading, error, isFetching, refetch } = useQuery<any, Error>(
     "shoppinglists",
     () =>
-      fetch(`${API_URL}/lists`, {
+      fetch(`${API_URL}/listsByParticipation`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -46,25 +25,12 @@ export const ShoppinglistCard: React.FC = ({}) => {
         },
       })
         .then((res: Response) => res.json())
-        .then((data) => setShoppinglists(data.data)),
+        .then((data) => setParticipatingShoppinglists(data.data)),
     { refetchOnWindowFocus: false }
   );
 
-  if (isFetching) {
-    return <Loading />;
-  }
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    swal({
-      icon: "error",
-      text: "Error while getting the Shoppinglists",
-      title: "Error while getting Shoppinglists",
-    });
-  }
+  if (isFetching) return <Loading />;
+  if (isLoading) return <Loading />;
 
   const unixToDate = (timestamp: number) => {
     const a = new Date(timestamp);
@@ -131,8 +97,7 @@ export const ShoppinglistCard: React.FC = ({}) => {
 
   return (
     <div className="flex flex-wrap">
-      {shoppinglists.length <= 0 && <NoItemsToDisplay />}
-      {shoppinglists.map((e: ListData) => (
+      {participatingShoppinglists.map((e: Shoppinglist) => (
         <div className="pt-2 pl-2">
           <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
             <div className="justify-center md:justify-end -m-3.5 pl-96">
@@ -162,11 +127,11 @@ export const ShoppinglistCard: React.FC = ({}) => {
               </p>
               <p className="mt-2 text-white">
                 <span className="font-bold">Last Edited</span>:{" "}
-                {unixToDate(e.modified_on)}
+                {unixToDate(e.modified_on!)}
               </p>
               <p className="mt-2 text-white">
                 <span className="font-bold">Created</span>:{" "}
-                {unixToDate(e.modified_on)}
+                {unixToDate(e.modified_on!)}
               </p>
             </div>
             <div className="flex justify-end mt-4">
@@ -182,9 +147,4 @@ export const ShoppinglistCard: React.FC = ({}) => {
       ))}
     </div>
   );
-};
-
-//TODO
-export const NoItemsToDisplay: React.FC = () => {
-  return <h1>You dont have any Shoppinglists yet!</h1>;
 };

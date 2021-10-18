@@ -17,7 +17,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func TestCacheJWTToken(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	token := StringWithCharset(245)
@@ -34,7 +34,7 @@ func TestCacheJWTToken(t *testing.T) {
 }
 
 func TestGetTokenByEmail(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	token := StringWithCharset(245)
@@ -54,7 +54,7 @@ func TestGetTokenByEmail(t *testing.T) {
 }
 
 func TestDoesTokenExpireAfter1Day(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	token := StringWithCharset(245)
@@ -77,7 +77,7 @@ func TestDoesTokenExpireAfter1Day(t *testing.T) {
 }
 
 func TestGetEmailByJWT(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	token := StringWithCharset(245)
@@ -96,7 +96,7 @@ func TestGetEmailByJWT(t *testing.T) {
 }
 
 func TestDeleteToken(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestDeleteToken", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -151,7 +151,7 @@ func TestDeleteToken(t *testing.T) {
 }
 
 func TestIsTokenValid(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestIsTokenValid", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -181,7 +181,7 @@ func TestIsTokenValid(t *testing.T) {
 }
 
 func TestGenerateSecretIdAndVerify(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestGenerateSecretIdAndVerify", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -231,7 +231,7 @@ func TestGenerateSecretIdAndVerify(t *testing.T) {
 }
 
 func TestHasSecretId(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("TestHasSecretId", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -278,7 +278,7 @@ func TestHasSecretId(t *testing.T) {
 }
 
 func TestInvalidateSecretId(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 
@@ -325,7 +325,7 @@ func TestInvalidateSecretId(t *testing.T) {
 }
 
 func TestInvalidateJWTTokens(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("Invalidate specific JWT Token", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -360,7 +360,7 @@ func TestInvalidateJWTTokens(t *testing.T) {
 }
 
 func TestDoesTokenBelongToEmail(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	token := StringWithCharset(245)
@@ -385,7 +385,7 @@ func TestDoesTokenBelongToEmail(t *testing.T) {
 }
 
 func TestGetFailedLoginAttemts(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("Get Failed Login Attempts", func(t *testing.T) {
 		email := StringWithCharset(500)
@@ -427,7 +427,7 @@ func TestGetFailedLoginAttemts(t *testing.T) {
 }
 
 func TestHasFailedLoginAttempts(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	t.Run("Has Failed Login Attempts", func(t *testing.T) {
 		email := StringWithCharset(100) + "@gmail.com"
@@ -460,7 +460,7 @@ func TestHasFailedLoginAttempts(t *testing.T) {
 }
 
 func TestClearFailedLoginAttempts(t *testing.T) {
-	Setup()
+	Setup(false)
 
 	email := StringWithCharset(100) + "@gmail.com"
 	ctx := context.Background()
