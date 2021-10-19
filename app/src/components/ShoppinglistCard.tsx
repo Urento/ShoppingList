@@ -4,8 +4,9 @@ import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "..";
 import { Participant } from "../types/Participant";
-import { Item } from "../types/Shoppinglist";
+import { Item, ListResponse, Shoppinglist } from "../types/Shoppinglist";
 import { API_URL } from "../util/constants";
+import { Button } from "./Button";
 import { Loading } from "./Loading";
 
 export interface ListData {
@@ -31,13 +32,16 @@ export interface DeleteResponse {
 }
 
 export const ShoppinglistCard: React.FC = ({}) => {
-  const [shoppinglists, setShoppinglists] = useState<any>();
+  const [shoppinglists, setShoppinglists] = useState<Shoppinglist[]>([]);
+  const [loadingsShoppinglists, setLoadingShoppinglists] =
+    useState<boolean>(false);
+  const [page, setPage] = useState<number>(6);
   const history = useHistory();
 
   const { isLoading, error, isFetching, refetch } = useQuery<any, Error>(
     "shoppinglists",
-    () =>
-      fetch(`${API_URL}/lists`, {
+    async () =>
+      await fetch(`${API_URL}/lists`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -50,21 +54,14 @@ export const ShoppinglistCard: React.FC = ({}) => {
     { refetchOnWindowFocus: false }
   );
 
-  if (isFetching) {
-    return <Loading />;
-  }
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
+  if (isFetching) return <Loading />;
+  if (isLoading) return <Loading />;
+  if (error)
     swal({
       icon: "error",
       text: "Error while getting the Shoppinglists",
       title: "Error while getting Shoppinglists",
     });
-  }
 
   const unixToDate = (timestamp: number) => {
     const a = new Date(timestamp);
@@ -129,10 +126,28 @@ export const ShoppinglistCard: React.FC = ({}) => {
     });
   };
 
+  const loadMore = async () => {
+    setPage((previousPage: number) => previousPage + 6);
+    setLoadingShoppinglists(true);
+
+    const response = await fetch(`${API_URL}/lists?offset=${page}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      credentials: "include",
+    });
+    const fJson = await response.json();
+    const a = shoppinglists.concat(fJson.data);
+    setShoppinglists(a);
+    setLoadingShoppinglists(false);
+  };
+
   return (
     <div className="flex flex-wrap">
       {shoppinglists.length <= 0 && <NoItemsToDisplay />}
-      {shoppinglists.map((e: ListData) => (
+      {shoppinglists.map((e: Shoppinglist) => (
         <div className="pt-2 pl-2">
           <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
             <div className="justify-center md:justify-end -m-3.5 pl-96">
@@ -162,11 +177,11 @@ export const ShoppinglistCard: React.FC = ({}) => {
               </p>
               <p className="mt-2 text-white">
                 <span className="font-bold">Last Edited</span>:{" "}
-                {unixToDate(e.modified_on)}
+                {unixToDate(e.modified_on!)}
               </p>
               <p className="mt-2 text-white">
                 <span className="font-bold">Created</span>:{" "}
-                {unixToDate(e.modified_on)}
+                {unixToDate(e.modified_on!)}
               </p>
             </div>
             <div className="flex justify-end mt-4">
@@ -180,6 +195,16 @@ export const ShoppinglistCard: React.FC = ({}) => {
           </div>
         </div>
       ))}
+      <div className="grid grid-cols-7">
+        {/* Fix button style */}
+        <Button
+          text="Load more"
+          loadingText="Loading more..."
+          onClick={loadMore}
+          color="green"
+          loading={loadingsShoppinglists}
+        />
+      </div>
     </div>
   );
 };

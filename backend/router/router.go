@@ -53,9 +53,12 @@ func InitRouter() *gin.Engine {
 	apiv1.DELETE("/item", v1.DeleteItem)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 	apiv1.POST("/participant", v1.AddParticipant)
+	apiv1.GET("/participants/:id", v1.GetParticipants)
+	apiv1.GET("/participants/requestsFromList/:id", v1.GetGetPendingRequestsFromShoppinglist)
 	apiv1.GET("/participant/requests/:email", v1.GetPendingRequests)
 	apiv1.POST("/participant/requests", v1.AcceptRequest)
 	apiv1.DELETE("/participant/requests", v1.DeleteRequest)
+	apiv1.DELETE("/participant/:parentListId/:id", v1.DeleteParticipant)
 
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
 	apiv1.POST("/resetpassword", api.SendResetPassword)

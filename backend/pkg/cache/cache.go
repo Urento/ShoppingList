@@ -24,7 +24,7 @@ func Setup(auth_test bool) {
 	var err error
 	if util.PROD {
 		err = godotenv.Load()
-	} else if auth_test {
+	} else if auth_test && !util.GITHUB_TESTING {
 		err = godotenv.Load("../.env")
 	} else if util.GITHUB_TESTING {
 		err = nil

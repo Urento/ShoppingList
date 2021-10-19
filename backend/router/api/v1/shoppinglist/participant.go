@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/unknwon/com"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
@@ -30,13 +31,22 @@ func AddParticipant(c *gin.Context) {
 		return
 	}
 
-	p := &models.Participant{
+	included, err := models.IsParticipantAlreadyIncluded(f.Email, f.ParentListId)
+	if err != nil || included {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "participant is already included",
+			"success": "false",
+		})
+		return
+	}
+
+	p := models.Participant{
 		ParentListID: f.ParentListId,
 		Email:        f.Email,
 		Status:       "pending",
 	}
 
-	participant, err := models.AddParticipant(*p)
+	participant, err := models.AddParticipant(p)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
 			"error":   "error while adding participant",
@@ -213,4 +223,136 @@ func DeleteRequest(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"success": "true",
 	})
+}
+
+func GetGetPendingRequestsFromShoppinglist(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id := com.StrTo(c.Param("id")).MustInt()
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "",
+		})
+		return
+	}
+
+	requests, err := models.GetPendingRequestsFromShoppinglist(owner, id)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting pending requests",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, requests)
+}
+
+func GetParticipants(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id := com.StrTo(c.Param("id")).MustInt()
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting email by jwt",
+		})
+		return
+	}
+
+	belongs, err := models.BelongsShoppinglistToEmail(owner, id)
+	if err != nil || !belongs {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "shoppinglist doesn't belong to the given jwt token",
+		})
+		return
+	}
+
+	participants, err := models.GetParticipants(id)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting participants",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, participants)
+}
+
+func DeleteParticipant(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id := com.StrTo(c.Param("id")).MustInt()
+	parentListId := com.StrTo(c.Param("parentListId")).MustInt()
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting email by jwt",
+		})
+		return
+	}
+
+	belongs, err := models.BelongsShoppinglistToEmail(owner, parentListId)
+	if err != nil || !belongs {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "shoppinglist doesn't belong to the given jwt token",
+		})
+		return
+	}
+
+	err = models.RemoveParticipant(parentListId, id)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while deleting participant",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
 }

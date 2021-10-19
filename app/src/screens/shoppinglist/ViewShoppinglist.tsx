@@ -1,6 +1,6 @@
 import React from "react";
 import { useQuery } from "react-query";
-import { useParams } from "react-router";
+import { useHistory, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { Button } from "../../components/Button";
 import { Sidebar } from "../../components/Sidebar";
@@ -24,8 +24,10 @@ interface DeletingItemState {
   loading: boolean;
 }
 
+//TODO: Implement Auth Hook
 const Viewdata: React.FC = ({}) => {
   const { id } = useParams<Params>();
+  const history = useHistory();
   const [creatingItem, setCreatingItem] = useState(false);
   const [deletingList, setDeletingList] = useState(false);
   const [deletingItem, setDeletingItem] = useState<DeletingItemState>({
@@ -73,10 +75,9 @@ const Viewdata: React.FC = ({}) => {
     await swal({
       text: "Create a new Item", //@ts-ignore
       content: "input",
-      button: {
-        text: "Create",
-        closeModal: "Dont Create",
-      },
+      buttons: ["Cancel", "Create"],
+      closeOnEsc: false,
+      closeOnClickOutside: false,
     }).then(async (title: string) => {
       if (title === "" || !title) return;
       await fetch(`${API_URL}/list/items`, {
@@ -162,8 +163,8 @@ const Viewdata: React.FC = ({}) => {
             {items.length} {items.length === 1 ? "Item" : "Items"}
           </h1>
           <h1 className="text-2xl">
-            {data?.participants.length === 0 ? 1 : data?.participants.length}{" "}
-            {data?.participants.length === 1 || data?.participants.length === 0
+            {data.participants.length === 0 ? 1 : data.participants.length}{" "}
+            {data.participants.length === 1 || data.participants.length === 0
               ? "Participant"
               : "Participants"}
           </h1>
@@ -185,10 +186,8 @@ const Viewdata: React.FC = ({}) => {
           />
           <Button
             text="Participants"
-            loadingText="Creating new Item..."
-            onClick={createItem}
+            onClick={() => history.push(`/list/participants/${id}`)}
             className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
-            loading={creatingItem}
           />
           <table className="w-full whitespace-nowrap">
             <thead>

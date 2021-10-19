@@ -87,8 +87,8 @@ func (s *Shoppinglist) GetList() (*models.Shoppinglist, error) {
 	return models.GetList(s.ID, s.Owner)
 }
 
-func (s *Shoppinglist) GetListsByOwner() (*[]models.Shoppinglist, error) {
-	return models.GetListByEmail(s.Owner)
+func (s *Shoppinglist) GetListsByOwner(offset int) (*[]models.Shoppinglist, error) {
+	return models.GetListByEmail(s.Owner, offset)
 }
 
 func (s *Shoppinglist) GetLastPosition() (int64, error) {

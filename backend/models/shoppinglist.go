@@ -28,9 +28,9 @@ func GetTotalListsByOwner(ownerID string) (int64, error) {
 	return count, nil
 }
 
-func GetLists(owner string) ([]Shoppinglist, error) {
+func GetLists(owner string, offset int) ([]Shoppinglist, error) {
 	var lists []Shoppinglist
-	err := db.Preload("Participants").Omit("Items").Where("owner = ?", owner).Find(&lists).Error
+	err := db.Preload("Participants").Omit("Items").Where("owner = ?", owner).Limit(6).Offset(offset).Find(&lists).Error
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +46,9 @@ func GetList(id int, owner string) (*Shoppinglist, error) {
 	return &list, nil
 }
 
-func GetListByEmail(email string) (*[]Shoppinglist, error) {
+func GetListByEmail(email string, offset int) (*[]Shoppinglist, error) {
 	var list []Shoppinglist
-	err := db.Model(&Shoppinglist{}).Preload("Participants").Where("owner = ?", email).Find(&list).Error
+	err := db.Model(&Shoppinglist{}).Preload("Participants").Where("owner = ?", email).Limit(6).Offset(offset).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -87,4 +87,10 @@ func DeleteList(id int) error {
 
 	err := db.Where("id = ?", id).Delete(&Shoppinglist{ID: id}).Error
 	return err
+}
+
+func BelongsShoppinglistToEmail(email string, id int) (bool, error) {
+	var Count int64
+	err := db.Model(&Shoppinglist{}).Where("id = ?", id).Where("owner = ?", email).Count(&Count).Limit(1).Error
+	return Count >= 1, err
 }

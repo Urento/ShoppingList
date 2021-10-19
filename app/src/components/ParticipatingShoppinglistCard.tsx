@@ -14,9 +14,9 @@ export const ParticipatingShoppinglistCard: React.FC = () => {
   const history = useHistory();
 
   const { isLoading, error, isFetching, refetch } = useQuery<any, Error>(
-    "shoppinglists",
-    () =>
-      fetch(`${API_URL}/listsByParticipation`, {
+    "shoppinglists_by_participation",
+    async () =>
+      await fetch(`${API_URL}/listsByParticipation`, {
         method: "GET",
         credentials: "include",
         headers: {

@@ -6,6 +6,7 @@ import { LogoutResponse } from "../types/User";
 import { API_URL } from "../util/constants";
 
 //TODO: Fix Mobile Sidebar
+//TODO: Fix Sidebar when the page is scrollable
 
 export const Sidebar: React.FC = ({}) => {
   const history = useHistory();

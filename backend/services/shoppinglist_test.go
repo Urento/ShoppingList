@@ -396,10 +396,10 @@ func TestUpdateItem(t *testing.T) {
 
 	id := util.RandomIntWithLength(500)
 	itemID := util.RandomIntWithLength(500)
-	title := "title3332999" + util.StringWithCharset(20)
-	owner := "owner999" + util.StringWithCharset(30)
+	title := "title3332999" + util.StringWithCharset(020)
+	owner := "owner999" + util.StringWithCharset(300)
 	position := util.RandomPosition()
-	itemTitle := util.StringWithCharset(10)
+	itemTitle := util.StringWithCharset(100)
 	items := &models.Item{
 		ParentListID: id,
 		ItemID:       itemID,
@@ -433,7 +433,7 @@ func TestUpdateItem(t *testing.T) {
 		t.Errorf("Error while getting item: %s", err)
 	}
 
-	newTitle := util.StringWithCharset(10)
+	newTitle := util.StringWithCharset(100)
 	newPosition := util.RandomPosition()
 	newBought := util.RandomBoolean()
 	updatedItem := Item{
@@ -471,8 +471,8 @@ func TestAddParticipant(t *testing.T) {
 
 	t.Run("Add Participant", func(t *testing.T) {
 		id := util.RandomIntWithLength(500)
-		title := "title3332999" + util.StringWithCharset(20)
-		owner := "owner999" + util.StringWithCharset(30)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
 		participantEmail := util.RandomEmail()
 		participantStatus := util.StringWithCharset(200)
 		participant := Participant{
@@ -511,7 +511,7 @@ func TestAddParticipant(t *testing.T) {
 
 		_, err := participant.AddParticipant()
 
-		Equal(t, "shoppinglist does not exist", err.Error())
+		NotNil(t, err)
 	})
 }
 

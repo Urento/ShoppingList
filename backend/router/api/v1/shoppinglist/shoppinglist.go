@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,24 @@ func GetShoppinglist(c *gin.Context) {
 
 func GetShoppinglists(c *gin.Context) {
 	appG := app.Gin{C: c}
+
+	var o int
+	offset, ok := c.GetQuery("offset")
+	if !ok {
+		o = 0
+	} else {
+		offsetToInt, err := strconv.Atoi(offset)
+		if err != nil {
+			log.Print(err)
+			appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+				"error":   err.Error(),
+				"success": "false",
+			})
+			return
+		}
+		o = offsetToInt
+	}
+
 	token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -89,7 +108,7 @@ func GetShoppinglists(c *gin.Context) {
 	}
 
 	list := services.Shoppinglist{Owner: email}
-	lists, err := list.GetListsByOwner()
+	lists, err := list.GetListsByOwner(o)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, nil)
 		return

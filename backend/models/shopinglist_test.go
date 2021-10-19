@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
@@ -111,7 +112,7 @@ func TestGetListsByOwner(t *testing.T) {
 		t.Errorf("Error while creating Shoppinglist 2 %s", err.Error())
 	}
 
-	lists, err := GetLists(owner)
+	lists, err := GetLists(owner, 0)
 	if err != nil {
 		t.Errorf("Error while getting the Shoppinglists %s", err.Error())
 	}
@@ -128,7 +129,69 @@ func TestGetListsByOwner(t *testing.T) {
 	Equal(t, id2, lists[1].ID)
 }
 
+func TestGetListsWithOffset(t *testing.T) {
+	SetupTest()
+
+	id := util.RandomInt()
+	title := "title" + util.StringWithCharset(200)
+	owner := "Owner123123123123" + util.StringWithCharset(300)
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	if err := CreateList(shoppinglist); err != nil {
+		t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
+	}
+
+	lists, err := GetLists(owner, 1)
+	if err != nil {
+		t.Errorf("Error while getting the Shoppinglists %s", err.Error())
+	}
+
+	if len(lists) > 0 {
+		t.Errorf("offset did not get applied")
+	}
+
+	Nil(t, err)
+}
+
+func TestBelongsShoppinglistToEmail(t *testing.T) {
+	SetupTest()
+
+	t.Run("Belongs Shoppinglist to email", func(t *testing.T) {
+		id := util.RandomInt()
+		title := "title" + util.StringWithCharset(200)
+		owner := "Owner123123123123" + util.StringWithCharset(300)
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+
+		if err := CreateList(shoppinglist); err != nil {
+			t.Errorf("Error while creating Shoppinglist 1 %s", err.Error())
+		}
+
+		belongs, err := BelongsShoppinglistToEmail(owner, id)
+		if err != nil {
+			t.Errorf("Error while checking if the shoppinglist belongs to the email: %s", err)
+		}
+
+		True(t, belongs)
+		Nil(t, err)
+	})
+
+	t.Run("Belongs Shoppinglist email when the shoppinglist doesn't belong to the owner", func(t *testing.T) {
+		belongs, _ := BelongsShoppinglistToEmail("jdfghnkjdlfg", 0)
+
+		False(t, belongs)
+	})
+}
+
 func SetupTest() {
 	Setup()
 	util.Setup()
+	cache.Setup(true)
 }

@@ -218,3 +218,102 @@ func TestDeleteRequest(t *testing.T) {
 	Equal(t, "pending", requests[0].Status)
 	Nil(t, err)
 }
+
+func TestGetPendingRequestsFromShoppinglist(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(50000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	participantEmail := util.StringWithCharset(500) + "@gmail.com"
+	participant := Participant{
+		ParentListID: id,
+		Email:        participantEmail,
+		Status:       "pending",
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	err := CreateList(shoppinglist)
+	if err != nil {
+		t.Errorf("Error while creating shoppinglist: %s", err)
+	}
+
+	_, err = AddParticipant(participant)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	requests, err := GetPendingRequestsFromShoppinglist(owner, id)
+	if err != nil {
+		t.Errorf("Error while getting pending requess from shoppinglist: %s", err)
+	}
+
+	Equal(t, id, requests[0].ParentListID)
+	Equal(t, "pending", requests[0].Status)
+	Equal(t, participantEmail, requests[0].Email)
+}
+
+func TestIsParticipantAlreadyIncluded(t *testing.T) {
+	Setup()
+
+	t.Run("Is Participant already included", func(t *testing.T) {
+		id := util.RandomIntWithLength(50000)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
+		participantEmail := util.StringWithCharset(500) + "@gmail.com"
+		participant := Participant{
+			ParentListID: id,
+			Email:        participantEmail,
+			Status:       "pending",
+		}
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+
+		err := CreateList(shoppinglist)
+		if err != nil {
+			t.Errorf("Error while creating shoppinglist: %s", err)
+		}
+
+		_, err = AddParticipant(participant)
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		included, err := IsParticipantAlreadyIncluded(participantEmail, id)
+		if err != nil {
+			t.Errorf("Error while checking if the participant is already included: %s", err)
+		}
+
+		True(t, included)
+	})
+
+	t.Run("Is Participant already included but the participant isn't included", func(t *testing.T) {
+		id := util.RandomIntWithLength(50000)
+		title := "title3332999" + util.StringWithCharset(200)
+		owner := "owner999" + util.StringWithCharset(300)
+		shoppinglist := Shoppinglist{
+			ID:    id,
+			Title: title,
+			Owner: owner,
+		}
+
+		err := CreateList(shoppinglist)
+		if err != nil {
+			t.Errorf("Error while creating shoppinglist: %s", err)
+		}
+
+		included, err := IsParticipantAlreadyIncluded("jndfgh", id)
+		if err != nil {
+			t.Errorf("Error while checking if the participant is already included: %s", err)
+		}
+
+		False(t, included)
+	})
+}

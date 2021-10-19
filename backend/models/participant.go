@@ -44,10 +44,16 @@ func GetParticipants(parentListID int) ([]Participant, error) {
 	return Participants, err
 }
 
+func IsParticipantAlreadyIncluded(email string, parentListID int) (bool, error) {
+	var Count int64
+	err := db.Model(&Participant{}).Where("parent_list_id = ?", parentListID).Where("email = ?", email).Limit(1).Count(&Count).Error
+	return Count >= 1, err
+}
+
 func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
 	var listsByParticipants []Participant
 	lists := []Shoppinglist{}
-	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Find(&listsByParticipants).Error
+	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Where("stauts = ?", "accepted").Find(&listsByParticipants).Error
 	if err != nil {
 		return []Shoppinglist{}, nil
 	}
@@ -61,7 +67,7 @@ func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
 
 	for _, val := range listsByParticipants {
 		var l Shoppinglist
-		err = tx.Model(&Shoppinglist{}).Where("id = ?", val.ParentListID).First(&l).Error
+		err = tx.Model(&Shoppinglist{}).Preload("Participants").Where("id = ?", val.ParentListID).First(&l).Error
 		if err != nil {
 			return lists, err
 		}
@@ -78,7 +84,25 @@ func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
 
 func GetPendingRequests(email string) ([]Participant, error) {
 	var requests []Participant
-	err := db.Debug().Model(&Participant{}).Where("status = ?", "pending").Where("email = ?", email).Find(&requests).Error
+	err := db.Model(&Participant{}).Where("status = ?", "pending").Where("email = ?", email).Find(&requests).Error
+	if err != nil {
+		return []Participant{}, err
+	}
+	return requests, nil
+}
+
+func GetPendingRequestsFromShoppinglist(email string, id int) ([]Participant, error) {
+	belongs, err := BelongsShoppinglistToEmail(email, id)
+	if err != nil {
+		return []Participant{}, err
+	}
+
+	if !belongs {
+		return []Participant{}, errors.New("shoppinglist doesn not belongs to the given email")
+	}
+
+	var requests []Participant
+	err = db.Model(&Participant{}).Where("status = ?", "pending").Where("parent_list_id = ?", id).Find(&requests).Error
 	if err != nil {
 		return []Participant{}, err
 	}
@@ -86,11 +110,11 @@ func GetPendingRequests(email string) ([]Participant, error) {
 }
 
 func AcceptRequest(id int, email string) error {
-	err := db.Debug().Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("status", "accepted").Error
+	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("status", "accepted").Error
 	return err
 }
 
 func DeleteRequest(id int, email string) error {
-	err := db.Debug().Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Delete(&Participant{ID: id, Email: email}).Error
+	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Delete(&Participant{ID: id, Email: email}).Error
 	return err
 }

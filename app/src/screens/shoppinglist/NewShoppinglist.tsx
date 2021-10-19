@@ -4,7 +4,9 @@ import { useHistory } from "react-router-dom";
 import swal from "sweetalert";
 import { queryClient } from "../..";
 import { Button } from "../../components/Button";
+import { Loading } from "../../components/Loading";
 import { Sidebar } from "../../components/Sidebar";
+import useAuthCheck from "../../hooks/useAuthCheck";
 import { API_URL } from "../../util/constants";
 
 interface CreateResponseData {
@@ -27,9 +29,16 @@ interface Props {
 
 export const NewShoppinglist: React.FC<Props> = ({ open }) => {
   const [title, setTitle] = useState("");
-  //const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const authStatus = useAuthCheck();
+
+  if (authStatus === "fail") {
+    localStorage.removeItem("authenticated");
+    history.push("/");
+  }
+
+  if (authStatus === "pending") return <Loading withSidebar />;
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setTitle(e.target.value);
