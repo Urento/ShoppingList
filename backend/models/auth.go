@@ -328,3 +328,34 @@ func GetUserIDByEmail(email string) (int, error) {
 	err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("id").Find(&UserId).Error
 	return UserId, err
 }
+
+func ResetPasswordFromUser(email string, password string, oldPassword string, withOldPassword bool) error {
+	if withOldPassword {
+		var CurrentPassword string
+		err := db.Debug().Model(&Auth{}).Where("e_mail = ?", email).Select("password").Find(&CurrentPassword).Error
+		if err != nil {
+			return err
+		}
+
+		verify, err := argon2id.ComparePasswordAndHash(oldPassword, CurrentPassword)
+		if err != nil {
+			return err
+		}
+
+		if !verify {
+			return errors.New("password is not correct")
+		}
+	}
+
+	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		return err
+	}
+
+	err = db.Debug().Model(&Auth{}).Where("e_mail = ?", email).Update("password", passwordHash).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

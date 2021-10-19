@@ -489,6 +489,80 @@ func TestClearFailedLoginAttempts(t *testing.T) {
 	Equal(t, 0, attempts)
 }
 
+func TestActivateResetPassword(t *testing.T) {
+	Setup(false)
+
+	email := StringWithCharset(50000)
+
+	ctx := context.Background()
+	err := ActivateResetPassword(ctx, email)
+	if err != nil {
+		t.Errorf("Error while activating reset password: %s", err)
+	}
+
+	can, err := CanResetPassword(ctx, email)
+	if err != nil {
+		t.Errorf("Error while checking if the password can be reset: %s", err)
+	}
+
+	Nil(t, err)
+	True(t, can)
+}
+
+func TestCanResetPassword(t *testing.T) {
+	Setup(false)
+
+	t.Run("Can Reset Password", func(t *testing.T) {
+		email := StringWithCharset(50000)
+
+		ctx := context.Background()
+		err := ActivateResetPassword(ctx, email)
+		if err != nil {
+			t.Errorf("Error while activating reset password: %s", err)
+		}
+
+		can, err := CanResetPassword(ctx, email)
+		if err != nil {
+			t.Errorf("Error while checking if the password can be reset: %s", err)
+		}
+
+		Nil(t, err)
+		True(t, can)
+	})
+
+	t.Run("Can Reset Password when the entry doesn't exist", func(t *testing.T) {
+
+		ctx := context.Background()
+		can, err := CanResetPassword(ctx, "kdhfgbhjdfg")
+		if err != nil {
+			t.Errorf("Error while checking if the password can be reset: %s", err)
+		}
+
+		Nil(t, err)
+		False(t, can)
+	})
+}
+
+func TestRemoveResetPassword(t *testing.T) {
+	Setup(false)
+
+	email := StringWithCharset(50000)
+
+	ctx := context.Background()
+	err := ActivateResetPassword(ctx, email)
+	if err != nil {
+		t.Errorf("Error while activating reset password: %s", err)
+	}
+
+	can, err := CanResetPassword(ctx, email)
+	if err != nil {
+		t.Errorf("Error while checking if the password can be reset: %s", err)
+	}
+
+	Nil(t, err)
+	False(t, can)
+}
+
 func StringWithCharset(length int) string {
 	b := make([]byte, length)
 	for i := range b {

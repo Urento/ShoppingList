@@ -701,6 +701,53 @@ func VerifyTwoFactorAuthentication(c *gin.Context) {
 	appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true", "verified": "true"})
 }
 
+type ResetPasswordRequest struct {
+	Password    string `json:"password"`
+	OldPassword string `json:"oldPassword"`
+}
+
+func ResetPasswordFromUser(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var form ResetPasswordRequest
+
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{"success": "false", "verified": "false"})
+		return
+	}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	email, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+		})
+		return
+	}
+
+	err = models.ResetPasswordFromUser(email, form.Password, form.OldPassword, true)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while resetting password from user",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
+}
+
 func SetCookie(ctx *gin.Context, token string) error {
 	domain := os.Getenv("DOMAIN")
 	ctx.SetCookie("token", token, 24*60*60, "/", domain, util.IsProd(), true)

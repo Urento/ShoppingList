@@ -53,7 +53,7 @@ func IsParticipantAlreadyIncluded(email string, parentListID int) (bool, error) 
 func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
 	var listsByParticipants []Participant
 	lists := []Shoppinglist{}
-	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Where("stauts = ?", "accepted").Find(&listsByParticipants).Error
+	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Where("status = ?", "accepted").Find(&listsByParticipants).Error
 	if err != nil {
 		return []Shoppinglist{}, nil
 	}

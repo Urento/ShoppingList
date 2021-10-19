@@ -133,3 +133,64 @@ func TestGetUserIDByEmail(t *testing.T) {
 
 	Equal(t, user.ID, userId)
 }
+
+func TestResetPasswordFromUser(t *testing.T) {
+	Setup()
+
+	t.Run("Reset Password", func(t *testing.T) {
+		username := util.StringWithCharset(5000)
+		email := util.RandomEmail()
+		password := util.StringWithCharset(5000)
+		ip := util.RandomIPAddress()
+
+		err := CreateAccount(email, username, password, ip)
+		if err != nil {
+			t.Errorf("Error while creating account: %s", err)
+		}
+
+		newPassword := util.StringWithCharset(50000)
+		err = ResetPasswordFromUser(email, newPassword, password, true)
+		if err != nil {
+			t.Errorf("Error while resetting password from user: %s", err)
+		}
+
+		Nil(t, err)
+	})
+
+	t.Run("Reset Password when the old password is wrong", func(t *testing.T) {
+		username := util.StringWithCharset(5000)
+		email := util.RandomEmail()
+		password := util.StringWithCharset(5000)
+		ip := util.RandomIPAddress()
+
+		err := CreateAccount(email, username, password, ip)
+		if err != nil {
+			t.Errorf("Error while creating account: %s", err)
+		}
+
+		newPassword := util.StringWithCharset(50000)
+		err = ResetPasswordFromUser(email, newPassword, "dfbgjhdfbgdjfhbgdfg", true)
+
+		Equal(t, "password is not correct", err.Error())
+	})
+
+	t.Run("Reset Password without old password", func(t *testing.T) {
+		username := util.StringWithCharset(5000)
+		email := util.RandomEmail()
+		password := util.StringWithCharset(5000)
+		ip := util.RandomIPAddress()
+
+		err := CreateAccount(email, username, password, ip)
+		if err != nil {
+			t.Errorf("Error while creating account: %s", err)
+		}
+
+		newPassword := util.StringWithCharset(50000)
+		err = ResetPasswordFromUser(email, newPassword, "", false)
+		if err != nil {
+			t.Errorf("Error while resetting password from user: %s", err)
+		}
+
+		Nil(t, err)
+	})
+}

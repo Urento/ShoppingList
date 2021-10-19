@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -13,6 +14,7 @@ import (
 
 var (
 	failedLoginAttemptsPrefix = "login_attempts:"
+	changePasswordPrefix      = "change_password:"
 )
 
 func CacheJWT(email, token string) error {
@@ -316,5 +318,32 @@ func UpdateFailedLoginAttempts(ctx context.Context, email string) error {
 
 func ClearFailedLoginAttempts(ctx context.Context, email string) error {
 	err := rdb.Del(ctx, failedLoginAttemptsPrefix+email).Err()
+	return err
+}
+
+func ActivateResetPassword(ctx context.Context, email string) error {
+	err := rdb.Set(ctx, changePasswordPrefix+email, true, 60*time.Minute).Err()
+	return err
+}
+
+func CanResetPassword(ctx context.Context, email string) (bool, error) {
+	r, err := rdb.Get(ctx, changePasswordPrefix+email).Result()
+	if err != nil && err == redis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	rToBool, err := strconv.ParseBool(r)
+	if err != nil {
+		return false, err
+	}
+
+	return rToBool, nil
+}
+
+func RemoveResetPassword(ctx context.Context, email string) error {
+	err := rdb.Del(ctx, changePasswordPrefix+email).Err()
 	return err
 }

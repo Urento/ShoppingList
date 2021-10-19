@@ -36,6 +36,7 @@ func InitRouter() *gin.Engine {
 	apiv1.Use(jwt.JWT())
 
 	apiv1.POST("/auth/check", api.Check)
+	apiv1.POST("/auth/resetpassword", api.ResetPasswordFromUser)
 	apiv1.GET("/auth/user", api.GetUser)
 	apiv1.POST("/auth/logout", api.Logout)
 	apiv1.POST("/auth/update", api.UpdateUser)
@@ -71,6 +72,7 @@ func InitRouter() *gin.Engine {
 	apiv1.DELETE("/notifications", notifications_v1.DeleteNotification)
 
 	apiv1.GET("/backupcodes", api.GetBackupCodes)
+	apiv1.POST("/backupcodes/changepassword", api.ChangePassword)
 	apiv1.POST("/backupcodes", api.VerifyBackupCode)
 	apiv1.POST("/backupcodes/regenerate", api.RegenerateCodes)
 	apiv1.POST("/backupcodes/generate", api.GenerateCodes)

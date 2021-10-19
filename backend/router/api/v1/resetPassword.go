@@ -1,11 +1,13 @@
 package api
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
+	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/app"
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
@@ -158,59 +160,66 @@ func VerifyVerificationId(c *gin.Context) {
 	})
 }
 
+type ChangePasswordRequest struct {
+	Password string `json:"password"`
+}
+
 func ChangePassword(c *gin.Context) {
-	appGin := app.Gin{C: c}
-	valid := validation.Validation{}
+	appG := app.Gin{C: c}
+	var form ChangePasswordRequest
+
+	if err := c.BindJSON(&form); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{"success": "false", "verified": "false"})
+		return
+	}
 
 	token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
 			"error":   err.Error(),
 			"success": "false",
 		})
 		return
 	}
 
-	var resetPassword VerifyId
-
-	if err := c.BindJSON(&resetPassword); err != nil {
-		log.Print(err)
-		appGin.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, nil)
-		return
-	}
-
-	email := resetPassword.Email
-	verificationId := resetPassword.VerificationId
-
-	emailByJwt, err := cache.GetEmailByJWT(token)
+	email, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
-		return
-	}
-
-	if emailByJwt != email {
-		appGin.Response(http.StatusBadRequest, e.ERROR_NOT_AUTHORIZED, map[string]string{
-			"message": "Wrong Email",
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 		})
 		return
 	}
 
-	resetPwdObj := VerifyId{
-		Email:          email,
-		VerificationId: verificationId,
-	}
-
-	ok, err := valid.Valid(&resetPwdObj)
-	if !ok {
+	canReset, err := cache.CanResetPassword(context.Background(), email)
+	if err != nil {
 		log.Print(err)
-		app.MarkErrors(valid.Errors)
-		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while checking if the user can reset password",
+		})
 		return
 	}
 
-	//TODO: Finish this
+	if !canReset {
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "you can't reset your password",
+		})
+		return
+	}
 
+	err = models.ResetPasswordFromUser(email, form.Password, "", false)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while resetting password from user without old password",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
 }

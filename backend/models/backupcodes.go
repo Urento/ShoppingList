@@ -1,9 +1,11 @@
 package models
 
 import (
+	"context"
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
@@ -98,6 +100,10 @@ func VerifyCode(email, code string) (bool, error) {
 	for idx := range Codes {
 		b := util.StringArrayToArray(Codes, idx)
 		if b == code {
+			err = cache.ActivateResetPassword(context.Background(), email)
+			if err != nil {
+				return true, err
+			}
 			return true, nil
 		}
 	}
