@@ -181,7 +181,7 @@ export const ShoppinglistCard: React.FC = ({}) => {
               </p>
               <p className="mt-2 text-white">
                 <span className="font-bold">Created</span>:{" "}
-                {unixToDate(e.modified_on!)}
+                {unixToDate(e.created_on!)}
               </p>
             </div>
             <div className="flex justify-end mt-4">

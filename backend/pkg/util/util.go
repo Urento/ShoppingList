@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net/mail"
 	"os"
 	"strings"
 	"time"
@@ -154,4 +155,9 @@ func StringArrayToArray(before []string, i int) string {
 
 	s := strings.Split(output, ",")
 	return s[i]
+}
+
+func IsEmailValid(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }

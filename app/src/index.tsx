@@ -31,6 +31,9 @@ const BackupCodesComponent = lazy(
 const ParticipantsComponent = lazy(
   () => import("./screens/shoppinglist/participants/Participants")
 );
+const ViewInvitationsComponent = lazy(
+  () => import("./screens/participants/ViewInvitations")
+);
 
 //TODO: Cache
 
@@ -65,6 +68,10 @@ ReactDOM.render(
             exact
             path="/list/participants/:id"
             component={ParticipantsComponent}
+          />
+          <Route
+            path="/participants/invitations"
+            component={ViewInvitationsComponent}
           />
 
           <Route path="/notifications" component={NotificationsComponent} />

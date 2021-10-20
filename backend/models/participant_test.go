@@ -19,6 +19,7 @@ func TestGetPendingRequests(t *testing.T) {
 			ParentListID: id,
 			Email:        participantEmail,
 			Status:       "pending",
+			RequestFrom:  owner,
 		}
 		shoppinglist := Shoppinglist{
 			ID:    id,
@@ -44,6 +45,7 @@ func TestGetPendingRequests(t *testing.T) {
 		Equal(t, id, requests[0].ParentListID)
 		Equal(t, participantEmail, requests[0].Email)
 		Equal(t, "pending", requests[0].Status)
+		Equal(t, owner, requests[0].RequestFrom)
 		Nil(t, err)
 	})
 
@@ -58,16 +60,19 @@ func TestGetPendingRequests(t *testing.T) {
 			ParentListID: id,
 			Email:        participantEmail,
 			Status:       "pending",
+			RequestFrom:  owner,
 		}
 		participant2 := Participant{
 			ParentListID: id,
 			Email:        participantEmail2,
 			Status:       "pending",
+			RequestFrom:  owner,
 		}
 		participant3 := Participant{
 			ParentListID: id,
 			Email:        participantEmail3,
 			Status:       "pending",
+			RequestFrom:  owner,
 		}
 		shoppinglist := Shoppinglist{
 			ID:    id,
@@ -103,12 +108,15 @@ func TestGetPendingRequests(t *testing.T) {
 		Equal(t, id, requests[0].ParentListID)
 		Equal(t, participantEmail, requests[0].Email)
 		Equal(t, "pending", requests[0].Status)
+		Equal(t, owner, requests[0].RequestFrom)
 		Equal(t, id, requests[1].ParentListID)
 		Equal(t, participantEmail, requests[1].Email)
 		Equal(t, "pending", requests[1].Status)
+		Equal(t, owner, requests[0].RequestFrom)
 		Equal(t, id, requests[2].ParentListID)
 		Equal(t, participantEmail, requests[2].Email)
 		Equal(t, "pending", requests[2].Status)
+		Equal(t, owner, requests[2].RequestFrom)
 		Nil(t, err)
 	})
 }
@@ -124,6 +132,7 @@ func TestAcceptRequest(t *testing.T) {
 		ParentListID: id,
 		Email:        participantEmail,
 		Status:       "pending",
+		RequestFrom:  owner,
 	}
 	shoppinglist := Shoppinglist{
 		ID:    id,
@@ -163,6 +172,7 @@ func TestAcceptRequest(t *testing.T) {
 	Equal(t, id, requests[0].ParentListID)
 	Equal(t, participantEmail, requests[0].Email)
 	Equal(t, "pending", requests[0].Status)
+	Equal(t, owner, requests[0].RequestFrom)
 	Nil(t, err)
 }
 
@@ -177,6 +187,7 @@ func TestDeleteRequest(t *testing.T) {
 		ParentListID: id,
 		Email:        participantEmail,
 		Status:       "pending",
+		RequestFrom:  owner,
 	}
 	shoppinglist := Shoppinglist{
 		ID:    id,
@@ -216,6 +227,7 @@ func TestDeleteRequest(t *testing.T) {
 	Equal(t, id, requests[0].ParentListID)
 	Equal(t, participantEmail, requests[0].Email)
 	Equal(t, "pending", requests[0].Status)
+	Equal(t, owner, requests[0].RequestFrom)
 	Nil(t, err)
 }
 
@@ -230,6 +242,7 @@ func TestGetPendingRequestsFromShoppinglist(t *testing.T) {
 		ParentListID: id,
 		Email:        participantEmail,
 		Status:       "pending",
+		RequestFrom:  owner,
 	}
 	shoppinglist := Shoppinglist{
 		ID:    id,
@@ -255,6 +268,7 @@ func TestGetPendingRequestsFromShoppinglist(t *testing.T) {
 	Equal(t, id, requests[0].ParentListID)
 	Equal(t, "pending", requests[0].Status)
 	Equal(t, participantEmail, requests[0].Email)
+	Equal(t, owner, requests[0].RequestFrom)
 }
 
 func TestIsParticipantAlreadyIncluded(t *testing.T) {
@@ -269,6 +283,7 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 			ParentListID: id,
 			Email:        participantEmail,
 			Status:       "pending",
+			RequestFrom:  owner,
 		}
 		shoppinglist := Shoppinglist{
 			ID:    id,
@@ -316,4 +331,137 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 
 		False(t, included)
 	})
+}
+
+func TestDeleteAll(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(50000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	participantEmail := util.StringWithCharset(500) + "@gmail.com"
+	participantEmail2 := util.StringWithCharset(500) + "@gmail.com"
+	participantEmail3 := util.StringWithCharset(500) + "@gmail.com"
+	participantEmail4 := util.StringWithCharset(500) + "@gmail.com"
+	participant := Participant{
+		ParentListID: id,
+		Email:        participantEmail,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+	participant2 := Participant{
+		ParentListID: id,
+		Email:        participantEmail2,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+	participant3 := Participant{
+		ParentListID: id,
+		Email:        participantEmail3,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+	participant4 := Participant{
+		ParentListID: id,
+		Email:        participantEmail4,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	err := CreateList(shoppinglist)
+	if err != nil {
+		t.Errorf("Error while creating shoppinglist: %s", err)
+	}
+
+	_, err = AddParticipant(participant)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	_, err = AddParticipant(participant2)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	_, err = AddParticipant(participant3)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	_, err = AddParticipant(participant4)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	err = DeleteAll(owner)
+	if err != nil {
+		t.Errorf("Error while deleting all requests: %s", err)
+	}
+
+	requests, err := GetPendingRequests(owner)
+	if err != nil {
+		t.Errorf("Error while getting pending requests: %s", err)
+	}
+
+	if len(requests) > 0 {
+		t.Errorf("Not all Requests got deleted")
+	}
+
+	Nil(t, err)
+}
+
+func TestLeaveShoppinglist(t *testing.T) {
+	Setup()
+
+	id := util.RandomIntWithLength(50000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	participantEmail := util.StringWithCharset(500) + "@gmail.com"
+	participant := Participant{
+		ParentListID: id,
+		Email:        participantEmail,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	err := CreateList(shoppinglist)
+	if err != nil {
+		t.Errorf("Error while creating shoppinglist: %s", err)
+	}
+
+	p, err := AddParticipant(participant)
+	if err != nil {
+		t.Errorf("Error while adding participant to list: %s", err)
+	}
+
+	err = AcceptRequest(p.ID, p.Email)
+	if err != nil {
+		t.Errorf("Error while accepting request: %s", err)
+	}
+
+	err = LeaveShoppinglist(p.ID, p.Email)
+	if err != nil {
+		t.Errorf("Error while leaving shoppinglist: %s", err)
+	}
+
+	requests, err := GetPendingRequests(owner)
+	if err != nil {
+		t.Errorf("Error while getting pending requests: %s", err)
+	}
+
+	if len(requests) > 0 {
+		t.Errorf("Not all Requests got deleted")
+	}
+
+	Nil(t, err)
 }

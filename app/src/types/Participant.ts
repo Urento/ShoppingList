@@ -1,9 +1,11 @@
 export interface Participant {
+  created_on?: number;
   id?: number;
   participantId?: number;
   parentListId?: number;
   status?: string;
   email: string;
+  request_from?: string;
 }
 
 export interface RequestsFromList {

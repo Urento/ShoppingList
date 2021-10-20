@@ -31,6 +31,15 @@ func AddParticipant(c *gin.Context) {
 		return
 	}
 
+	isValid := util.IsEmailValid(f.Email)
+	if !isValid {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "email is not valid",
+			"success": "false",
+		})
+		return
+	}
+
 	included, err := models.IsParticipantAlreadyIncluded(f.Email, f.ParentListId)
 	if err != nil || included {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -39,29 +48,6 @@ func AddParticipant(c *gin.Context) {
 		})
 		return
 	}
-
-	p := models.Participant{
-		ParentListID: f.ParentListId,
-		Email:        f.Email,
-		Status:       "pending",
-	}
-
-	participant, err := models.AddParticipant(p)
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
-			"error":   "error while adding participant",
-			"success": "false",
-		})
-		return
-	}
-
-	appG.Response(http.StatusOK, e.SUCCESS, participant)
-}
-
-func GetPendingRequests(c *gin.Context) {
-	appG := app.Gin{C: c}
-
-	email := c.Param("email")
 
 	token, err := util.GetCookie(c)
 	if err != nil {
@@ -83,15 +69,49 @@ func GetPendingRequests(c *gin.Context) {
 		return
 	}
 
-	if owner != email {
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+	p := models.Participant{
+		ParentListID: f.ParentListId,
+		Email:        f.Email,
+		Status:       "pending",
+		RequestFrom:  owner,
+	}
+
+	participant, err := models.AddParticipant(p)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while adding participant",
 			"success": "false",
-			"error":   "ja ja ja",
 		})
 		return
 	}
 
-	requests, err := models.GetPendingRequests(email)
+	appG.Response(http.StatusOK, e.SUCCESS, participant)
+}
+
+func GetPendingRequests(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "",
+		})
+		return
+	}
+
+	requests, err := models.GetPendingRequests(owner)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
@@ -105,8 +125,7 @@ func GetPendingRequests(c *gin.Context) {
 }
 
 type AcceptRequestRequest struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID int `json:"id"`
 }
 
 func AcceptRequest(c *gin.Context) {
@@ -142,15 +161,7 @@ func AcceptRequest(c *gin.Context) {
 		return
 	}
 
-	if owner != f.Email {
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
-			"success": "false",
-			"error":   "ja ja ja",
-		})
-		return
-	}
-
-	err = models.AcceptRequest(f.ID, f.Email)
+	err = models.AcceptRequest(f.ID, owner)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
@@ -350,6 +361,92 @@ func DeleteParticipant(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 			"error":   "error while deleting participant",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
+}
+
+func DenyAllRequests(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting email by jwt",
+		})
+		return
+	}
+
+	err = models.DeleteAll(owner)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while deleting all requests",
+		})
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
+}
+
+type LeaveShoppinglistRequest struct {
+	ID int `json:"id"`
+}
+
+func LeaveShoppinglsit(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var f LeaveShoppinglistRequest
+
+	if err := c.BindJSON(&f); err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   "error while binding json to struct",
+			"success": "false",
+		})
+		return
+	}
+
+	token, err := util.GetCookie(c)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
+			"error":   err.Error(),
+			"success": "false",
+		})
+		return
+	}
+
+	owner, err := cache.GetEmailByJWT(token)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while getting email by jwt",
+		})
+		return
+	}
+
+	err = models.LeaveShoppinglist(f.ID, owner)
+	if err != nil {
+		log.Print(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+			"success": "false",
+			"error":   "error while leaving shopppinglist",
 		})
 		return
 	}

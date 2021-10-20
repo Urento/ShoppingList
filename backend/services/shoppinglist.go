@@ -28,6 +28,7 @@ type Participant struct {
 	ParentListID int
 	Status       string
 	Email        string
+	RequestFrom  string
 }
 
 func (s *Shoppinglist) Create(userId int, withNotification bool) (bool, error) {

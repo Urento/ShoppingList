@@ -11,6 +11,7 @@ type Participant struct {
 	ParentListID int    `json:"parentListId"`
 	Status       string `json:"status" gorm:"default:'pending'"`
 	Email        string `json:"email"`
+	RequestFrom  string `json:"request_from"`
 }
 
 func AddParticipant(participant Participant) (Participant, error) {
@@ -110,11 +111,47 @@ func GetPendingRequestsFromShoppinglist(email string, id int) ([]Participant, er
 }
 
 func AcceptRequest(id int, email string) error {
-	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("status", "accepted").Error
+	tx := db.Begin()
+
+	err := tx.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("status", "accepted").Error
+	if err != nil {
+		return err
+	}
+	err = tx.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Update("request_from", nil).Error
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
 	return err
 }
 
 func DeleteRequest(id int, email string) error {
 	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Delete(&Participant{ID: id, Email: email}).Error
+	return err
+}
+
+func DeleteAll(email string) error {
+	var requests []Participant
+	err := db.Model(&Participant{}).Where("email = ?", email).Find(&requests).Error
+	if err != nil {
+		return err
+	}
+
+	tx := db.Begin()
+
+	for _, request := range requests {
+		err = tx.Model(&Participant{}).Where("id = ?", request.ID).Where("email = ?", request.Email).Delete(&Participant{Email: email}).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit().Error
+	return err
+}
+
+func LeaveShoppinglist(id int, email string) error {
+	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Where("status = ?", "accepted").Delete(&Participant{ID: id, Email: email}).Error
 	return err
 }
