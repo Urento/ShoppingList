@@ -14,7 +14,6 @@ import (
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
 	"github.com/urento/shoppinglist/pkg/util"
-	"github.com/urento/shoppinglist/services"
 )
 
 func GetShoppinglist(c *gin.Context) {
@@ -50,8 +49,7 @@ func GetShoppinglist(c *gin.Context) {
 		return
 	}
 
-	listService := services.Shoppinglist{ID: id, Owner: owner}
-	list, err := listService.GetList()
+	list, err := models.GetList(id, owner)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, map[string]string{
@@ -107,8 +105,7 @@ func GetShoppinglists(c *gin.Context) {
 		return
 	}
 
-	list := services.Shoppinglist{Owner: email}
-	lists, err := list.GetListsByOwner(o)
+	lists, err := models.GetListByEmail(email, o)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, nil)
 		return
@@ -135,7 +132,7 @@ func GetShoppinglistsByParticipation(c *gin.Context) {
 		return
 	}
 
-	lists, err := services.GetListsByParticipant(email)
+	lists, err := models.GetListsByParticipant(email)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, map[string]string{
 			"success": "false",
@@ -207,14 +204,14 @@ func CreateShoppinglist(c *gin.Context) {
 		return
 	}
 
-	lists := services.Shoppinglist{
+	lists := models.Shoppinglist{
 		ID:    randomId,
 		Title: f.Title,
 		Owner: owner,
 		//Participants: f.Participants,
 	}
 
-	if _, err := lists.Create(userId, true); err != nil {
+	if err := models.CreateList(lists, userId, true); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_LIST_FAIL, map[string]string{
 			"success": "false",
 			"message": "Error while creating Shoppinglist",
@@ -246,7 +243,7 @@ func EditShoppinglist(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GetCookie(c)
+	/*token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -254,7 +251,7 @@ func EditShoppinglist(c *gin.Context) {
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
 	//TODO: Validate data some other way
 
@@ -274,15 +271,14 @@ func EditShoppinglist(c *gin.Context) {
 		return
 	}
 
-	list := services.Shoppinglist{
+	list := models.Shoppinglist{
 		ID:           form.ID,
 		Title:        form.Title,
-		Items:        form.Items,
 		Owner:        form.Owner,
 		Participants: form.Participants,
 	}
 
-	owner, err := cache.GetEmailByJWT(token)
+	/*owner, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
@@ -294,9 +290,9 @@ func EditShoppinglist(c *gin.Context) {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
 		return
-	}
+	}*/
 
-	err = list.Edit(userId, false)
+	err := models.EditList(form.ID, list)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_EDIT_LIST_FAIL, map[string]string{"success": "false"})
@@ -321,7 +317,7 @@ func DeleteShoppinglist(c *gin.Context) {
 		return
 	}
 
-	token, err := util.GetCookie(c)
+	/*token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -329,10 +325,9 @@ func DeleteShoppinglist(c *gin.Context) {
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
-	listService := services.Shoppinglist{ID: id}
-	exists, err := listService.ExistsByID()
+	exists, err := models.ExistByID(id)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_LIST_FAIL, map[string]string{
@@ -350,7 +345,7 @@ func DeleteShoppinglist(c *gin.Context) {
 		return
 	}
 
-	owner, err := cache.GetEmailByJWT(token)
+	/*owner, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
@@ -362,9 +357,9 @@ func DeleteShoppinglist(c *gin.Context) {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
 		return
-	}
+	}*/
 
-	err = listService.Delete(userId, true)
+	err = models.DeleteList(id)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_DELETE_LIST_FAIL, map[string]string{
@@ -388,7 +383,7 @@ type ItemRequest struct {
 func AddItem(c *gin.Context) {
 	appG := app.Gin{C: c}
 
-	token, err := util.GetCookie(c)
+	/*token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -396,7 +391,7 @@ func AddItem(c *gin.Context) {
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
 	var form ItemRequest
 
@@ -417,14 +412,14 @@ func AddItem(c *gin.Context) {
 		return
 	}
 
-	owner, err := cache.GetEmailByJWT(token)
+	/*owner, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
 	itemId := util.RandomIntWithLength(900000)
 	id := form.ID
@@ -435,13 +430,8 @@ func AddItem(c *gin.Context) {
 		Position:     int64(form.Position),
 		Bought:       false,
 	}
-	shoppinglist := &services.Shoppinglist{
-		ID:    id,
-		Items: *item,
-		Owner: owner,
-	}
 
-	item, err = shoppinglist.AddItem()
+	item, err := models.AddItem(*item)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
@@ -565,7 +555,7 @@ func GetListItems(c *gin.Context) {
 	id := com.StrTo(c.Param("id")).MustInt()
 	valid.Min(id, 1, "id")
 
-	token, err := util.GetCookie(c)
+	/*token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -573,23 +563,18 @@ func GetListItems(c *gin.Context) {
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
-	email, err := cache.GetEmailByJWT(token)
+	/*email, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 		})
 		return
-	}
+	}*/
 
-	shoppinglist := services.Shoppinglist{
-		ID:    id,
-		Owner: email,
-	}
-
-	items, err := shoppinglist.GetItems()
+	items, err := models.GetItems(id)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_LISTS_BY_OWNER, map[string]string{

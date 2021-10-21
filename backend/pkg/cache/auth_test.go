@@ -554,6 +554,11 @@ func TestRemoveResetPassword(t *testing.T) {
 		t.Errorf("Error while activating reset password: %s", err)
 	}
 
+	err = RemoveResetPassword(ctx, email)
+	if err != nil {
+		t.Errorf("Error while removing reset password: %s", err)
+	}
+
 	can, err := CanResetPassword(ctx, email)
 	if err != nil {
 		t.Errorf("Error while checking if the password can be reset: %s", err)

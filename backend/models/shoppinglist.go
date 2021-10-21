@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"time"
+
 	"gorm.io/gorm/clause"
 )
 
@@ -55,24 +58,27 @@ func GetListByEmail(email string, offset int) (*[]Shoppinglist, error) {
 	return &list, nil
 }
 
-func EditList(id int, data map[string]interface{}) error {
-	shoppinglist := Shoppinglist{
-		ID:    data["id"].(int),
-		Title: data["title"].(string),
-		Owner: data["owner"].(string),
-	}
-	err := db.Omit(clause.Associations).Where("id = ?", id).Updates(&shoppinglist).Error
+func EditList(id int, data Shoppinglist) error {
+	err := db.Omit(clause.Associations).Where("id = ?", id).Updates(&data).Error
 	return err
 }
 
-func CreateList(data Shoppinglist) error {
-	shoppinglist := Shoppinglist{
-		ID:    data.ID,
-		Title: data.Title,
-		Owner: data.Owner,
+func CreateList(data Shoppinglist, userId int, withNotification bool) error {
+	if withNotification {
+		notification := Notification{
+			UserID:           userId,
+			Title:            "New Shoppinglist",
+			Text:             fmt.Sprintf("%s was created", data.Title),
+			NotificationType: "new_shoppinglist",
+			Date:             time.Now().Format("02.01.2006"),
+		}
+
+		if err := CreateNotification(notification); err != nil {
+			return err
+		}
 	}
 
-	err := db.Model(&Shoppinglist{}).Omit(clause.Associations).Create(&shoppinglist).Error
+	err := db.Model(&Shoppinglist{}).Omit(clause.Associations).Create(&data).Error
 	return err
 }
 

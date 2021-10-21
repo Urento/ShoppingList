@@ -27,7 +27,7 @@ func TestGetPendingRequests(t *testing.T) {
 			Owner: owner,
 		}
 
-		err := CreateList(shoppinglist)
+		err := CreateList(shoppinglist, 0, false)
 		if err != nil {
 			t.Errorf("Error while creating shoppinglist: %s", err)
 		}
@@ -80,7 +80,7 @@ func TestGetPendingRequests(t *testing.T) {
 			Owner: owner,
 		}
 
-		err := CreateList(shoppinglist)
+		err := CreateList(shoppinglist, 0, false)
 		if err != nil {
 			t.Errorf("Error while creating shoppinglist: %s", err)
 		}
@@ -140,7 +140,7 @@ func TestAcceptRequest(t *testing.T) {
 		Owner: owner,
 	}
 
-	err := CreateList(shoppinglist)
+	err := CreateList(shoppinglist, 0, false)
 	if err != nil {
 		t.Errorf("Error while creating shoppinglist: %s", err)
 	}
@@ -195,7 +195,7 @@ func TestDeleteRequest(t *testing.T) {
 		Owner: owner,
 	}
 
-	err := CreateList(shoppinglist)
+	err := CreateList(shoppinglist, 0, false)
 	if err != nil {
 		t.Errorf("Error while creating shoppinglist: %s", err)
 	}
@@ -250,7 +250,7 @@ func TestGetPendingRequestsFromShoppinglist(t *testing.T) {
 		Owner: owner,
 	}
 
-	err := CreateList(shoppinglist)
+	err := CreateList(shoppinglist, 0, false)
 	if err != nil {
 		t.Errorf("Error while creating shoppinglist: %s", err)
 	}
@@ -291,7 +291,7 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 			Owner: owner,
 		}
 
-		err := CreateList(shoppinglist)
+		err := CreateList(shoppinglist, 0, false)
 		if err != nil {
 			t.Errorf("Error while creating shoppinglist: %s", err)
 		}
@@ -319,7 +319,7 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 			Owner: owner,
 		}
 
-		err := CreateList(shoppinglist)
+		err := CreateList(shoppinglist, 0, false)
 		if err != nil {
 			t.Errorf("Error while creating shoppinglist: %s", err)
 		}
@@ -373,7 +373,7 @@ func TestDeleteAll(t *testing.T) {
 		Owner: owner,
 	}
 
-	err := CreateList(shoppinglist)
+	err := CreateList(shoppinglist, 0, false)
 	if err != nil {
 		t.Errorf("Error while creating shoppinglist: %s", err)
 	}
@@ -434,7 +434,7 @@ func TestLeaveShoppinglist(t *testing.T) {
 		Owner: owner,
 	}
 
-	err := CreateList(shoppinglist)
+	err := CreateList(shoppinglist, 0, false)
 	if err != nil {
 		t.Errorf("Error while creating shoppinglist: %s", err)
 	}

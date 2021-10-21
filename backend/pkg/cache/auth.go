@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -13,8 +12,13 @@ import (
 )
 
 var (
+	redisJwtPrefix            = "jwt:"
 	failedLoginAttemptsPrefix = "login_attempts:"
 	changePasswordPrefix      = "change_password:"
+	tokenPrefix               = "token:"
+	emailPrefix               = "email:"
+	userPrefix                = "user:"
+	totpPrefix                = "totp:"
 )
 
 func CacheJWT(email, token string) error {
@@ -154,14 +158,12 @@ func Check(email, token string) (bool, error) {
 
 func IsTokenValid(token string) (bool, error) {
 	exists, err := rdb.Exists(context.Background(), emailPrefix+token).Result()
-	if err != nil {
-		return false, err
-	}
-	return exists == 1, nil
+	return exists == 1, err
 }
 
 func DeleteTokenByEmail(email, token string) (bool, error) {
 	ctx := context.Background()
+	pipe := rdb.Pipeline()
 
 	exists, err := EmailExists(email)
 	if err != nil {
@@ -172,15 +174,21 @@ func DeleteTokenByEmail(email, token string) (bool, error) {
 		return false, errors.New("email not cached")
 	}
 
-	err = rdb.Del(ctx, tokenPrefix+email).Err()
+	err = pipe.Del(ctx, tokenPrefix+email).Err()
 	if err != nil {
 		return false, err
 	}
 
-	err = rdb.Del(ctx, emailPrefix+token).Err()
+	err = pipe.Del(ctx, emailPrefix+token).Err()
 	if err != nil {
 		return false, err
 	}
+
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -256,12 +264,12 @@ func HasSecretId(email string) (string, bool, error) {
 		return "", false, nil
 	}
 
-	var kds JWTModel
-	if err := json.Unmarshal([]byte(val), &kds); err != nil {
+	var jwtModel JWTModel
+	if err := json.Unmarshal([]byte(val), &jwtModel); err != nil {
 		return "", false, err
 	}
 
-	return kds.SecretId, true, nil
+	return jwtModel.SecretId, true, nil
 }
 
 func InvalidateSecretId(email string) error {
@@ -327,20 +335,16 @@ func ActivateResetPassword(ctx context.Context, email string) error {
 }
 
 func CanResetPassword(ctx context.Context, email string) (bool, error) {
-	r, err := rdb.Get(ctx, changePasswordPrefix+email).Result()
+	r, err := rdb.Get(ctx, changePasswordPrefix+email).Bool()
 	if err != nil && err == redis.Nil {
 		return false, nil
 	}
+
 	if err != nil {
 		return false, err
 	}
 
-	rToBool, err := strconv.ParseBool(r)
-	if err != nil {
-		return false, err
-	}
-
-	return rToBool, nil
+	return r, nil
 }
 
 func RemoveResetPassword(ctx context.Context, email string) error {

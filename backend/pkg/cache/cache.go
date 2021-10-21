@@ -8,14 +8,6 @@ import (
 	util "github.com/urento/shoppinglist/pkg"
 )
 
-var (
-	redisJwtPrefix = "jwt:"
-	tokenPrefix    = "token:"
-	emailPrefix    = "email:"
-	userPrefix     = "user:"
-	totpPrefix     = "totp:"
-)
-
 var rdb *redis.Client
 
 //TODO: Add Cache for Shoppinglists

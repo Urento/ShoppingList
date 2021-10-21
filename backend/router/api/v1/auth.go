@@ -17,7 +17,6 @@ import (
 	"github.com/urento/shoppinglist/pkg/e"
 	"github.com/urento/shoppinglist/pkg/totp"
 	"github.com/urento/shoppinglist/pkg/util"
-	auth "github.com/urento/shoppinglist/services"
 )
 
 type Auth struct {
@@ -85,8 +84,7 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	authService := auth.Auth{EMail: email}
-	data, err := authService.GetUser()
+	data, err := models.GetUser(email)
 	if err != nil {
 		appGin.Response(http.StatusBadRequest, e.ERROR_RETRIEVING_USER_DATA, nil)
 		return
@@ -256,8 +254,7 @@ func Login(c *gin.Context) {
 	}*/
 
 	// if the user doesnt have a valid token in cache = generate new one
-	authService := auth.Auth{EMail: email, Password: password, IPAddress: ip}
-	exists, err := authService.Check()
+	exists, err := models.CheckAuth(email, password, ip)
 	if err != nil && err.Error() == "too many failed login attempts" {
 		appGin.Response(http.StatusUnauthorized, e.ERROR_AUTH_CHECK_TOKEN_FAIL, map[string]string{
 			"success": "false",
@@ -515,8 +512,7 @@ func CreateAccount(c *gin.Context) {
 		return
 	}
 
-	acc := auth.Auth{EMail: email, Username: username, Password: password, EmailVerified: false, Rank: "default", IPAddress: ip}
-	err := acc.Create()
+	err := models.CreateAccount(email, username, password, ip)
 	if err != nil {
 		log.Print(err)
 		app.MarkErrors(valid.Errors)

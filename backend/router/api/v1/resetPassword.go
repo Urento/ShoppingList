@@ -12,7 +12,6 @@ import (
 	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/e"
 	"github.com/urento/shoppinglist/pkg/util"
-	"github.com/urento/shoppinglist/services"
 )
 
 type ResetPassword struct {
@@ -71,8 +70,7 @@ func SendResetPassword(c *gin.Context) {
 		return
 	}
 
-	rpwd := services.ResetPassword{Email: email}
-	err = rpwd.CreateResetPassword()
+	err = models.CreateResetPassword(email)
 	if err != nil {
 		log.Print(err)
 		appGin.Response(http.StatusInternalServerError, e.ERROR_SENDING_RESET_PASSWORD_EMAIL, map[string]string{
@@ -141,12 +139,7 @@ func VerifyVerificationId(c *gin.Context) {
 		return
 	}
 
-	rpwd := services.ResetPassword{
-		Email:          email,
-		VerificationId: verificationId,
-	}
-
-	correct, err := rpwd.VerifyVerificationId()
+	correct, err := models.VerifyVerificationID(email, verificationId)
 	if err != nil || !correct {
 		log.Print(err)
 		app.MarkErrors(valid.Errors)

@@ -61,7 +61,7 @@ func CheckAuth(email, password, ip string) (bool, error) {
 
 	var auth Auth
 	err = db.Transaction(func(tx *gorm.DB) error {
-		err = tx.Select("id").Model(&Auth{}).Where("e_mail = ?", email).First(&auth).Error
+		err = tx.Model(&Auth{}).Select("id").Where("e_mail = ?", email).First(&auth).Error
 		err = tx.Model(&Auth{}).Where("e_mail = ?", email).Update("ip_address", ip).Error
 		return err
 	})
@@ -332,7 +332,7 @@ func GetUserIDByEmail(email string) (int, error) {
 func ResetPasswordFromUser(email string, password string, oldPassword string, withOldPassword bool) error {
 	if withOldPassword {
 		var CurrentPassword string
-		err := db.Debug().Model(&Auth{}).Where("e_mail = ?", email).Select("password").Find(&CurrentPassword).Error
+		err := db.Model(&Auth{}).Where("e_mail = ?", email).Select("password").Find(&CurrentPassword).Error
 		if err != nil {
 			return err
 		}
@@ -352,7 +352,7 @@ func ResetPasswordFromUser(email string, password string, oldPassword string, wi
 		return err
 	}
 
-	err = db.Debug().Model(&Auth{}).Where("e_mail = ?", email).Update("password", passwordHash).Error
+	err = db.Model(&Auth{}).Where("e_mail = ?", email).Update("password", passwordHash).Error
 	if err != nil {
 		return err
 	}
