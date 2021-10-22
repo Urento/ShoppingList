@@ -5,11 +5,18 @@ import (
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/urento/shoppinglist/pkg/cache"
 	"github.com/urento/shoppinglist/pkg/util"
 )
 
-func TestUpdateUser(t *testing.T) {
+func SetupTestAuth() {
 	Setup()
+	util.Setup()
+	cache.Setup(true)
+}
+
+func TestUpdateUser(t *testing.T) {
+	SetupTestAuth()
 
 	user, err := CreateUser()
 	if err != nil {
@@ -37,7 +44,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDisableAccount(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	user, err := CreateUser()
 	if err != nil {
@@ -59,7 +66,7 @@ func TestDisableAccount(t *testing.T) {
 }
 
 func TestActivateAccount(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	user, err := CreateUser()
 	if err != nil {
@@ -92,7 +99,7 @@ func TestActivateAccount(t *testing.T) {
 }
 
 func TestExistsUserId(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	t.Run("Exists User Id", func(t *testing.T) {
 		user, err := CreateUser()
@@ -120,7 +127,7 @@ func TestExistsUserId(t *testing.T) {
 }
 
 func TestGetUserIDByEmail(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	user, err := CreateUser()
 	if err != nil {
@@ -136,7 +143,7 @@ func TestGetUserIDByEmail(t *testing.T) {
 }
 
 func TestResetPasswordFromUser(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	t.Run("Reset Password", func(t *testing.T) {
 		username := util.StringWithCharset(5000)
@@ -197,14 +204,14 @@ func TestResetPasswordFromUser(t *testing.T) {
 }
 
 func TestCreateAccountEmail(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
-	pwd := util.StringWithCharset(20)
+	pwd := util.StringWithCharset(2000)
 	ip := util.RandomIPAddress()
 
 	t.Run("Create Account Without IP", func(t *testing.T) {
-		email := util.StringWithCharset(10) + "@gmail.com"
-		username := util.StringWithCharset(20)
+		email := util.RandomEmail()
+		username := util.StringWithCharset(2000)
 
 		err := CreateAccount(email, username, pwd, "")
 		if err != nil {
@@ -225,8 +232,8 @@ func TestCreateAccountEmail(t *testing.T) {
 	})
 
 	t.Run("Create Account With IP", func(t *testing.T) {
-		email := util.StringWithCharset(10) + "@gmail.com"
-		username := util.StringWithCharset(20)
+		email := util.RandomEmail()
+		username := util.StringWithCharset(2000)
 
 		err := CreateAccount(email, username, pwd, ip)
 		if err != nil {
@@ -249,7 +256,7 @@ func TestCreateAccountEmail(t *testing.T) {
 	})
 
 	t.Run("Create Account when the Email already exist", func(t *testing.T) {
-		email := util.StringWithCharset(10) + "@gmail.com"
+		email := util.RandomEmail()
 		username := util.StringWithCharset(10)
 
 		err := CreateAccount(email, username, pwd, ip)
@@ -269,15 +276,12 @@ func TestCreateAccountEmail(t *testing.T) {
 	})
 
 	t.Run("Create Account with invalid email", func(t *testing.T) {
-		email := util.StringWithCharset(10)
+		email := util.StringWithCharset(1000)
 		username := util.StringWithCharset(10)
 
-		err := CreateAccount(email, username, pwd, ip)
-		if err != nil {
-			t.Errorf("Error while creating account: %s", err)
-		}
+		_ = CreateAccount(email, username, pwd, ip)
 
-		err = CreateAccount(email, username, pwd, ip)
+		err := CreateAccount(email, username, pwd, ip)
 		if err == nil {
 			t.Errorf("No Invalid Email error thrown")
 		}
@@ -290,9 +294,9 @@ func TestCreateAccountEmail(t *testing.T) {
 }
 
 func TestCheckAuth(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
-	email := util.StringWithCharset(10) + "@gmail.com"
+	email := util.RandomEmail()
 	username := util.StringWithCharset(20)
 	pwd := util.StringWithCharset(20)
 	ip := util.RandomIPAddress()
@@ -364,7 +368,7 @@ func TestCheckAuth(t *testing.T) {
 }
 
 func TestDeleteAccount(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 	email := util.StringWithCharset(10) + "@gmail.com"
@@ -385,7 +389,7 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestEmailVerified(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 	email := util.StringWithCharset(10) + "@gmail.com"
@@ -407,7 +411,7 @@ func TestEmailVerified(t *testing.T) {
 }
 
 func TestUpdateEmailVerified(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 	email := util.StringWithCharset(10) + "@gmail.com"
@@ -440,7 +444,7 @@ func TestUpdateEmailVerified(t *testing.T) {
 }
 
 func TestSetAndGetRank(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 
@@ -512,7 +516,7 @@ func TestSetAndGetRank(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 
@@ -556,7 +560,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestEnableTwoFactorAuthentication(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 	email := util.StringWithCharset(10) + "@gmail.com"
@@ -583,7 +587,7 @@ func TestEnableTwoFactorAuthentication(t *testing.T) {
 }
 
 func TestUpdateIPAndGet(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 	email := util.StringWithCharset(10) + "@gmail.com"
@@ -607,17 +611,17 @@ func TestUpdateIPAndGet(t *testing.T) {
 		t.Errorf("Error while getting ip: %s", err)
 	}
 
-	Equal(t, ip, newIP)
+	Equal(t, ip2, newIP)
 	Equal(t, nil, err)
 }
 
 func TestUpdateUsername(t *testing.T) {
-	Setup()
+	SetupTestAuth()
 
 	pwd := util.StringWithCharset(20)
 
 	t.Run("Update Username", func(t *testing.T) {
-		email := util.StringWithCharset(10) + "@gmail.com"
+		email := util.RandomEmail()
 		username := util.StringWithCharset(100)
 		ip := util.RandomIPAddress()
 
@@ -633,12 +637,12 @@ func TestUpdateUsername(t *testing.T) {
 			t.Errorf("Error while updating username: %s", err)
 		}
 
-		uName, err := GetUsername(email)
+		updatedUsername, err := GetUsername(email)
 		if err != nil {
 			t.Errorf("Error while getting username: %s", err)
 		}
 
-		Equal(t, username, uName)
+		Equal(t, username2, updatedUsername)
 		Equal(t, nil, err)
 	})
 

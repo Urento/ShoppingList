@@ -112,7 +112,7 @@ func TestGetPendingRequests(t *testing.T) {
 		Equal(t, id, requests[1].ParentListID)
 		Equal(t, participantEmail, requests[1].Email)
 		Equal(t, "pending", requests[1].Status)
-		Equal(t, owner, requests[0].RequestFrom)
+		Equal(t, owner, requests[1].RequestFrom)
 		Equal(t, id, requests[2].ParentListID)
 		Equal(t, participantEmail, requests[2].Email)
 		Equal(t, "pending", requests[2].Status)
@@ -275,10 +275,10 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 	Setup()
 
 	t.Run("Is Participant already included", func(t *testing.T) {
-		id := util.RandomIntWithLength(50000)
+		id := util.RandomInt()
 		title := "title3332999" + util.StringWithCharset(200)
 		owner := "owner999" + util.StringWithCharset(300)
-		participantEmail := util.StringWithCharset(500) + "@gmail.com"
+		participantEmail := util.RandomEmail()
 		participant := Participant{
 			ParentListID: id,
 			Email:        participantEmail,
@@ -310,7 +310,7 @@ func TestIsParticipantAlreadyIncluded(t *testing.T) {
 	})
 
 	t.Run("Is Participant already included but the participant isn't included", func(t *testing.T) {
-		id := util.RandomIntWithLength(50000)
+		id := util.RandomIntWithLength(9000000)
 		title := "title3332999" + util.StringWithCharset(200)
 		owner := "owner999" + util.StringWithCharset(300)
 		shoppinglist := Shoppinglist{

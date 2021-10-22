@@ -15,7 +15,9 @@ func SetupTest() {
 }
 
 func TestGetTotalListsByOwner(t *testing.T) {
-	SetupTest()
+	Setup()
+	util.Setup()
+	cache.Setup(true)
 
 	t.Run("TestGetTotalListsByOwner", func(t *testing.T) {
 		id := util.RandomInt()
@@ -91,7 +93,9 @@ func TestGetTotalListsByOwner(t *testing.T) {
 }
 
 func TestGetListsByOwner(t *testing.T) {
-	SetupTest()
+	Setup()
+	util.Setup()
+	cache.Setup(true)
 
 	id := util.RandomInt()
 	title := "title" + util.StringWithCharset(200)
@@ -136,7 +140,9 @@ func TestGetListsByOwner(t *testing.T) {
 }
 
 func TestGetListsWithOffset(t *testing.T) {
-	SetupTest()
+	Setup()
+	util.Setup()
+	cache.Setup(true)
 
 	id := util.RandomInt()
 	title := "title" + util.StringWithCharset(200)
@@ -164,7 +170,9 @@ func TestGetListsWithOffset(t *testing.T) {
 }
 
 func TestBelongsShoppinglistToEmail(t *testing.T) {
-	SetupTest()
+	Setup()
+	util.Setup()
+	cache.Setup(true)
 
 	t.Run("Belongs Shoppinglist to email", func(t *testing.T) {
 		id := util.RandomInt()
@@ -198,6 +206,8 @@ func TestBelongsShoppinglistToEmail(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	Setup()
+	util.Setup()
+	cache.Setup(true)
 
 	t.Run("Create and Check", func(t *testing.T) {
 		id := util.RandomIntWithLength(5000)
@@ -632,7 +642,7 @@ func TestAddParticipant(t *testing.T) {
 	Setup()
 
 	t.Run("Add Participant", func(t *testing.T) {
-		id := util.RandomIntWithLength(50000)
+		id := util.RandomInt()
 		title := "title3332999" + util.StringWithCharset(20000)
 		owner := "owner999" + util.StringWithCharset(30000)
 		participantEmail := util.RandomEmail()
@@ -720,7 +730,7 @@ func TestRemoveParticipant(t *testing.T) {
 	Setup()
 
 	t.Run("Remove Participant", func(t *testing.T) {
-		id := util.RandomIntWithLength(50000)
+		id := util.RandomInt() + 50000
 		title := "title3332999" + util.StringWithCharset(20000)
 		owner := "owner999" + util.StringWithCharset(30000)
 		participantEmail := util.RandomEmail()
