@@ -116,8 +116,8 @@ func EmailExists(email string) (bool, error) {
 
 func Check(email, token string) (bool, error) {
 	ctx := context.Background()
-	pipe := rdb.Pipeline()
 
+	//check token
 	t, err := GetJWTByEmail(email)
 	if err != nil {
 		//error is probably just that the jwt token is not cached
@@ -127,6 +127,9 @@ func Check(email, token string) (bool, error) {
 	if t != token {
 		return false, nil
 	}
+
+	//update ttl
+	pipe := rdb.Pipeline()
 
 	ttl, err := rdb.TTL(ctx, tokenPrefix+email).Result()
 	if err != nil {

@@ -52,10 +52,14 @@ func IsParticipantAlreadyIncluded(email string, parentListID int) (bool, error) 
 }
 
 func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
-	var listsByParticipants []Participant
+	listsByParticipants := []Participant{}
 	lists := []Shoppinglist{}
 	err := db.Model(&Participant{}).Where("email = ?", participantEmail).Where("status = ?", "accepted").Find(&listsByParticipants).Error
 	if err != nil {
+		return []Shoppinglist{}, nil
+	}
+
+	if len(listsByParticipants) <= 0 {
 		return []Shoppinglist{}, nil
 	}
 
@@ -68,7 +72,7 @@ func GetListsByParticipant(participantEmail string) ([]Shoppinglist, error) {
 
 	for _, val := range listsByParticipants {
 		var l Shoppinglist
-		err = tx.Model(&Shoppinglist{}).Preload("Participants").Where("id = ?", val.ParentListID).First(&l).Error
+		err = tx.Model(&Shoppinglist{}).Preload("Participants").Where("id = ?", val.ParentListID).Limit(1).Find(&l).Error
 		if err != nil {
 			return lists, err
 		}
@@ -152,6 +156,6 @@ func DeleteAll(email string) error {
 }
 
 func LeaveShoppinglist(id int, email string) error {
-	err := db.Model(&Participant{}).Where("id = ?", id).Where("email = ?", email).Where("status = ?", "accepted").Delete(&Participant{ID: id, Email: email}).Error
+	err := db.Model(&Participant{}).Where("parent_list_id = ?", id).Where("email = ?", email).Where("status = ?", "accepted").Delete(&Participant{ParentListID: id, Email: email}).Error
 	return err
 }

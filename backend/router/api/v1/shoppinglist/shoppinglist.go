@@ -49,24 +49,57 @@ func GetShoppinglist(c *gin.Context) {
 		return
 	}
 
-	list, err := models.GetList(id, owner)
+	isParticipant, err := models.IsParticipantAlreadyIncluded(owner, id)
 	if err != nil {
-		log.Print(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, map[string]string{
-			"success": "false",
-		})
-		return
-	}
-
-	if list.Owner != owner {
 		appG.Response(http.StatusBadRequest, e.ERROR_LIST_DOES_NOT_BELONG_TO_TOKEN, map[string]string{
-			"error":   "list does not belong to reuqest maker",
+			"error":   "error while loading list",
 			"success": "false",
 		})
 		return
 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, list)
+	if !isParticipant {
+		list, err := models.GetList(id, owner)
+		if err != nil {
+			log.Print(err)
+			appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, map[string]string{
+				"success": "false",
+			})
+			return
+		}
+
+		if list.Owner != owner {
+			appG.Response(http.StatusBadRequest, e.ERROR_LIST_DOES_NOT_BELONG_TO_TOKEN, map[string]string{
+				"error":   "list does not belong to reuqest maker",
+				"success": "false",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"code":           200,
+			"message":        "success",
+			"data":           list,
+			"is_participant": isParticipant,
+		})
+	} else {
+		log.Print("not a participant")
+		list, err := models.GetListWithoutOwner(id)
+		if err != nil {
+			log.Print(err)
+			appG.Response(http.StatusInternalServerError, e.ERROR_GET_LIST_FAIL, map[string]string{
+				"success": "false",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"code":           200,
+			"message":        "success",
+			"data":           list,
+			"is_participant": isParticipant,
+		})
+	}
 }
 
 func GetShoppinglists(c *gin.Context) {
@@ -116,6 +149,7 @@ func GetShoppinglists(c *gin.Context) {
 
 func GetShoppinglistsByParticipation(c *gin.Context) {
 	appG := app.Gin{C: c}
+
 	token, err := util.GetCookie(c)
 	if err != nil {
 		log.Print(err)
@@ -128,12 +162,14 @@ func GetShoppinglistsByParticipation(c *gin.Context) {
 
 	email, err := cache.GetEmailByJWT(token)
 	if err != nil {
+		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
 		return
 	}
 
 	lists, err := models.GetListsByParticipant(email)
 	if err != nil {
+		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_LISTS_BY_OWNER, map[string]string{
 			"success": "false",
 			"error":   "error while getting lists by participation",
@@ -189,7 +225,6 @@ func CreateShoppinglist(c *gin.Context) {
 		return
 	}
 
-	randomId := util.RandomIntWithLength(900000)
 	owner, err := cache.GetEmailByJWT(token)
 	if err != nil {
 		log.Print(err)
@@ -205,10 +240,9 @@ func CreateShoppinglist(c *gin.Context) {
 	}
 
 	lists := models.Shoppinglist{
-		ID:    randomId,
+		ID:    util.RandomIntWithLength(9000000),
 		Title: f.Title,
 		Owner: owner,
-		//Participants: f.Participants,
 	}
 
 	if err := models.CreateList(lists, userId, true); err != nil {
@@ -223,17 +257,15 @@ func CreateShoppinglist(c *gin.Context) {
 }
 
 type EditShoppinglistForm struct {
-	ID           int                   `form:"id"`
-	Title        string                `form:"title" valid:"Required"`
-	Items        models.Item           `form:"items"`
-	Owner        string                `form:"owner" valid:"Required"`
-	Participants []*models.Participant `form:"participants" valid:"Required"`
+	Title string `form:"title" valid:"Required"`
+	Owner string `form:"owner" valid:"Required"`
 }
 
 func EditShoppinglist(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var form EditShoppinglistForm
+	id := com.StrTo(c.Param("id")).MustInt()
 
+	var form EditShoppinglistForm
 	if err := c.BindJSON(&form); err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -242,16 +274,6 @@ func EditShoppinglist(c *gin.Context) {
 		})
 		return
 	}
-
-	/*token, err := util.GetCookie(c)
-	if err != nil {
-		log.Print(err)
-		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
-			"error":   err.Error(),
-			"success": "false",
-		})
-		return
-	}*/
 
 	//TODO: Validate data some other way
 
@@ -272,27 +294,12 @@ func EditShoppinglist(c *gin.Context) {
 	}
 
 	list := models.Shoppinglist{
-		ID:           form.ID,
-		Title:        form.Title,
-		Owner:        form.Owner,
-		Participants: form.Participants,
+		ID:    id,
+		Title: form.Title,
+		Owner: form.Owner,
 	}
 
-	/*owner, err := cache.GetEmailByJWT(token)
-	if err != nil {
-		log.Print(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
-		return
-	}
-
-	userId, err := models.GetUserIDByEmail(owner)
-	if err != nil {
-		log.Print(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, nil)
-		return
-	}*/
-
-	err := models.EditList(form.ID, list)
+	err := models.EditList(id, list)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_EDIT_LIST_FAIL, map[string]string{"success": "false"})
@@ -445,6 +452,7 @@ func AddItem(c *gin.Context) {
 }
 
 type UpdateItemRequest struct {
+	ID           int    `json:"id"`
 	ParentListID int    `json:"parentListId"`
 	Title        string `json:"title"`
 	Position     int64  `json:"position"`
@@ -466,12 +474,14 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	item := models.Item{
+		ID:           form.ID,
 		ParentListID: form.ParentListID,
 		ItemID:       itemId,
 		Title:        form.Title,
 		Position:     form.Position,
 		Bought:       form.Bought,
 	}
+	log.Print(form.Bought)
 
 	err := models.UpdateItem(item)
 	if err != nil {
@@ -482,6 +492,7 @@ func UpdateItem(c *gin.Context) {
 		})
 		return
 	}
+	log.Print(item)
 
 	appG.Response(http.StatusOK, e.SUCCESS, item)
 }

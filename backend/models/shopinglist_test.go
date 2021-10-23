@@ -1021,3 +1021,31 @@ func TestGetListsByParticipant(t *testing.T) {
 		Equal(t, id, lists[2].ID)
 	})
 }
+
+func TestGetListWithoutOwner(t *testing.T) {
+	SetupTestAuth()
+
+	id := util.RandomIntWithLength(90000)
+	title := "title3332999" + util.StringWithCharset(200)
+	owner := "owner999" + util.StringWithCharset(300)
+	shoppinglist := Shoppinglist{
+		ID:    id,
+		Title: title,
+		Owner: owner,
+	}
+
+	err := CreateList(shoppinglist, 0, false)
+	if err != nil {
+		t.Errorf("Error while creating shoppinglist: %s", err)
+	}
+
+	list, err := GetListWithoutOwner(id)
+	if err != nil {
+		t.Errorf("Error while getting list without owner: %s", err)
+	}
+
+	Equal(t, id, list.ID)
+	Equal(t, title, list.Title)
+	Equal(t, owner, list.Owner)
+	Nil(t, err)
+}

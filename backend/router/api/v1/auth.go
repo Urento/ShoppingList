@@ -195,8 +195,6 @@ func Login(c *gin.Context) {
 	appGin := app.Gin{C: c}
 	valid := validation.Validation{}
 
-	//TODO: Maybe decode the token and check expire time
-
 	var user LoginUser
 
 	if err := c.BindJSON(&user); err != nil {
@@ -217,41 +215,6 @@ func Login(c *gin.Context) {
 		appGin.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
 		return
 	}
-
-	//check if the user still has a valid token
-	/*ex, err := cache.EmailExists(email)
-	if err != nil {
-		log.Print(err)
-		appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
-		return
-	}*/
-
-	//TODO: Maybe decode token and validate the actual token again
-
-	//user still has a valid token
-	/*if ex {
-		token, err := cache.GetJWTByEmail(email)
-		if err != nil {
-			log.Print(err)
-			appGin.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
-			return
-		}
-
-		err = SetCookie(c, token)
-		if err != nil {
-			log.Print(err)
-			appGin.Response(http.StatusInternalServerError, e.ERROR_SETTING_SESSION_TOKEN, map[string]string{
-				"error":   err.Error(),
-				"success": "false",
-			})
-			return
-		}
-
-		appGin.Response(http.StatusOK, e.SUCCESS, map[string]string{
-			"token": token,
-		})
-		return
-	}*/
 
 	// if the user doesnt have a valid token in cache = generate new one
 	exists, err := models.CheckAuth(email, password, ip)

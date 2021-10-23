@@ -95,56 +95,81 @@ export const ParticipatingShoppinglistCard: React.FC = () => {
     });
   };
 
+  const leaveShoppinglist = async (id: number) => {
+    const alert = await swal({
+      icon: "warning",
+      title: "Are you sure you want to leave the shoppinglist?",
+      buttons: ["No, don't leave!", "Yes, leave!"],
+    });
+
+    if (alert) {
+      const response = await fetch(`${API_URL}/participant/list/leave`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ id: id }),
+        credentials: "include",
+      });
+
+      if (response) refetch();
+    }
+  };
+
   return (
     <div className="flex flex-wrap">
-      {participatingShoppinglists.map((e: Shoppinglist) => (
-        <div className="pt-2 pl-2">
-          <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
-            <div className="justify-center md:justify-end -m-3.5 pl-96">
-              <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-9 object-cover rounded-full text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  onClick={() => showDeleteListModal(e.id)}
+      {participatingShoppinglists.length <= 0 && (
+        <p>You are not participating in any other Shoppinglists</p>
+      )}
+      {participatingShoppinglists.length > 0 &&
+        participatingShoppinglists.map((e: Shoppinglist) => (
+          <div className="pt-2 pl-2">
+            <div className="max-w-md py-4 px-8 bg-gray-800 shadow-lg rounded-lg">
+              <div className="justify-center md:justify-end -m-3.5 pl-96">
+                <button onClick={() => leaveShoppinglist(e.id)}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-9 object-cover rounded-full text-red-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div>
+                <h2 className="text-white text-3xl font-semibold">{e.title}</h2>
+                <p className="mt-2 text-white">
+                  <span className="font-bold">Participants</span>:{" "}
+                  {e.participants ? e.participants.length + 1 : 1}
+                </p>
+                <p className="mt-2 text-white">
+                  <span className="font-bold">Last Edited</span>:{" "}
+                  {e.modified_on && unixToDate(e.modified_on!)}
+                </p>
+                <p className="mt-2 text-white">
+                  <span className="font-bold">Created</span>:{" "}
+                  {e.created_on && unixToDate(e.created_on!)}
+                </p>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => history.push(`/list/${e.id}`)}
+                  className="text-lg font-bold text-white"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div>
-              <h2 className="text-white text-3xl font-semibold">{e.title}</h2>
-              <p className="mt-2 text-white">
-                <span className="font-bold">Participants</span>:{" "}
-                {e.participants.length + 1}
-              </p>
-              <p className="mt-2 text-white">
-                <span className="font-bold">Last Edited</span>:{" "}
-                {unixToDate(e.modified_on!)}
-              </p>
-              <p className="mt-2 text-white">
-                <span className="font-bold">Created</span>:{" "}
-                {unixToDate(e.modified_on!)}
-              </p>
-            </div>
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => history.push(`/list/${e.id}`)}
-                className="text-lg font-bold text-white"
-              >
-                View Shoppinglist
-              </button>
+                  View Shoppinglist
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
   );
 };

@@ -23,6 +23,7 @@ export interface ListResponse {
   message: string;
   data: ListResponseData;
   code: number;
+  is_participant: boolean;
 }
 
 export interface Item {

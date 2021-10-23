@@ -49,6 +49,15 @@ func GetList(id int, owner string) (*Shoppinglist, error) {
 	return &list, nil
 }
 
+func GetListWithoutOwner(id int) (*Shoppinglist, error) {
+	var list Shoppinglist
+	err := db.Preload(clause.Associations).Where("id = ?", id).First(&list).Error
+	if err != nil {
+		return nil, err
+	}
+	return &list, nil
+}
+
 func GetListByEmail(email string, offset int) (*[]Shoppinglist, error) {
 	var list []Shoppinglist
 	err := db.Model(&Shoppinglist{}).Preload("Participants").Where("owner = ?", email).Limit(6).Offset(offset).Find(&list).Error

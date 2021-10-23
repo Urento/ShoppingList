@@ -14,12 +14,19 @@ import {
   ListResponse,
   ListResponseData,
 } from "../../types/Shoppinglist";
+import { DeleteResponse } from "../../components/ShoppinglistCard";
+import { configureStore } from "@reduxjs/toolkit";
 
 interface Params {
   id: string;
 }
 
 interface DeletingItemState {
+  id: number;
+  loading: boolean;
+}
+
+interface MarkingItemAsBoughtState {
   id: number;
   loading: boolean;
 }
@@ -37,7 +44,7 @@ const Viewdata: React.FC = ({}) => {
   const [items, setItems] = useState<Item[]>([]);
 
   const { isLoading, data, error, refetch, isFetching } = useQuery<
-    ListResponseData,
+    ListResponse,
     Error
   >(`data_${id}`, async () => await fetchData(parseInt(id)), {
     refetchOnWindowFocus: false,
@@ -45,11 +52,13 @@ const Viewdata: React.FC = ({}) => {
 
   useEffect(() => {
     //TODO: Fix sorting
-    const sortedArray: Item[] | undefined = data?.items.sort((item1, item2) => {
-      if (item1.position > item2.position) return 1;
-      if (item1.position < item2.position) return -1;
-      return 0;
-    });
+    const sortedArray: Item[] | undefined = data?.data.items.sort(
+      (item1, item2) => {
+        if (item1.position > item2.position) return 1;
+        if (item1.position < item2.position) return -1;
+        return 0;
+      }
+    );
 
     if (!isLoading) setItems(sortedArray!);
     if (!isFetching) setItems(sortedArray!);
@@ -66,7 +75,7 @@ const Viewdata: React.FC = ({}) => {
     let position: number;
 
     try {
-      pos = data.items[data.items.length - 1].position;
+      pos = data?.data.items[data?.data.items.length - 1].position;
       position = pos + 1;
     } catch {
       position = 1;
@@ -100,6 +109,42 @@ const Viewdata: React.FC = ({}) => {
 
   const deleteList = async () => {
     setDeletingList(true);
+    const alert = await swal({
+      icon: "warning",
+      title: "Are you sure you want to delete the Shoppinglist?",
+      buttons: ["No", "Yes"],
+    });
+
+    if (alert) {
+      const response = await fetch(`${API_URL}/list/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+      const fJson: DeleteResponse = await response.json();
+
+      if (fJson.code !== 200)
+        return swal({
+          icon: "error",
+          title: "Error while deleting",
+          text: "Error while deleting Shoppinglist. Try again later!",
+        });
+
+      swal({
+        icon: "success",
+        title: "Successfully deleted",
+        text: "Successfully deleted the Shoppinglist",
+      });
+
+      setTimeout(() => {
+        history.push("/");
+      }, 1000);
+    }
+
+    setDeletingList(false);
   };
 
   const deleteItem = async (itemId: number) => {
@@ -153,30 +198,69 @@ const Viewdata: React.FC = ({}) => {
     refetch();
   };
 
+  const updateItem = async (item: ItemType) => {
+    await fetch(`${API_URL}/item/${item.itemId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        id: item.id,
+        parentListId: item.parentListId,
+        title: item.title,
+        position: item.position,
+        bought: item.bought,
+      }),
+      credentials: "include",
+    });
+
+    refetch();
+  };
+
+  const leaveShoppinglist = async () => {
+    const response = await fetch(`${API_URL}/participant/list/leave`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ id: parseInt(id) }),
+      credentials: "include",
+    });
+
+    if (response) setTimeout(() => history.push("/"), 500);
+  };
+
   return (
     <div className="flex flex-no-wrap h-screen">
       <Sidebar />
       <div className="container mx-auto py-10 md:w-4/5 w-11/12">
         <div className="bg-white px-4 md:px-10 pt-5 md:pt-7 pb-5 overflow-y-auto">
-          <h1 className="text-2xl">{data?.title}</h1>
+          <h1 className="text-2xl">{data?.data.title}</h1>
           <h1 className="text-2xl">
             {items.length} {items.length === 1 ? "Item" : "Items"}
           </h1>
           <h1 className="text-2xl">
-            {data.participants.length === 0 ? 1 : data.participants.length}{" "}
-            {data.participants.length === 1 || data.participants.length === 0
+            {data?.data.participants.length === 0
+              ? 1
+              : data?.data.participants.length}{" "}
+            {data?.data.participants.length === 1 ||
+            data?.data.participants.length === 0
               ? "Participant"
               : "Participants"}
           </h1>
           <br />
-          <Button
-            text="Delete Shoppinglist"
-            loadingText="Deleting Shoppinglist..."
-            onClick={deleteList}
-            className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-red-600 hover:bg-red-500 text-white focus:outline-none rounded"
-            loading={deletingList}
-            color="red"
-          />
+          {!data?.is_participant && (
+            <Button
+              text="Delete Shoppinglist"
+              loadingText="Deleting Shoppinglist..."
+              onClick={deleteList}
+              className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-red-600 hover:bg-red-500 text-white focus:outline-none rounded"
+              loading={deletingList}
+              color="red"
+            />
+          )}
           <Button
             text="Create new Item"
             loadingText="Creating new Item..."
@@ -184,11 +268,20 @@ const Viewdata: React.FC = ({}) => {
             className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
             loading={creatingItem}
           />
-          <Button
-            text="Participants"
-            onClick={() => history.push(`/list/participants/${id}`)}
-            className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
-          />
+          {!data?.is_participant && (
+            <Button
+              text="Participants"
+              onClick={() => history.push(`/list/participants/${id}`)}
+              className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-green-600 hover:bg-green-500 text-white focus:outline-none rounded"
+            />
+          )}
+          {data?.is_participant && (
+            <Button
+              text="Leave"
+              onClick={() => leaveShoppinglist()}
+              className="inline-flex sm:ml-3 mt-4 sm:mt-0 items-start justify-start px-6 py-3 bg-red-600 hover:bg-red-500 text-white focus:outline-none rounded"
+            />
+          )}
           <table className="w-full whitespace-nowrap">
             <thead>
               <tr className="h-16 w-full text-sm leading-none ">
@@ -236,10 +329,17 @@ const Viewdata: React.FC = ({}) => {
                       <td className="pl-16">
                         <Button
                           text="Bought"
-                          loadingText="Marking as bought..."
-                          loading={false}
                           color="green"
-                          onClick={() => console.log("")}
+                          onClick={() =>
+                            updateItem({
+                              id: e.id,
+                              bought: !e.bought,
+                              itemId: e.itemId,
+                              parentListId: e.parentListId,
+                              position: e.position,
+                              title: e.title,
+                            })
+                          }
                         />
                       </td>
                     </tr>
@@ -264,7 +364,7 @@ const fetchData = async (id: number) => {
     credentials: "include",
   });
   const fJson: ListResponse = await response.json();
-  return fJson.data;
+  return fJson;
 };
 
 export default Viewdata;

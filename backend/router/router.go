@@ -45,12 +45,12 @@ func InitRouter() *gin.Engine {
 	apiv1.GET("/lists", v1.GetShoppinglists)
 	apiv1.GET("/listsByParticipation", v1.GetShoppinglistsByParticipation)
 	apiv1.POST("/list", v1.CreateShoppinglist)
-	apiv1.PUT("/list", v1.EditShoppinglist)
+	apiv1.PUT("/list/:id", v1.EditShoppinglist)
 	apiv1.GET("/list/:id", v1.GetShoppinglist)
 	apiv1.GET("/list/items/:id", v1.GetListItems) //TODO: Start using this when displaying items on the frontend
 	apiv1.POST("/list/items", v1.AddItem)
 	apiv1.PUT("/items", v1.UpdateItems)
-	apiv1.PUT("/item", v1.UpdateItem)
+	apiv1.PUT("/item/:id", v1.UpdateItem)
 	apiv1.DELETE("/item", v1.DeleteItem)
 	apiv1.DELETE("/list/:id", v1.DeleteShoppinglist)
 	apiv1.POST("/participant", v1.AddParticipant)
@@ -61,7 +61,7 @@ func InitRouter() *gin.Engine {
 	apiv1.DELETE("/participant/requests", v1.DeleteRequest)
 	apiv1.DELETE("/participant/:parentListId/:id", v1.DeleteParticipant)
 	apiv1.DELETE("/participant/requests/denyall", v1.DeleteParticipant)
-	apiv1.POST("/participant/leaveList", v1.LeaveShoppinglsit)
+	apiv1.POST("/participant/list/leave", v1.LeaveShoppinglsit)
 
 	apiv1.POST("/resetpassword/verifyid", api.VerifyVerificationId)
 	apiv1.POST("/resetpassword", api.SendResetPassword)
