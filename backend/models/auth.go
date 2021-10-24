@@ -43,7 +43,6 @@ func CheckAuth(email, password, ip string) (bool, error) {
 	}
 
 	attempts, err := cache.GetFailedLoginAttempts(context.Background(), email)
-	log.Print(attempts)
 	if err != nil || attempts >= 10 {
 		log.Print(err)
 		return false, errors.New("too many failed login attempts")

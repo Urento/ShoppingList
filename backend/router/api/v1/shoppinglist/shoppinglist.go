@@ -83,7 +83,6 @@ func GetShoppinglist(c *gin.Context) {
 			"is_participant": isParticipant,
 		})
 	} else {
-		log.Print("not a participant")
 		list, err := models.GetListWithoutOwner(id)
 		if err != nil {
 			log.Print(err)
@@ -489,7 +488,6 @@ func UpdateItem(c *gin.Context) {
 		})
 		return
 	}
-	log.Print(item)
 
 	appG.Response(http.StatusOK, e.SUCCESS, item)
 }

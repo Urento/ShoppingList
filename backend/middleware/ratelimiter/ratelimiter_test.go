@@ -30,7 +30,7 @@ func TestRatelimitMiddleware(t *testing.T) {
 			t.Errorf("An error occurred while making the requests: %s", err)
 		}
 
-		limitHeader := resp.Header.Get("Ratelimit-Limit")
+		limitHeader := resp.Header.Get("X-Ratelimit-Limit")
 
 		if limitHeader != "300" {
 			t.Error("Ratelimit-Limit header not set!")

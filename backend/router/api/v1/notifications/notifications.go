@@ -217,7 +217,6 @@ func GetNotification(c *gin.Context) {
 
 	notificationId := c.Param("notification_id")
 	notificationIdAsInt, err := strconv.Atoi(notificationId)
-	log.Print(notificationIdAsInt)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
 			"error":   "error while binding json to struct",

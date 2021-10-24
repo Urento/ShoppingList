@@ -74,6 +74,12 @@ func TestGetPendingRequests(t *testing.T) {
 			Status:       "pending",
 			RequestFrom:  owner,
 		}
+		participant4 := Participant{
+			ParentListID: id,
+			Email:        participantEmail3,
+			Status:       "pending",
+			RequestFrom:  owner,
+		}
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
@@ -96,6 +102,11 @@ func TestGetPendingRequests(t *testing.T) {
 		}
 
 		_, err = AddParticipant(participant3)
+		if err != nil {
+			t.Errorf("Error while adding participant to list: %s", err)
+		}
+
+		_, err = AddParticipant(participant4)
 		if err != nil {
 			t.Errorf("Error while adding participant to list: %s", err)
 		}
