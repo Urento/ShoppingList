@@ -74,12 +74,6 @@ func TestGetPendingRequests(t *testing.T) {
 			Status:       "pending",
 			RequestFrom:  owner,
 		}
-		participant4 := Participant{
-			ParentListID: id,
-			Email:        participantEmail3,
-			Status:       "pending",
-			RequestFrom:  owner,
-		}
 		shoppinglist := Shoppinglist{
 			ID:    id,
 			Title: title,
@@ -106,15 +100,11 @@ func TestGetPendingRequests(t *testing.T) {
 			t.Errorf("Error while adding participant to list: %s", err)
 		}
 
-		_, err = AddParticipant(participant4)
-		if err != nil {
-			t.Errorf("Error while adding participant to list: %s", err)
-		}
-
 		requests, err := GetPendingRequests(participantEmail)
 		if err != nil {
 			t.Errorf("Error while getting pending requests: %s", err)
 		}
+		t.Log(len(requests))
 
 		Equal(t, id, requests[0].ParentListID)
 		Equal(t, participantEmail, requests[0].Email)
