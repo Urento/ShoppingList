@@ -85,18 +85,18 @@ func TestGetPendingRequests(t *testing.T) {
 			t.Errorf("Error while creating shoppinglist: %s", err)
 		}
 
-		_, err = AddParticipant(participant)
-		if err != nil {
+		_, addParticipantErr1 := AddParticipant(participant)
+		if addParticipantErr1 != nil {
 			t.Errorf("Error while adding participant to list: %s", err)
 		}
 
-		_, err = AddParticipant(participant2)
-		if err != nil {
+		_, addParticipantErr2 := AddParticipant(participant2)
+		if addParticipantErr2 != nil {
 			t.Errorf("Error while adding participant to list: %s", err)
 		}
 
-		_, err = AddParticipant(participant3)
-		if err != nil {
+		_, addParticipantErr3 := AddParticipant(participant3)
+		if addParticipantErr3 != nil {
 			t.Errorf("Error while adding participant to list: %s", err)
 		}
 
