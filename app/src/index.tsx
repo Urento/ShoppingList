@@ -34,6 +34,7 @@ const ParticipantsComponent = lazy(
 const ViewInvitationsComponent = lazy(
   () => import("./screens/participants/ViewInvitations")
 );
+const BackupCodeLoginComponent = lazy(() => import("./BackupCodeLogin"));
 
 //TODO: Cache
 
@@ -49,6 +50,11 @@ ReactDOM.render(
             exact
             path="/twofactorauthentication"
             component={TwoFactorAuthenticationComponent}
+          />
+          <Route
+            exact
+            path="/backupcode/login"
+            component={BackupCodeLoginComponent}
           />
 
           <Route exact path="/dashboard" component={DashboardComponent} />

@@ -232,6 +232,34 @@ const Viewdata: React.FC = ({}) => {
     if (response) setTimeout(() => history.push("/"), 500);
   };
 
+  const updateTitle = async (item: ItemType) => {
+    await swal({
+      text: "Update Title", //@ts-ignore
+      content: "input",
+      buttons: ["Cancel", "Update"],
+      closeOnEsc: false,
+      closeOnClickOutside: false,
+    }).then(async (title: string) => {
+      if (title === "" || !title) return;
+      const response = await fetch(`${API_URL}/item/${item.itemId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          parentListId: item.parentListId,
+          title: title,
+          bought: item.bought,
+          position: item.position,
+        }),
+        credentials: "include",
+      });
+
+      if (response) refetch();
+    });
+  };
+
   return (
     <div className="flex flex-no-wrap h-screen">
       <Sidebar />
@@ -289,6 +317,7 @@ const Viewdata: React.FC = ({}) => {
                 <th className="font-normal text-left pl-12"></th>
                 <th className="font-normal text-left pl-12"></th>
                 <th className="font-normal text-left pl-12"></th>
+                <th className="font-normal text-left pl-12"></th>
               </tr>
             </thead>
             <tbody className="w-full">
@@ -335,6 +364,22 @@ const Viewdata: React.FC = ({}) => {
                               id: e.id,
                               bought: !e.bought,
                               itemId: e.itemId,
+                              parentListId: e.parentListId,
+                              position: e.position,
+                              title: e.title,
+                            })
+                          }
+                        />
+                      </td>
+                      <td className="pl-16">
+                        <Button
+                          text="Edit"
+                          color="green"
+                          onClick={() =>
+                            updateTitle({
+                              id: e.id,
+                              itemId: e.itemId,
+                              bought: e.bought,
                               parentListId: e.parentListId,
                               position: e.position,
                               title: e.title,

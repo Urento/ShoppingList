@@ -17,10 +17,10 @@ func Ratelimiter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		remaining, err := GetAndUpdateLimit(c)
 
-		//TODO: make exceptions for some routes maybe?
+		//TODO: make exceptions for some routes
 
-		c.Header("Ratelimit-Remaining", strconv.FormatInt(300-remaining, 10))
-		c.Header("Ratelimit-Limit", "300")
+		c.Header("X-Ratelimit-Remaining", strconv.FormatInt(300-remaining, 10))
+		c.Header("X-Ratelimit-Limit", "300")
 
 		if err != nil && err.Error() == "limit reached" {
 			log.Print(err)

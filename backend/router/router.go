@@ -74,8 +74,8 @@ func InitRouter() *gin.Engine {
 	apiv1.DELETE("/notifications", notifications_v1.DeleteNotification)
 
 	apiv1.GET("/backupcodes", api.GetBackupCodes)
-	apiv1.POST("/backupcodes/changepassword", api.ChangePassword)
-	apiv1.POST("/backupcodes", api.VerifyBackupCode)
+	r.POST("/api/v1/backupcodes/changepassword", api.ChangePassword)
+	r.POST("/api/v1/backupcodes", api.VerifyBackupCode)
 	apiv1.POST("/backupcodes/regenerate", api.RegenerateCodes)
 	apiv1.POST("/backupcodes/generate", api.GenerateCodes)
 

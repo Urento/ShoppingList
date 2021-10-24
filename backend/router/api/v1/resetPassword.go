@@ -154,6 +154,8 @@ func VerifyVerificationId(c *gin.Context) {
 }
 
 type ChangePasswordRequest struct {
+	Code     string `json:"code"`
+	Owner    string `json:"owner"`
 	Password string `json:"password"`
 }
 
@@ -163,35 +165,41 @@ func ChangePassword(c *gin.Context) {
 
 	if err := c.BindJSON(&form); err != nil {
 		log.Print(err)
-		appG.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{"success": "false", "verified": "false"})
+		appG.Response(http.StatusBadRequest, e.ERROR_BINDING_JSON_DATA, map[string]string{
+			"success":  "false",
+			"verified": "false",
+			"ok":       "false",
+		})
 		return
 	}
 
-	token, err := util.GetCookie(c)
+	ok, err := models.VerifyCode(form.Owner, form.Code)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
-			"error":   err.Error(),
+			"error":   "error while verifying backupcode",
 			"success": "false",
+			"ok":      "false",
 		})
 		return
 	}
 
-	email, err := cache.GetEmailByJWT(token)
-	if err != nil {
-		log.Print(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
+	if !ok {
+		appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+			"error":   "code is incorrect",
 			"success": "false",
+			"ok":      "false",
 		})
 		return
 	}
 
-	canReset, err := cache.CanResetPassword(context.Background(), email)
+	canReset, err := cache.CanResetPassword(context.Background(), form.Owner)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 			"error":   "error while checking if the user can reset password",
+			"ok":      "false",
 		})
 		return
 	}
@@ -200,19 +208,24 @@ func ChangePassword(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 			"error":   "you can't reset your password",
+			"ok":      "false",
 		})
 		return
 	}
 
-	err = models.ResetPasswordFromUser(email, form.Password, "", false)
+	err = models.ResetPasswordFromUser(form.Owner, form.Password, "", false)
 	if err != nil {
 		log.Print(err)
 		appG.Response(http.StatusInternalServerError, e.ERROR_GETTING_EMAIL_BY_JWT, map[string]string{
 			"success": "false",
 			"error":   "error while resetting password from user without old password",
+			"ok":      "true",
 		})
 		return
 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{"success": "true"})
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"success": "true",
+		"ok":      "true",
+	})
 }

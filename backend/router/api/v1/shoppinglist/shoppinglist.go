@@ -257,8 +257,8 @@ func CreateShoppinglist(c *gin.Context) {
 }
 
 type EditShoppinglistForm struct {
-	Title string `form:"title" valid:"Required"`
-	Owner string `form:"owner" valid:"Required"`
+	Title string `form:"title"`
+	Owner string `form:"owner,omitempty"`
 }
 
 func EditShoppinglist(c *gin.Context) {
@@ -452,7 +452,6 @@ func AddItem(c *gin.Context) {
 }
 
 type UpdateItemRequest struct {
-	ID           int    `json:"id"`
 	ParentListID int    `json:"parentListId"`
 	Title        string `json:"title"`
 	Position     int64  `json:"position"`
@@ -462,8 +461,8 @@ type UpdateItemRequest struct {
 func UpdateItem(c *gin.Context) {
 	appG := app.Gin{C: c}
 	itemId := com.StrTo(c.Param("id")).MustInt()
-	var form UpdateItemRequest
 
+	var form UpdateItemRequest
 	if err := c.BindJSON(&form); err != nil {
 		log.Print(err)
 		appG.Response(http.StatusBadRequest, e.ERROR_GETTING_HTTPONLY_COOKIE, map[string]string{
@@ -474,14 +473,12 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	item := models.Item{
-		ID:           form.ID,
 		ParentListID: form.ParentListID,
 		ItemID:       itemId,
 		Title:        form.Title,
 		Position:     form.Position,
 		Bought:       form.Bought,
 	}
-	log.Print(form.Bought)
 
 	err := models.UpdateItem(item)
 	if err != nil {
