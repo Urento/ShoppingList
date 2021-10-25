@@ -53,9 +53,9 @@ func TestGetPendingRequests(t *testing.T) {
 		id := util.RandomIntWithLength(50000)
 		title := "title3332999" + util.StringWithCharset(200)
 		owner := "owner999" + util.StringWithCharset(300)
-		participantEmail := util.StringWithCharset(500) + "@gmail.com"
-		participantEmail2 := util.StringWithCharset(500) + "@gmail.com"
-		participantEmail3 := util.StringWithCharset(500) + "@gmail.com"
+		participantEmail := util.RandomEmail()
+		participantEmail2 := util.RandomEmail()
+		participantEmail3 := util.RandomEmail()
 		participant := Participant{
 			ParentListID: id,
 			Email:        participantEmail,
@@ -104,7 +104,6 @@ func TestGetPendingRequests(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error while getting pending requests: %s", err)
 		}
-		t.Log(len(requests))
 
 		Equal(t, id, requests[0].ParentListID)
 		Equal(t, participantEmail, requests[0].Email)

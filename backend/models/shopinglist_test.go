@@ -132,9 +132,9 @@ func TestGetListsByOwner(t *testing.T) {
 	}
 
 	Equal(t, owner, lists[0].Owner)
-	Equal(t, owner, lists[1].Owner)
 	Equal(t, title, lists[0].Title)
 	Equal(t, id, lists[0].ID)
+	Equal(t, owner, lists[1].Owner)
 	Equal(t, title2, lists[1].Title)
 	Equal(t, id2, lists[1].ID)
 }

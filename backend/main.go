@@ -1,20 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/urento/shoppinglist/middleware/ratelimiter"
 	"github.com/urento/shoppinglist/models"
 	"github.com/urento/shoppinglist/pkg/cache"
-	"github.com/urento/shoppinglist/pkg/setting"
 	"github.com/urento/shoppinglist/pkg/util"
 	routers "github.com/urento/shoppinglist/router"
 )
 
 func init() {
-	setting.Setup()
 	models.Setup()
 	util.Setup()
 	ratelimiter.Setup()
@@ -29,20 +26,15 @@ func init() {
 
 func main() {
 	routersInit := routers.InitRouter()
-	readTimeout := setting.ServerSetting.ReadTimeout
-	writeTimeout := setting.ServerSetting.WriteTimeout
-	endPoint := fmt.Sprintf(":%d", setting.ServerSetting.HttpPort)
 	maxHeaderBytes := 1 << 20
 
 	server := &http.Server{
-		Addr:           endPoint,
+		Addr:           ":8080",
 		Handler:        routersInit,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	log.Printf("Listening on port: %s", endPoint)
+	log.Printf("Listening on port: %s", ":8080")
 
 	server.ListenAndServe()
 }
