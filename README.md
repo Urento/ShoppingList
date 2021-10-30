@@ -9,3 +9,4 @@ This Project is to mostly learn Go and React with Tailwind
 - Send Notifications on Username/Password/Email Change
 - Add CSRF Token to every request
 - Remove Auth Check on every page load and just use the api response as an indicator if the user is actually authenticated
+- Instant Updates via Socket
